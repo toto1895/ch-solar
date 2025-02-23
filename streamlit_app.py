@@ -74,6 +74,38 @@ def Home():
     df = conn.read(selected_file, input_format="parquet")
     st.dataframe(df)
 
+    # Extract start and end timestamps from the DataFrame.
+    # Assumes a 'timestamp' column exists.
+    start_ts = pd.to_datetime(df['timestamp'].min())
+    end_ts = pd.to_datetime(df['timestamp'].max())
+
+    # Format timestamps to ISO with milliseconds and 'Z'
+    start_str = start_ts.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    end_str = end_ts.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+
+    # Build payload for the request
+    payload = {
+        "dateTimeRange": {"from": start_str, "to": end_str},
+        "areaList": ["BZN|10YCH-SWISSGRIDZ"],
+        "filterMap": {},
+        "timeZone": "CET"
+    }
+
+    # Request additional data
+    url = "https://newtransparency.entsoe.eu/generation/forecast/windAndSolar/solar/loadpayload"
+    response = requests.post(url, json=payload)
+    if response.status_code == 200:
+        additional_data = response.json()
+        # Convert additional data to a DataFrame
+        additional_df = pd.DataFrame(additional_data)
+        st.subheader("Additional Data")
+        st.dataframe(additional_df)
+        # Optionally, merge or join with the loaded DataFrame if applicable.
+        # combined_df = pd.merge(df, additional_df, on="timestamp", how="outer")
+        # st.dataframe(combined_df)
+    else:
+        st.error("Error fetching additional data")
+
 
 
 
