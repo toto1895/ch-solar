@@ -91,16 +91,25 @@ def Home():
         "timeZone": "CET"
     }
 
-    # Request additional data
-    url = "https://newtransparency.entsoe.eu/generation/forecast/windAndSolar/solar/loadpayload"
-    response = requests.post(url, json=payload)
+    # Define request headers based on the captured network headers
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json; charset=utf-8",
+        "origin": "https://newtransparency.entsoe.eu",
+        "referer": "https://newtransparency.entsoe.eu/generation/forecast/windAndSolar/solar",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
+    }
+
+    # Make the POST request to fetch additional data
+    url = "https://newtransparency.entsoe.eu/generation/forecast/windAndSolar/solar/load"
+    response = requests.post(url, headers=headers, json=payload)
+
     if response.status_code == 200:
         additional_data = response.json()
-        # Convert additional data to a DataFrame
         additional_df = pd.DataFrame(additional_data)
         st.subheader("Additional Data")
         st.dataframe(additional_df)
-        # Optionally, merge or join with the loaded DataFrame if applicable.
+        # Optionally, merge with df if a common key exists:
         # combined_df = pd.merge(df, additional_df, on="timestamp", how="outer")
         # st.dataframe(combined_df)
     else:
