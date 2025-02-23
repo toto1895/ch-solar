@@ -102,7 +102,7 @@ def main():
     st.sidebar.title("Navigation")
     page_choice = st.sidebar.radio("Go to page:", ["Home", "Portfolio"])
     if page_choice == "Home":
-        print()
+        Home()
     elif page_choice== 'Portfolio':
         print()
 
