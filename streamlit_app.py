@@ -108,11 +108,36 @@ def Home():
     if response.status_code == 200:
         additional_data = response.json()
         try:
-            # Flatten the JSON structure
-            additional_df = pd.json_normalize(additional_data)
+            # Extract the base time from the API response
+            base_time_str = (additional_data.get('instanceList', [{}])[0]
+                             .get('curveData', {})
+                             .get('periodList', [{}])[0]
+                             .get('timeInterval', {})
+                             .get('from', None))
+            if base_time_str is None:
+                st.error("Base time not found in API response.")
+                return
+
+            base_time = pd.to_datetime(base_time_str)
+            # Extract pointMap data
+            point_map = (additional_data.get('instanceList', [{}])[0]
+                                        .get('curveData', {})
+                                        .get('periodList', [{}])[0]
+                                        .get('pointMap', {}))
+            # Build a list of points with computed timestamps.
+            # Assuming each key in pointMap represents an offset in hours.
+            points = []
+            for offset_str, value in point_map.items():
+                try:
+                    offset_hours = float(offset_str)
+                    ts = base_time + pd.Timedelta(hours=offset_hours)
+                    points.append({"timestamp": ts, "value": value})
+                except Exception as e:
+                    st.error(f"Error processing offset '{offset_str}': {e}")
+
+            additional_df = pd.DataFrame(points)
             st.subheader("Additional Data")
             st.dataframe(additional_df)
-            # Optionally merge additional_df with df if they share a common key.
         except Exception as ex:
             st.error(f"Error processing additional data: {ex}")
     else:
