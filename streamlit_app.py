@@ -104,6 +104,7 @@ def Home():
     url = "https://newtransparency.entsoe.eu/generation/forecast/windAndSolar/solar/load"
     response = requests.post(url, headers=headers, json=payload)
 
+
     if response.status_code == 200:
         additional_data = response.json()
         try:
