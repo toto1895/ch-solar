@@ -63,7 +63,7 @@ def Home():
     sorted_files = sorted(all_files)
     # Create a mapping: display datetime -> full file path
     file_map = {
-        os.path.basename(f).split('_q50_fcst')[0]: f for f in sorted_files
+        pd.to_datetime(f.split('_q50_fcst')[0], format='%Y_%m_%d_%H_%M_%S'): f for f in sorted_files
     }
     # Dropdown displays only the datetime strings
     selected_dt = st.selectbox("Select a file (datetime):", list(file_map.keys()))
