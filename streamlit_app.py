@@ -106,12 +106,14 @@ def Home():
 
     if response.status_code == 200:
         additional_data = response.json()
-        additional_df = pd.DataFrame(additional_data)
-        st.subheader("Additional Data")
-        st.dataframe(additional_df)
-        # Optionally, merge with df if a common key exists:
-        # combined_df = pd.merge(df, additional_df, on="timestamp", how="outer")
-        # st.dataframe(combined_df)
+        try:
+            # Flatten the JSON structure
+            additional_df = pd.json_normalize(additional_data)
+            st.subheader("Additional Data")
+            st.dataframe(additional_df)
+            # Optionally merge additional_df with df if they share a common key.
+        except Exception as ex:
+            st.error(f"Error processing additional data: {ex}")
     else:
         st.error("Error fetching additional data")
 
