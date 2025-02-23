@@ -34,30 +34,13 @@ import json
 from google.oauth2 import service_account
 from st_files_connection import FilesConnection
 
-def get_latest_da_fcst_file(selected_date,files):
-    selected_str = pd.to_datetime(selected_date).strftime("%Y_%m_%d")
-    files_time = []
-    for f in files:
-        if not f.endswith(".parquet"):
-            continue
-        basename = f.split("/")[-1].split('_')
-        date_part = basename[0]+'_'+basename[1]+'_'+basename[2]
-        hour = basename[3] 
-        #if (date_part == selected_str) and (int(hour) < 10):
-        files_time.append(f)
-    if  len(files_time)==0:
-        #st.warning("No files found for the selected date before 10:00.")
-        return
-    selected_file = sorted(files_time)
-    return selected_file
+
 
 def Home():
 
 
     st.title("Benchmark Models")
     conn = st.connection('gcs', type=FilesConnection)
-
-    selected_date = st.date_input("Submission date", pd.to_datetime("today"))
 
     try:
         all_files = []
@@ -80,13 +63,11 @@ def Home():
             if not token:
                 break
 
-        sel = get_latest_da_fcst_file(selected_date,all_files)
-        #print(sel)
-        
     except Exception as e:
             pass    
-    print(sel)
-    df = conn.read(sel, input_format="parquet")
+    print(all_files)
+    
+    df = conn.read(all_files[0], input_format="parquet")
     print(df)
 
 
