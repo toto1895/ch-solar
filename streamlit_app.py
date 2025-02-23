@@ -76,8 +76,8 @@ def Home():
 
     # Extract start and end timestamps from the DataFrame.
     # Assumes a 'timestamp' column exists.
-    start_ts = pd.to_datetime(df['timestamp'].min())
-    end_ts = pd.to_datetime(df['timestamp'].max())
+    start_ts = pd.to_datetime(df.index.min())
+    end_ts = pd.to_datetime(df.index.max())
 
     # Format timestamps to ISO with milliseconds and 'Z'
     start_str = start_ts.strftime("%Y-%m-%dT%H:%M:%S.000Z")
