@@ -67,8 +67,7 @@ def Home():
             pass    
     print(all_files)
     
-    df = conn.read(all_files[0], input_format="parquet")
-    print(df)
+    #df = conn.read(all_files[0], input_format="parquet")
 
 
 
