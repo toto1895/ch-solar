@@ -37,9 +37,7 @@ from st_files_connection import FilesConnection
 
 
 def Home():
-
-
-    st.title("Benchmark Models")
+    st.title("Forecasts")
     conn = st.connection('gcs', type=FilesConnection)
 
     try:
@@ -47,27 +45,23 @@ def Home():
         token = None
         while True:
             res = conn._instance.ls(
-                f"oracle_predictions/swiss_solar/forecasts",
+                "oracle_predictions/swiss_solar/forecasts",
                 max_results=50,
                 page_token=token
             )
-            # If ls returns a tuple, take the first two elements; otherwise, treat it as files only.
             if isinstance(res, tuple):
-                files = res[0]
-                token = res[1] if len(res) > 1 else None
+                files, token = res[0], (res[1] if len(res) > 1 else None)
             else:
-                files = res
-                token = None
-
-            all_files.extend(files)  # extend() flattens the list if files is a list
+                files, token = res, None
+            all_files.extend(files)
             if not token:
                 break
-
     except Exception as e:
-            pass    
-    print(all_files)
-    
-    #df = conn.read(all_files[0], input_format="parquet")
+        st.error(f"Error retrieving files: {e}")
+        return
+
+    sorted_files = sorted(all_files)
+    selected_file = st.selectbox("Select a file:", sorted_files)
 
 
 
