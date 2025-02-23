@@ -67,7 +67,15 @@ def Home():
     }
     # Dropdown displays only the datetime strings
     selected_dt = st.selectbox("Select a file (datetime):", list(file_map.keys()))
-    st.write("Generated at :", pd.to_datetime(selected_dt, format='%Y_%m_%d_%H_%M_%S'))
+
+    selected_file = file_map[selected_dt]
+
+    # Load and display the parquet file as a DataFrame
+    df = conn.read(selected_file, input_format="parquet")
+    st.dataframe(df)
+
+
+
 
 
 
