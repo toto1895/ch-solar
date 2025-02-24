@@ -113,7 +113,7 @@ def Home():
         pd.to_datetime(os.path.basename(f).split('_q50_fcst')[0], format='%Y_%m_%d_%H_%M_%S'): f for f in sorted_files
     }
     # Dropdown displays only the datetime strings
-    selected_dt = st.selectbox("Select a file (datetime):", list(file_map.keys()))
+    selected_dt = st.selectbox("Generated at :", list(file_map.keys()))
 
     selected_file = file_map[selected_dt]
 
