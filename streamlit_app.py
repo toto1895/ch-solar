@@ -34,7 +34,7 @@ import json
 from google.oauth2 import service_account
 from st_files_connection import FilesConnection
 
-def get_entsoe():
+def get_entsoe(df):
     # Extract start and end timestamps from the DataFrame.
     # Assumes a 'timestamp' column exists.
     start_ts = pd.to_datetime(df.index.min())
@@ -118,9 +118,10 @@ def Home():
 
     # Load and display the parquet file as a DataFrame
     df = conn.read(selected_file, input_format="parquet")
+    print(df)
     st.dataframe(df)
 
-    print(df)
+
     
 
 
