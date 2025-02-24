@@ -107,7 +107,8 @@ def Home():
         st.error(f"Error retrieving files: {e}")
         return
 
-    sorted_files = sorted(all_files)
+    sorted_files = sorted(all_files)[::-1]
+    print(sorted_files)
     # Create a mapping: display datetime -> full file path
     file_map = {
         pd.to_datetime(os.path.basename(f).split('_q50_fcst')[0], format='%Y_%m_%d_%H_%M_%S'): f for f in sorted_files
