@@ -112,11 +112,11 @@ def Home():
             additional_df = pd.DataFrame(additional_data['instanceList'][0]['curveData']['periodList'][0]['pointMap']).T
             additional_df = additional_df[[0,3]]
             additional_df.columns = ['DA_entsoe','actual']
-            additional_df['DA_entsoe'] = pd.to_numeric(additional_df['DA_entsoe'],error='coerce')
-            additional_df['actual'] = pd.to_numeric(additional_df['actual'],error='coerce')
+            additional_df['DA_entsoe'] = pd.to_numeric(additional_df['DA_entsoe'])
+            additional_df['actual'] = pd.to_numeric(additional_df['actual'])
             st.dataframe(additional_df)
         except Exception as e:
-            print()
+            print(e)
       
     else:
         st.error("Error fetching additional data")
