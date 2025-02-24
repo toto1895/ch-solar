@@ -110,7 +110,10 @@ def Home():
             # Extract the base time from the API response
             
             additional_df = pd.DataFrame(additional_data['instanceList'][0]['curveData']['periodList'][0]['pointMap']).T
-            additional_df = additional_df.replace("{'alt': 'n/e'}",np.nan).replace("{'alt': '-'}",np.nan)
+            additional_df = additional_df[[0,3]]
+            additional_df.columns = ['DA_entsoe','actual']
+            additional_df['DA_entsoe'] = pd.to_numeric(additional_df['DA_entsoe'],error='coerce')
+            additional_df['actual'] = pd.to_numeric(additional_df['actual'],error='coerce')
             st.dataframe(additional_df)
         except Exception as e:
             print()
