@@ -118,7 +118,30 @@ def Home():
 
     # Load and display the parquet file as a DataFrame
     df = conn.read(selected_file, input_format="parquet")
-    print(df)
+    import plotly.express as px
+
+    # Reset index to have 'time' as a column and melt the DataFrame to long format
+    df_long = df.reset_index().melt(id_vars="time", 
+                                    value_vars=["metno_0.5", "knmi_0.5", "icon_0.5", "meteofrance_0.5", "avg"],
+                                    var_name="source", value_name="value")
+
+    # Define custom colors for each column
+    color_map = {
+        "metno_0.5": "blue",
+        "knmi_0.5": "red",
+        "icon_0.5": "green",
+        "meteofrance_0.5": "orange",
+        "avg": "purple"
+    }
+
+    # Create the line plot with assigned colors
+    fig = px.line(df_long, x="time", y="value", color="source",
+                title="Solar Forecast", color_discrete_map=color_map)
+    fig.update_layout(xaxis_title="Time", yaxis_title="Forecast Value")
+    st.plotly_chart(fig)
+
+ 
+        
     st.dataframe(df)
 
 
