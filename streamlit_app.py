@@ -115,11 +115,11 @@ def Home():
    # }
     # Dropdown displays only the datetime strings
     #selected_dt = st.selectbox("Generated at :", list(file_map.keys()))
-    selected_dt = st.selectbox("Generated at :", sorted_files)
+    selected_dt = st.selectbox("Generated at :", [s.split('/')[-1][:-8] for s in sorted_files])
     #selected_file = file_map[selected_dt]
 
     # Load and display the parquet file as a DataFrame
-    df = conn.read(selected_dt, input_format="parquet").round(2)
+    df = conn.read('oracle_predictions/swiss_solar/forecasts/'+selected_dt+'.parquet', input_format="parquet").round(2)
 
     # Reset index to have 'time' as a column and melt the DataFrame to long format
     df_long = df.reset_index().melt(id_vars="time", 
