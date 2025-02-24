@@ -104,13 +104,13 @@ def Home():
     url = "https://newtransparency.entsoe.eu/generation/forecast/windAndSolar/solar/load"
     response = requests.post(url, headers=headers, json=payload)
 
-
     if response.status_code == 200:
         additional_data = response.json()
         try:
             # Extract the base time from the API response
             
-            additional_df = pd.DataFrame(additional_data['instanceList'][0]['curveData']['periodList'][0]['pointMap'])
+            additional_df = pd.DataFrame(additional_data['instanceList'][0]['curveData']['periodList'][0]['pointMap']).T
+            additional_df = additional_df.replace("{'alt': 'n/e'}",np.nan).replace("{'alt': '-'}",np.nan)
             st.dataframe(additional_df)
         except Exception as e:
             print()
