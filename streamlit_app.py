@@ -118,7 +118,7 @@ def Home():
     selected_file = file_map[selected_dt]
 
     # Load and display the parquet file as a DataFrame
-    df = conn.read(selected_file, input_format="parquet")
+    df = conn.read(selected_file, input_format="parquet").round(2)
 
     # Reset index to have 'time' as a column and melt the DataFrame to long format
     df_long = df.reset_index().melt(id_vars="time", 
