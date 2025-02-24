@@ -138,6 +138,9 @@ def Home():
 # ---------------- Main App with Navigation ----------------
 def main():
     st.sidebar.title("Navigation")
+    if st.button("Clear Cache"):
+        st.cache_resource.clear()
+        st.write("Cache cleared!")
     page_choice = st.sidebar.radio("Go to page:", ["Home", "Portfolio"])
     if page_choice == "Home":
         Home()
