@@ -110,13 +110,13 @@ def Home():
     sorted_files = sorted(all_files)[::-1]
     print(sorted_files)
     # Create a mapping: display datetime -> full file path
-    file_map = {
-        pd.to_datetime(str(f).split('_q50_fcst')[0], format='%Y_%m_%d_%H_%M_%S'): f for f in sorted_files
-    }
+   # file_map = {
+   #     pd.to_datetime(str(f).split('_q50_fcst')[0], format='%Y_%m_%d_%H_%M_%S'): f for f in sorted_files
+   # }
     # Dropdown displays only the datetime strings
-    selected_dt = st.selectbox("Generated at :", list(file_map.keys()))
-
-    selected_file = file_map[selected_dt]
+    #selected_dt = st.selectbox("Generated at :", list(file_map.keys()))
+    selected_dt = st.selectbox("Generated at :", sorted_files)
+    #selected_file = file_map[selected_dt]
 
     # Load and display the parquet file as a DataFrame
     df = conn.read(selected_file, input_format="parquet").round(2)
