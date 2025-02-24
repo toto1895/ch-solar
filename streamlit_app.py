@@ -86,14 +86,14 @@ def get_entsoe(df):
 def Home():
     st.title("Forecasts")
     conn = st.connection('gcs', type=FilesConnection)
-
+    all_files = []
     try:
-        all_files = []
+        
         token = None
         while True:
             res = conn._instance.ls(
                 "oracle_predictions/swiss_solar/forecasts",
-                max_results=50,
+                max_results=30,
                 page_token=token
             )
             if isinstance(res, tuple):
@@ -158,13 +158,14 @@ def Home():
 
 
 
-
+import time
 # ---------------- Main App with Navigation ----------------
 def main():
     st.sidebar.title("Navigation")
     if st.button("Clear Cache"):
         st.cache_resource.clear()
         st.write("Cache cleared!")
+        time.sleep(10)
     page_choice = st.sidebar.radio("Go to page:", ["Home", "Portfolio"])
     if page_choice == "Home":
         Home()
