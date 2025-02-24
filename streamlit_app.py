@@ -3,6 +3,7 @@ import pandas as pd
 import requests
 import os
 import numpy as np 
+import plotly.express as px
 
 
 st.set_page_config(
@@ -118,7 +119,6 @@ def Home():
 
     # Load and display the parquet file as a DataFrame
     df = conn.read(selected_file, input_format="parquet")
-    import plotly.express as px
 
     # Reset index to have 'time' as a column and melt the DataFrame to long format
     df_long = df.reset_index().melt(id_vars="time", 
