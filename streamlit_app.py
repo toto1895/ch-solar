@@ -36,35 +36,18 @@ from google.oauth2 import service_account
 from st_files_connection import FilesConnection
 
 def get_files():
-    # Reinitialize and refresh the connection
     conn = st.connection('gcs', type=FilesConnection)
-    # Attempt to refresh the connection (if supported by your FilesConnection)
+    prefix = "oracle_predictions/swiss_solar/forecasts"
     
-    all_files = []
-    token = None
-    prefix = "oracle_predictions/swiss_solar/forecasts/"
+    # Invalidate the cache to refresh the bucket listing
+    conn._instance.invalidate_cache(prefix)
     
-    while True:
-        res = conn._instance.ls(
-            prefix,
-            max_results=50,
-            #page_token=token
-        )
-        st.write(f"Current token: {token} | Response: {res}")  # Debug info
-
-        if isinstance(res, tuple):
-            files, token = res[0], res[1] if len(res) > 1 else None
-        elif isinstance(res, dict):
-            files = res.get("files", [])
-            token = res.get("nextPageToken")
-        else:
-            files, token = res, None
-
-        all_files.extend(files)
-        if not token:
-            break
-
+    # Retrieve all files (assuming ls now returns the updated list)
+    all_files = conn._instance.ls(prefix, max_results=1000)
+    st.write(f"Files: {all_files}")  # Debug info
+    
     return sorted(all_files, reverse=True), conn
+
 
 
 
