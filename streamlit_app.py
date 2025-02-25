@@ -59,7 +59,7 @@ def get_files():
             return
 
         sorted_files = sorted(all_files)[::-1]
-        return sorted_files
+        return sorted_files, conn
 
 def get_entsoe(df):
     # Extract start and end timestamps from the DataFrame.
@@ -113,7 +113,7 @@ def Home():
     st.title("Forecasts")
     
     
-    sorted_files = get_files()
+    sorted_files,conn = get_files()
     # Create a mapping: display datetime -> full file path
    # file_map = {
    #     pd.to_datetime(str(f).split('_q50_fcst')[0], format='%Y_%m_%d_%H_%M_%S'): f for f in sorted_files
@@ -145,9 +145,6 @@ def Home():
                 title="Solar Forecast", color_discrete_map=color_map)
     fig.update_layout(xaxis_title="Time", yaxis_title="Forecast Value")
     st.plotly_chart(fig)
-
- 
-        
     st.dataframe(df)
 
 
