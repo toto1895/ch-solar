@@ -36,12 +36,17 @@ from google.oauth2 import service_account
 from st_files_connection import FilesConnection
 
 def get_files():
+    # Reinitialize and refresh the connection
     conn = st.connection('gcs', type=FilesConnection)
+    # Attempt to refresh the connection (if supported by your FilesConnection)
+    if hasattr(conn._instance, "refresh"):
+        conn._instance.refresh()
+    
     all_files = []
     token = None
     prefix = "oracle_predictions/swiss_solar/forecasts"
+    
     while True:
-        # Increase max_results to cover more files in one call
         res = conn._instance.ls(
             prefix,
             max_results=1000,
@@ -49,7 +54,6 @@ def get_files():
         )
         st.write(f"Current token: {token} | Response: {res}")  # Debug info
 
-        # Support both tuple and list/dict responses
         if isinstance(res, tuple):
             files, token = res[0], res[1] if len(res) > 1 else None
         elif isinstance(res, dict):
@@ -63,6 +67,7 @@ def get_files():
             break
 
     return sorted(all_files, reverse=True), conn
+
 
 
 
