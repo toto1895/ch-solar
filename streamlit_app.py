@@ -152,7 +152,7 @@ def main():
     if st.button("Clear Cache"):
         st.cache_resource.clear()
         st.write("Cache cleared!")
-        time.sleep(10)
+        #time.sleep(10)
     page_choice = st.sidebar.radio("Go to page:", ["Home", "Portfolio"])
     if page_choice == "Home":
         Home()
