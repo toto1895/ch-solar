@@ -44,7 +44,7 @@ def get_files():
     
     # Retrieve all files (assuming ls now returns the updated list)
     all_files = conn._instance.ls(prefix, max_results=1000)
-    st.write(f"Files: {all_files}")  # Debug info
+    #st.write(f"Files: {all_files}")  # Debug info
     
     return sorted(all_files, reverse=True), conn
 
@@ -104,7 +104,7 @@ def Home():
 
     df_long = df.reset_index().melt(
         id_vars="time",
-        value_vars=["metno_0.5", "knmi_0.5", "icon_0.5", "meteofrance_0.5", "avg"],
+        value_vars=["metno_0.5", "knmi_0.5", "icon_0.5", "meteofrance_0.5"],
         var_name="source",
         value_name="value"
     )
