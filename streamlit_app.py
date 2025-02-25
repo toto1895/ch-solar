@@ -39,20 +39,22 @@ def get_files():
     conn = st.connection('gcs', type=FilesConnection)
     all_files = []
     token = None
+    prefix = "oracle_predictions/swiss_solar/forecasts"
     while True:
-        # Remove max_results to see if full listing is returned, or include it based on API docs
+        # Increase max_results to cover more files in one call
         res = conn._instance.ls(
-            "oracle_predictions/swiss_solar/forecasts",
+            prefix,
+            max_results=1000,
             page_token=token
         )
         st.write(f"Current token: {token} | Response: {res}")  # Debug info
 
-        # Handle different response formats (tuple or dict)
-        if isinstance(res, dict):
-            files = res.get('files', [])
-            token = res.get('nextPageToken')
-        elif isinstance(res, tuple):
+        # Support both tuple and list/dict responses
+        if isinstance(res, tuple):
             files, token = res[0], res[1] if len(res) > 1 else None
+        elif isinstance(res, dict):
+            files = res.get("files", [])
+            token = res.get("nextPageToken")
         else:
             files, token = res, None
 
@@ -61,6 +63,7 @@ def get_files():
             break
 
     return sorted(all_files, reverse=True), conn
+
 
 
 
