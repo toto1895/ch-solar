@@ -35,6 +35,32 @@ import json
 from google.oauth2 import service_account
 from st_files_connection import FilesConnection
 
+def get_files():
+        conn = st.connection('gcs', type=FilesConnection)
+        all_files = []
+        try:
+            
+            token = None
+            while True:
+                res = conn._instance.ls(
+                    "oracle_predictions/swiss_solar/forecasts",
+                    max_results=30,
+                    page_token=token
+                )
+                if isinstance(res, tuple):
+                    files, token = res[0], (res[1] if len(res) > 1 else None)
+                else:
+                    files, token = res, None
+                all_files.extend(files)
+                if not token:
+                    break
+        except Exception as e:
+            st.error(f"Error retrieving files: {e}")
+            return
+
+        sorted_files = sorted(all_files)[::-1]
+        return sorted_files
+
 def get_entsoe(df):
     # Extract start and end timestamps from the DataFrame.
     # Assumes a 'timestamp' column exists.
@@ -85,30 +111,9 @@ def get_entsoe(df):
 
 def Home():
     st.title("Forecasts")
-    conn = st.connection('gcs', type=FilesConnection)
-    all_files = []
-    try:
-        
-        token = None
-        while True:
-            res = conn._instance.ls(
-                "oracle_predictions/swiss_solar/forecasts",
-                max_results=30,
-                page_token=token
-            )
-            if isinstance(res, tuple):
-                files, token = res[0], (res[1] if len(res) > 1 else None)
-            else:
-                files, token = res, None
-            all_files.extend(files)
-            if not token:
-                break
-    except Exception as e:
-        st.error(f"Error retrieving files: {e}")
-        return
-
-    sorted_files = sorted(all_files)[::-1]
-    print(sorted_files)
+    
+    
+    sorted_files = get_files()
     # Create a mapping: display datetime -> full file path
    # file_map = {
    #     pd.to_datetime(str(f).split('_q50_fcst')[0], format='%Y_%m_%d_%H_%M_%S'): f for f in sorted_files
