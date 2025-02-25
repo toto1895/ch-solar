@@ -33,9 +33,10 @@ GCLOUD = os.getenv("service_account_json")
 import os, sys
 import json
 from google.oauth2 import service_account
-from st_files_connection import FilesConnection
+#from st_files_connection import FilesConnection
 
 def get_files():
+        from st_files_connection import FilesConnection
         conn = st.connection('gcs', type=FilesConnection)
         all_files = []
         try:
