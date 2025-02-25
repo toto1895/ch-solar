@@ -44,7 +44,7 @@ def get_files():
     
     all_files = []
     token = None
-    prefix = "oracle_predictions/swiss_solar/forecasts"
+    prefix = "oracle_predictions/swiss_solar/forecasts/"
     
     while True:
         res = conn._instance.ls(
