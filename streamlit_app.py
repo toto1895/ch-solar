@@ -39,8 +39,6 @@ def get_files():
     # Reinitialize and refresh the connection
     conn = st.connection('gcs', type=FilesConnection)
     # Attempt to refresh the connection (if supported by your FilesConnection)
-    #if hasattr(conn._instance, "refresh"):
-    conn._instance.refresh()
     
     all_files = []
     token = None
@@ -49,8 +47,8 @@ def get_files():
     while True:
         res = conn._instance.ls(
             prefix,
-            max_results=1000,
-            page_token=token
+            max_results=50,
+            #page_token=token
         )
         st.write(f"Current token: {token} | Response: {res}")  # Debug info
 
