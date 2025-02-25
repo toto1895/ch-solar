@@ -33,10 +33,9 @@ GCLOUD = os.getenv("service_account_json")
 import os, sys
 import json
 from google.oauth2 import service_account
-#from st_files_connection import FilesConnection
+from st_files_connection import FilesConnection
 
 def get_files():
-    from st_files_connection import FilesConnection
     conn = st.connection('gcs', type=FilesConnection)
     all_files = []
     token = None
@@ -46,14 +45,18 @@ def get_files():
             max_results=100,
             page_token=token
         )
+        st.write(f"Current token: {token} | Response: {res}")  # Debug info
+
         if isinstance(res, tuple):
-            files, token = res[0], res[1] if len(res) > 1 else None
+            files, token = res[0], (res[1] if len(res) > 1 else None)
         else:
             files, token = res, None
+
         all_files.extend(files)
         if not token:
             break
     return sorted(all_files, reverse=True), conn
+
 
 def get_entsoe(df):
     start_ts = pd.to_datetime(df.index.min())
