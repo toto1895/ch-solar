@@ -39,12 +39,11 @@ def get_files():
         conn = st.connection('gcs', type=FilesConnection)
         all_files = []
         try:
-            
             token = None
             while True:
                 res = conn._instance.ls(
                     "oracle_predictions/swiss_solar/forecasts",
-                    max_results=30,
+                    max_results=100,
                     page_token=token
                 )
                 if isinstance(res, tuple):
