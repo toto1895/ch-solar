@@ -36,6 +36,7 @@ from google.oauth2 import service_account
 #from st_files_connection import FilesConnection
 
 def get_files():
+    from st_files_connection import FilesConnection
     conn = st.connection('gcs', type=FilesConnection)
     all_files = []
     token = None
