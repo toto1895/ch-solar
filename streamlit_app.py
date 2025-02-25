@@ -40,22 +40,28 @@ def get_files():
     all_files = []
     token = None
     while True:
+        # Remove max_results to see if full listing is returned, or include it based on API docs
         res = conn._instance.ls(
             "oracle_predictions/swiss_solar/forecasts",
-            max_results=100,
             page_token=token
         )
         st.write(f"Current token: {token} | Response: {res}")  # Debug info
 
-        if isinstance(res, tuple):
-            files, token = res[0], (res[1] if len(res) > 1 else None)
+        # Handle different response formats (tuple or dict)
+        if isinstance(res, dict):
+            files = res.get('files', [])
+            token = res.get('nextPageToken')
+        elif isinstance(res, tuple):
+            files, token = res[0], res[1] if len(res) > 1 else None
         else:
             files, token = res, None
 
         all_files.extend(files)
         if not token:
             break
+
     return sorted(all_files, reverse=True), conn
+
 
 
 def get_entsoe(df):
