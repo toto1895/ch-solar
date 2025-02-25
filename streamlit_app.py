@@ -39,8 +39,8 @@ def get_files():
     # Reinitialize and refresh the connection
     conn = st.connection('gcs', type=FilesConnection)
     # Attempt to refresh the connection (if supported by your FilesConnection)
-    if hasattr(conn._instance, "refresh"):
-        conn._instance.refresh()
+    #if hasattr(conn._instance, "refresh"):
+    conn._instance.refresh()
     
     all_files = []
     token = None
