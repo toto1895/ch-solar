@@ -69,7 +69,7 @@ def get_latest_entsoe_file(bucket_name="oracle_predictions", folder_prefix="swis
             
         # Extract dates from filenames
         date_blobs = []
-        date_pattern = r'(\d{4}-\d{2}-\d{2})\.parquet$'
+        date_pattern = "(\d{4}-\d{2}-\d{2})\.parquet$"  # Use double quotes and raw string separately
         
         for blob in blobs:
             import re
