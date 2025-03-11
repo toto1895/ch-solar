@@ -99,7 +99,7 @@ def load_entsoe_data(start_date, end_date=None):
         if combined_df.index.tz is None:
             combined_df.index = combined_df.index.tz_localize('UTC')
         combined_df = combined_df.resample('15min').ffill(limit=4)
-        return combined_df
+        return combined_df.tz_convert('CET')
         
     except Exception as e:
         st.error(f"Error loading ENTSOE data: {e}")
