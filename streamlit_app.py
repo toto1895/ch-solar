@@ -97,7 +97,7 @@ def load_entsoe_data(start_date, end_date=None):
         
         # Ensure datetime index is timezone-aware
         if combined_df.index.tz is None:
-            combined_df.index = combined_df.index.tz_localize('CET')
+            combined_df.index = combined_df.index.tz_localize('UTC')
         combined_df = combined_df.resample('15min').ffill(limit=4)
         return combined_df
         
@@ -123,6 +123,7 @@ def home_page():
         # Load forecast data
         file_path = f"oracle_predictions/swiss_solar/forecasts/{selected_dt}.parquet"
         forecast_df = conn.read(file_path, input_format="parquet").round(2)
+        forecast_df = forecast_df.tz_localize('UTC')
         
         # Extract the date range from the forecast data
         start_date = forecast_df.index.min()
