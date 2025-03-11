@@ -94,7 +94,7 @@ def load_entsoe_data(start_date, end_date=None):
             return pd.DataFrame()
             
         combined_df = pd.concat(dfs)
-        
+        combined_df.index = combined_df.index.tz_localize(None)
         # Ensure datetime index is timezone-aware
         if combined_df.index.tz is None:
             combined_df.index = combined_df.index.tz_localize('UTC')
