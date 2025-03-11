@@ -98,7 +98,7 @@ def load_entsoe_data(start_date, end_date=None):
         # Ensure datetime index is timezone-aware
         if combined_df.index.tz is None:
             combined_df.index = combined_df.index.tz_localize('UTC')
-            
+        combined_df = combined_df.resample('15min').ffill(limit=4)
         return combined_df
         
     except Exception as e:
@@ -171,7 +171,6 @@ def home_page():
             "meteofrance_0.5": "orange",
             "avg_0.5": "purple"
         }
-        print(forecast_df)
         for model in forecast_models:
             if model in forecast_df.columns:
                 fig.add_trace(
