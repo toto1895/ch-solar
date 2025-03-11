@@ -131,6 +131,7 @@ def home_page():
         # Load ENTSOE data for the same period
         st.info("Loading ENTSOE actual data from GCS bucket...")
         entsoe_df = load_entsoe_data(start_date, end_date)
+        print(entsoe_df)
             
         # Combine forecast and ENTSOE data
         if not entsoe_df.empty:
@@ -170,7 +171,7 @@ def home_page():
             "meteofrance_0.5": "orange",
             "avg_0.5": "purple"
         }
-        
+        print(forecast_df)
         for model in forecast_models:
             if model in forecast_df.columns:
                 fig.add_trace(
