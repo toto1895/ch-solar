@@ -232,8 +232,8 @@ def home_page():
                         entsoe_df_DA = entsoe_df_DA.resample(freq).mean()
             
             # Rename ENTSOE columns before merging
-            if 'Solar_Forecast' in entsoe_df.columns:
-                entsoe_df = entsoe_df.rename(columns={'Solar_Forecast': 'entsoe_forecast'})
+            if 'Solar_Forecast' in entsoe_df_DA.columns:
+                entsoe_df_DA = entsoe_df_DA.rename(columns={'Solar_Forecast': 'entsoe_forecast'})
                 
             # Merge dataframes
             st.success("ENTSOE data loaded successfully!")
