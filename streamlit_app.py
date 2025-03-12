@@ -236,9 +236,9 @@ def home_page():
                 entsoe_df_DA = entsoe_df_DA.rename(columns={'Solar_Forecast': 'entsoe_forecast'})
                 
             # Merge dataframes
-            st.success("ENTSOE data loaded successfully!")
+            st.success("ENTSOE DA data  loaded successfully!")
         else:
-            st.warning("No ENTSOE data available for the selected period in the GCS bucket.")
+            st.warning("No ENTSOE DA data available for the selected period in the GCS bucket.")
 
         # Create visualization
         st.subheader("Solar Power Forecast vs Actual")
@@ -297,7 +297,7 @@ def home_page():
                         y=entsoe_df_DA['entsoe_forecast'],
                         name="ENTSOE forecast",
                         mode="lines",
-                        line=dict(color="white", width=3)
+                        line=dict(color="red", width=3)
                     )
                 )
             elif 'Solar_Forecast' in entsoe_df_DA.columns:
