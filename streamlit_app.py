@@ -201,8 +201,8 @@ def home_page():
         forecast_df = forecast_df.tz_localize('CET').tz_convert('UTC')
         forecast_df = forecast_df.resample('1h').mean()
         if len(forecast_df) > 36:
-            forecast_df.loc[forecast_df.index[47:], 'meteofrance_0.5'] = np.nan
-            forecast_df.loc[forecast_df.index[47:], 'icon_0.5'] = np.nan
+            forecast_df.loc[forecast_df.index[45:], 'meteofrance_0.5'] = np.nan
+            forecast_df.loc[forecast_df.index[45:], 'icon_0.5'] = np.nan
 
        
         # Extract the date range from the forecast data
