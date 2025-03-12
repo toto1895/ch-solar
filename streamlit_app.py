@@ -106,7 +106,7 @@ def load_entsoe_da_data(start_date, end_date=None):
         combined_df = combined_df.resample('15min').interpolate(limit=4)
         
         # Debug info about the loaded data
-        st.debug(f"ENTSOE forecast data loaded: {len(combined_df)} rows, columns: {combined_df.columns.tolist()}")
+        #st.info(f"ENTSOE forecast data loaded: {len(combined_df)} rows, columns: {combined_df.columns.tolist()}")
         
         return combined_df
         
