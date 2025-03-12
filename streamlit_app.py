@@ -98,7 +98,7 @@ def load_entsoe_data(start_date, end_date=None):
         # Ensure datetime index is timezone-aware
         if combined_df.index.tz is None:
             combined_df.index = combined_df.index.tz_localize('UTC')
-        combined_df = combined_df.resample('15min').ffill(limit=4)
+        combined_df = combined_df.resample('15min').interpolate(limit=4)
         return combined_df.shift(4)
         
     except Exception as e:
