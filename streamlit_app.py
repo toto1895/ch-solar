@@ -46,7 +46,7 @@ def get_forecast_files():
     
     return sorted(all_files, reverse=True), conn
 
-def load_entsoe_data(start_date, end_date=None):
+def load_entsoe_da_data(start_date, end_date=None):
     """
     Load ENTSOE data for the given date range from GCS bucket.
     """
@@ -105,6 +105,65 @@ def load_entsoe_data(start_date, end_date=None):
         st.error(f"Error loading ENTSOE data: {e}")
         return pd.DataFrame()
 
+def load_entsoe_data(start_date, end_date=None):
+    """
+    Load ENTSOE data for the given date range from GCS bucket.
+    """
+    try:
+        if end_date is None:
+            end_date = start_date + timedelta(days=3)
+            
+        # Initialize storage client
+        service_account_info = json.loads(GCLOUD)
+        credentials = service_account.Credentials.from_service_account_info(service_account_info)
+        storage_client = storage.Client(credentials=credentials)
+        bucket = storage_client.bucket("oracle_predictions")
+        prefix = "swiss_solar/solar_entsoe_forecast"
+        
+        # Convert dates to strings for comparison
+        start_str = start_date.strftime('%Y-%m-%d')
+        end_str = end_date.strftime('%Y-%m-%d')
+        
+        # List all blobs with the given prefix
+        blobs = list(bucket.list_blobs(prefix=prefix))
+        
+        # Find files within date range
+        matching_blobs = []
+        
+        for blob in blobs:
+            filename = blob.name.split('/')[-1]
+            if filename.endswith('.parquet') and len(filename) >= 10:
+                date_part = filename[:10]  # Extract YYYY-MM-DD part
+                if start_str <= date_part <= end_str:
+                    matching_blobs.append(blob)
+        
+        if not matching_blobs:
+            st.warning(f"No ENTSOE DA data files found for date range {start_str} to {end_str}")
+            return pd.DataFrame()
+        
+        # Load and concatenate all matching files
+        dfs = []
+        for blob in matching_blobs:
+            with tempfile.NamedTemporaryFile(suffix='.parquet', delete=True) as temp_file:
+                blob.download_to_filename(temp_file.name)
+                df = pd.read_parquet(temp_file.name)
+                dfs.append(df)
+        
+        if not dfs:
+            return pd.DataFrame()
+            
+        combined_df = pd.concat(dfs)
+        combined_df = combined_df.tz_localize(None)
+        # Ensure datetime index is timezone-aware
+        if combined_df.index.tz is None:
+            combined_df.index = combined_df.index.tz_localize('UTC')
+        combined_df = combined_df.resample('15min').interpolate(limit=4)
+        return combined_df.shift(4)
+        
+    except Exception as e:
+        st.error(f"Error loading ENTSOE data: {e}")
+        return pd.DataFrame()
+
 def home_page():
     st.title("Swiss Solar Forecasts")
     
@@ -131,7 +190,9 @@ def home_page():
         # Load ENTSOE data for the same period
         st.info("Loading ENTSOE actual data from GCS bucket...")
         entsoe_df = load_entsoe_data(start_date, end_date)
-        print(entsoe_df)
+
+        st.info("Loading ENTSOE DA data from GCS bucket...")
+        entsoe_df_DA = load_entsoe_da_data(start_date, end_date)
             
         # Combine forecast and ENTSOE data
         if not entsoe_df.empty:
@@ -150,6 +211,29 @@ def home_page():
             # Rename ENTSOE columns before merging
             if 'Solar' in entsoe_df.columns:
                 entsoe_df = entsoe_df.rename(columns={'Solar': 'actual_entsoe'})
+                
+            # Merge dataframes
+            st.success("ENTSOE data loaded successfully!")
+        else:
+            st.warning("No ENTSOE data available for the selected period in the GCS bucket.")
+        
+        # Combine forecast and ENTSOE data
+        if not entsoe_df_DA.empty:
+            # Align indexes and combine data
+            if entsoe_df_DA.index.tz != forecast_df.index.tz and entsoe_df_DA.index.tz is not None:
+                # Convert to common timezone
+                entsoe_df_DA = entsoe_df_DA.tz_convert(forecast_df.index.tz)
+                
+            # If needed, resample to match frequency
+            if len(entsoe_df_DA) != len(forecast_df):
+                if len(forecast_df.index) > 0 and len(entsoe_df.index) > 0:
+                    freq = pd.infer_freq(forecast_df.index)
+                    if freq:
+                        entsoe_df_DA = entsoe_df_DA.resample(freq).mean()
+            
+            # Rename ENTSOE columns before merging
+            if 'Solar_Forecast' in entsoe_df.columns:
+                entsoe_df = entsoe_df.rename(columns={'Solar_Forecast': 'entsoe_forecast'})
                 
             # Merge dataframes
             st.success("ENTSOE data loaded successfully!")
@@ -203,6 +287,27 @@ def home_page():
                         name="ENTSOE Actual",
                         mode="lines",
                         line=dict(color="white", width=3)
+                    )
+                )
+        if not entsoe_df_DA.empty:
+            if 'entsoe_forecast' in entsoe_df_DA.columns:
+                fig.add_trace(
+                    go.Scatter(
+                        x=entsoe_df_DA.index,
+                        y=entsoe_df_DA['entsoe_forecast'],
+                        name="ENTSOE forecast",
+                        mode="lines",
+                        line=dict(color="white", width=3)
+                    )
+                )
+            elif 'Solar_Forecast' in entsoe_df_DA.columns:
+                fig.add_trace(
+                    go.Scatter(
+                        x=entsoe_df_DA.index,
+                        y=entsoe_df_DA['Solar_Forecast'],
+                        name="ENTSOE Forecast",
+                        mode="lines",
+                        line=dict(color="red", width=3)
                     )
                 )
         
