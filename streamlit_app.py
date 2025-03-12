@@ -103,7 +103,7 @@ def load_entsoe_da_data(start_date, end_date=None):
             combined_df = combined_df.tz_convert('UTC')
             
         # Resample to 15-minute intervals
-        combined_df = combined_df.resample('15min').interpolate(limit=4)
+        #combined_df = combined_df.resample('15min').interpolate(limit=4)
         
         # Debug info about the loaded data
         #st.info(f"ENTSOE forecast data loaded: {len(combined_df)} rows, columns: {combined_df.columns.tolist()}")
@@ -171,7 +171,7 @@ def load_entsoe_data(start_date, end_date=None):
             combined_df = combined_df.tz_convert('UTC')
             
         # Resample to 15-minute intervals
-        combined_df = combined_df.resample('15min').interpolate(limit=4)
+        #combined_df = combined_df.resample('15min').interpolate(limit=4)
         
         return combined_df
         
@@ -199,7 +199,7 @@ def home_page():
         forecast_df = conn.read(file_path, input_format="parquet").round(2)
         forecast_df = forecast_df.tz_localize(None)
         forecast_df = forecast_df.tz_localize('CET').tz_convert('UTC')
-        
+        forecast_df = forecast_df.resample('1h').mean()
         # Extract the date range from the forecast data
         start_date = forecast_df.index.min()
         end_date = forecast_df.index.max()
