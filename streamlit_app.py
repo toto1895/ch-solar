@@ -236,7 +236,7 @@ def home_page():
                 entsoe_df_DA = entsoe_df_DA.rename(columns={'Solar_Forecast': 'entsoe_forecast'})
                 
             # Merge dataframes
-            st.success("ENTSOE DA data  loaded successfully!")
+            st.success("ENTSOE DA data loaded successfully!")
         else:
             st.warning("No ENTSOE DA data available for the selected period in the GCS bucket.")
 
