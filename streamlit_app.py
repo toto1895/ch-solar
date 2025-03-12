@@ -197,7 +197,8 @@ def home_page():
         # Load forecast data
         file_path = f"oracle_predictions/swiss_solar/forecasts/{selected_dt}.parquet"
         forecast_df = conn.read(file_path, input_format="parquet").round(2)
-        forecast_df = forecast_df.tz_convert('UTC')
+        forecast_df = forecast_df.tz_localize(None)
+        forecast_df = forecast_df.tz_localize('CET')
         
         # Extract the date range from the forecast data
         start_date = forecast_df.index.min()
