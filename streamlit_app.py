@@ -249,13 +249,13 @@ def home_page():
         fig = go.Figure()
         
         # Add forecast data
-        forecast_models = ["metno_0.5", "knmi_0.5", "icon_0.5", "meteofrance_0.5", "avg_0.5"]
+        forecast_models = ["metno_0.5", "knmi_0.5", "icon_0.5", "meteofrance_0.5", "dmi_0.5"]
         colors = {
             "metno_0.5": "blue",
             "knmi_0.5": "red",
             "icon_0.5": "green",
             "meteofrance_0.5": "orange",
-            "avg_0.5": "purple"
+            "dmi_0.5": "purple"
         }
         for model in forecast_models:
             if model in forecast_df.columns:
