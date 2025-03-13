@@ -203,6 +203,7 @@ def home_page():
         if len(forecast_df) > 36:
             forecast_df.loc[forecast_df.index[45:], 'meteofrance_0.5'] = np.nan
             forecast_df.loc[forecast_df.index[45:], 'icon_0.5'] = np.nan
+            forecast_df.loc[forecast_df.index[45:], 'dmi_0.5'] = np.nan
 
        
         # Extract the date range from the forecast data
