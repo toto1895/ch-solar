@@ -211,15 +211,16 @@ def home_page():
         end_date = forecast_df.index.max()
         
         # Show date range information for debugging
-        st.info(f"Forecast date range: {start_date} to {end_date}")
+        #st.info(f"Forecast date range: {start_date} to {end_date}")
         
         # Load ENTSOE actual data for the same period
-        st.info("Loading ENTSOE actual data from GCS bucket...")
+        #st.info("Loading ENTSOE actual data from GCS bucket...")
         entsoe_df = load_entsoe_data(start_date, end_date)
         
         # Load ENTSOE forecast data for the same period
-        st.info("Loading ENTSOE forecast data from GCS bucket...")
+        #st.info("Loading ENTSOE forecast data from GCS bucket...")
         entsoe_forecast_df = load_entsoe_da_data(start_date, end_date)
+        print(entsoe_forecast_df)
         
         # Display data sizes for debugging
         if not entsoe_df.empty:
