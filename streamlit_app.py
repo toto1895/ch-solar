@@ -222,17 +222,17 @@ def home_page():
         entsoe_forecast_df = load_entsoe_da_data(start_date, end_date)
         
         # Display data sizes for debugging
-        if not entsoe_df.empty:
-            st.success(f"ENTSOE actual data loaded successfully! ({len(entsoe_df)} rows)")
-        else:
-            st.warning("No ENTSOE actual data available for the selected period in the GCS bucket.")
+        #if not entsoe_df.empty:
+        #    st.success(f"ENTSOE actual data loaded successfully! ({len(entsoe_df)} rows)")
+        #else:
+        #    st.warning("No ENTSOE actual data available for the selected period in the GCS bucket.")
             
-        if not entsoe_forecast_df.empty:
-            st.success(f"ENTSOE forecast data loaded successfully! ({len(entsoe_forecast_df)} rows)")
+        #if not entsoe_forecast_df.empty:
+        #    st.success(f"ENTSOE forecast data loaded successfully! ({len(entsoe_forecast_df)} rows)")
             # Display column names for debugging
-            st.write(f"ENTSOE forecast columns: {entsoe_forecast_df.columns.tolist()}")
-        else:
-            st.warning("No ENTSOE forecast data available for the selected period in the GCS bucket.")
+            #st.write(f"ENTSOE forecast columns: {entsoe_forecast_df.columns.tolist()}")
+        #else:
+        #    st.warning("No ENTSOE forecast data available for the selected period in the GCS bucket.")
         
         # Rename columns for consistency
         if not entsoe_df.empty:
