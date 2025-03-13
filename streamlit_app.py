@@ -220,7 +220,6 @@ def home_page():
         # Load ENTSOE forecast data for the same period
         #st.info("Loading ENTSOE forecast data from GCS bucket...")
         entsoe_forecast_df = load_entsoe_da_data(start_date, end_date)
-        print(entsoe_forecast_df)
         
         # Display data sizes for debugging
         if not entsoe_df.empty:
