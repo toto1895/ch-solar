@@ -198,7 +198,16 @@ def home_page():
         file_path = f"oracle_predictions/swiss_solar/forecasts/{selected_dt}.parquet"
         forecast_df = conn.read(file_path, input_format="parquet").round(2)
         forecast_df = forecast_df.tz_localize(None)
-        forecast_df = forecast_df.tz_localize('CET').tz_convert('UTC')
+        #forecast_df = forecast_df.tz_localize('CET').tz_convert('UTC')
+
+        try:
+            forecast_df = forecast_df.tz_localize('CET', nonexistent='shift_forward').tz_convert('UTC')
+        except Exception as e:
+            st.warning(f"Timezone conversion issue handled: {e}")
+            # Alternative approach if the above fails
+            forecast_df = forecast_df.tz_localize('UTC')  # Assume data is already in UTC
+
+
         forecast_df = forecast_df.resample('1h').mean()
         if len(forecast_df) > 36:
             forecast_df.loc[forecast_df.index[45:], 'meteofrance_0.5'] = np.nan
