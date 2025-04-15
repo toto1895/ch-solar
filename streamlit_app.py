@@ -222,7 +222,7 @@ def home_page():
                         # Display the filtered dataframe
                         #st.subheader("Solar Forecast with Capacity Data")
                         capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()]['cum_operator'].sum())
-                        st.success(capa_installed)
+                        st.success(f"{round(capa_installed/1000):,.2f} MW")
                         st.dataframe(filtered_df)
                         
                         # Display selection information
