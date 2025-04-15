@@ -221,7 +221,7 @@ def home_page():
                         
                         # Display the filtered dataframe
                         #st.subheader("Solar Forecast with Capacity Data")
-                        st.success(filtered_df.groupby(['Canton','operator']).max()['cum_canton'].sum())
+                        st.success(filtered_df.groupby(['Canton','operator']).max()['cum_canton'])
                         st.dataframe(filtered_df)
                         
                         # Display selection information
