@@ -277,7 +277,7 @@ def home_page():
                                 ))
                             
                             # Also add a total line that sums all selected cantons
-                            agg_df = filtered_df.groupby('datetime').agg({
+                            agg_df = filtered_df.groupby(['datetime','operator']).agg({
                                 'p0.5_canton': 'sum',
                                 'p0.2_canton': 'sum',
                                 'p0.8_canton': 'sum'
@@ -348,7 +348,7 @@ def home_page():
                                 ))
                             
                             # Also add a total line that sums all selected operators
-                            agg_df = filtered_df.groupby('datetime').agg({
+                            agg_df = filtered_df.groupby(['datetime','operator']).agg({
                                 'p0.5_operator': 'sum',
                                 'p0.2_operator': 'sum',
                                 'p0.8_operator': 'sum'
