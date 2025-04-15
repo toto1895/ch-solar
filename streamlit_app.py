@@ -229,7 +229,6 @@ def home_page():
                         capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()]['cum_operator'].sum())
                         st.success(f"{round(capa_installed/1000):,.0f} MW")
 
-
                         filtered_df['p0.5_canton'] = filtered_df['p0.5'] * filtered_df['cum_canton']/1000
                         filtered_df['p0.1_canton'] = filtered_df['p0.1'] * filtered_df['cum_canton']/1000
                         filtered_df['p0.9_canton'] = filtered_df['p0.9'] * filtered_df['cum_canton']/1000
@@ -239,7 +238,6 @@ def home_page():
                         filtered_df['p0.9_operator'] = filtered_df['p0.9'] * filtered_df['cum_operator']/1000
 
                         #st.write(filtered_df.columns)
-                        
                         # Create scatter plot based on filter type
                         st.subheader("Forecast Visualization")
                         
@@ -334,6 +332,8 @@ def home_page():
                                     name=f'{operator} - Upper Bound (P90)',
                                     line=dict(width=1, dash='dash')
                                 ))
+
+                            
                             
                             
                         else:
@@ -374,6 +374,45 @@ def home_page():
                                 line=dict(width=1, dash='dash')
                             ))
                         
+
+                        if (len(selected_operators)>1) or (len(selected_cantons)>1): 
+                                if len(selected_operators)>1:
+                                    total_df = plot_df[plot_df['operator'].isin(selected_operators)]
+                                elif (len(selected_cantons)>1):
+                                    total_df = plot_df[plot_df['Canton'].isin(selected_cantons)]
+                                # Group by datetime and sum
+                                total_df = total_df.groupby(['datetime']).agg({
+                                    'p0.5_operator': 'sum',
+                                    'p0.1_operator': 'sum',
+                                    'p0.9_operator': 'sum'
+                                }).reset_index()
+
+                                # Add median forecast line for Total
+                                fig.add_trace(go.Scatter(
+                                    x=total_df['datetime'],
+                                    y=total_df['p0.5_operator'],
+                                    mode='lines',
+                                    name='Total - Median (P50)',
+                                    line=dict(width=3, color='black')  # Making Total line thicker and black for emphasis
+                                ))
+
+                                # Add lower bound for Total
+                                fig.add_trace(go.Scatter(
+                                    x=total_df['datetime'],
+                                    y=total_df['p0.1_operator'],
+                                    mode='lines',
+                                    name='Total - Lower Bound (P10)',
+                                    line=dict(width=2, dash='dash', color='black')
+                                ))
+
+                                # Add upper bound for Total
+                                fig.add_trace(go.Scatter(
+                                    x=total_df['datetime'],
+                                    y=total_df['p0.9_operator'],
+                                    mode='lines',
+                                    name='Total - Upper Bound (P90)',
+                                    line=dict(width=2, dash='dash', color='black')
+                                ))
                         # Update layout for all plots
                         fig.update_layout(
                             title="Solar Power Forecast",
