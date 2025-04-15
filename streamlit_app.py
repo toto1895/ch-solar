@@ -164,7 +164,7 @@ def home_page():
                     forecast_df, _ = get_solar_forecast(selected_file)
 
                     if selected_model == 'icon_d2':
-                        pass
+                        forecast_df.loc[forecast_df.index==forecast_df.index.max(),['p0.05', 'p0.1', 'p0.2', 'p0.3', 'p0.4', 'p0.5', 'p0.6', 'p0.7', 'p0.8', 'p0.9', 'p0.95']] = np.nan
 
 
                     
@@ -237,7 +237,7 @@ def home_page():
                         filtered_df['p0.1_operator'] = filtered_df['p0.1'] * filtered_df['cum_operator']/1000
                         filtered_df['p0.9_operator'] = filtered_df['p0.9'] * filtered_df['cum_operator']/1000
 
-                        st.write(filtered_df.columns)
+                        #st.write(filtered_df.columns)
                         
                         # Create scatter plot based on filter type
                         st.subheader("Forecast Visualization")
