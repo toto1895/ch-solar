@@ -229,6 +229,7 @@ def home_page():
                         capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()]['cum_operator'].sum())
                         st.success(f"{round(capa_installed/1000):,.0f} MW")
 
+
                         filtered_df['p0.5_canton'] = filtered_df['p0.5'] * filtered_df['cum_canton']/1000
                         filtered_df['p0.1_canton'] = filtered_df['p0.1'] * filtered_df['cum_canton']/1000
                         filtered_df['p0.9_canton'] = filtered_df['p0.9'] * filtered_df['cum_canton']/1000
