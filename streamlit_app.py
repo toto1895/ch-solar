@@ -331,10 +331,7 @@ def home_page():
                                     mode='lines',
                                     name=f'{operator} - Upper Bound (P90)',
                                     line=dict(width=1, dash='dash')
-                                ))
-
-                            
-                            
+                                ))  
                             
                         else:
                             # Create an empty figure if no selections are made
