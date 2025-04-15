@@ -232,6 +232,7 @@ def home_page():
                         filtered_df['p0.2_operator'] = filtered_df['p0.2'] * filtered_df['cum_operator']
                         filtered_df['p0.8_operator'] = filtered_df['p0.8'] * filtered_df['cum_operator']
 
+
                         st.dataframe(filtered_df)
                         
                         # Display selection information
