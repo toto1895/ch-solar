@@ -305,7 +305,6 @@ def home_page():
                                 'p0.9_operator': 'sum'
                                 }).reset_index()
                                 
-                                
                                 # Add median forecast line
                                 fig.add_trace(go.Scatter(
                                     x=operator_df['datetime'],
