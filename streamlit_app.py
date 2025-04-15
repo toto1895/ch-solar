@@ -162,6 +162,11 @@ def home_page():
                 # Download the selected solar forecast data
                 with st.spinner(f"Downloading solar forecast data from {selected_file}..."):
                     forecast_df, _ = get_solar_forecast(selected_file)
+
+                    if selected_model == 'icon_d2':
+                        pass
+
+
                     
                     if forecast_df is not None:
                         # Merge forecast with capacity data on Canton
@@ -232,7 +237,7 @@ def home_page():
                         filtered_df['p0.1_operator'] = filtered_df['p0.1'] * filtered_df['cum_operator']/1000
                         filtered_df['p0.9_operator'] = filtered_df['p0.9'] * filtered_df['cum_operator']/1000
 
-                        #st.dataframe(filtered_df)
+                        st.dataframe(filtered_df)
                         
                         # Create scatter plot based on filter type
                         st.subheader("Forecast Visualization")
