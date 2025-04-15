@@ -237,7 +237,7 @@ def home_page():
                         filtered_df['p0.1_operator'] = filtered_df['p0.1'] * filtered_df['cum_operator']/1000
                         filtered_df['p0.9_operator'] = filtered_df['p0.9'] * filtered_df['cum_operator']/1000
 
-                        st.dataframe(filtered_df.columns)
+                        st.write(filtered_df.columns)
                         
                         # Create scatter plot based on filter type
                         st.subheader("Forecast Visualization")
