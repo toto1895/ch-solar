@@ -473,8 +473,7 @@ def main():
         home_page()
     elif page_choice == "About":
         st.title("About This App")
-        st.write("This application displays solar power forecasts for Switzerland along with ENTSOE actual data.")
-        st.write("It compares different forecasting models and calculates performance metrics.")
+        st.write("This application displays solar power forecasts for Switzerland based on PRONOVO data.")
 
 
 if __name__ == "__main__":
