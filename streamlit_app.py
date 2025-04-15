@@ -167,48 +167,57 @@ def home_page():
                         # Merge forecast with capacity data on Canton
                         merged_df = pd.merge(forecast_df.reset_index(), capa, on="Canton", how="left")
                         
-                        # Add filter section with tabs for Canton and Operator filtering
+                        # Add filter section
                         st.subheader("Filter Data")
-                        filter_tab1, filter_tab2 = st.tabs(["Filter by Canton", "Filter by Operator"])
                         
-                        with filter_tab1:
-                            # Get all unique cantons
-                            all_cantons = sorted(merged_df["Canton"].unique().tolist())
-                            
-                            # Create a multiselect widget for cantons
-                            selected_cantons = st.multiselect(
-                                "Select Cantons:",
-                                options=all_cantons,
-                                default=all_cantons[0]  # By default, select all cantons
+                        # Create two columns for filter type selection and the actual filter
+                        filter_col1, filter_col2 = st.columns([1, 3])
+                        
+                        with filter_col1:
+                            # Dropdown to select filter type
+                            filter_type = st.selectbox(
+                                "Filter by:",
+                                options=["Canton", "Operator"],
+                                index=0
                             )
-                            
-                            # Filter the dataframe based on selected cantons
-                            if selected_cantons:
-                                filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)]
-                            else:
-                                filtered_df = merged_df.copy()  # Show all if nothing selected
                         
-                        with filter_tab2:
-                            # Check if 'Operator' column exists in merged_df
-                            if 'operator' in merged_df.columns:
-                                # Get all unique operators
-                                all_operators = sorted(merged_df["operator"].unique().tolist())
+                        with filter_col2:
+                            # Initialize filtered_df
+                            filtered_df = merged_df.copy()
+                            
+                            if filter_type == "Canton":
+                                # Get all unique cantons
+                                all_cantons = sorted(merged_df["Canton"].unique().tolist())
                                 
-                                # Create a multiselect widget for operators
-                                selected_operators = st.multiselect(
-                                    "Select Operators:",
-                                    options=all_operators,
-                                    default=all_operators[0]  # By default, select all operators
+                                # Create a multiselect widget for cantons
+                                selected_cantons = st.multiselect(
+                                    "Select Cantons:",
+                                    options=all_cantons,
+                                    default=all_cantons  # By default, select all cantons
                                 )
                                 
-                                # Filter the dataframe based on selected operators
-                                if selected_operators:
-                                    filtered_df = merged_df[merged_df["operator"].isin(selected_operators)]
+                                # Filter the dataframe based on selected cantons
+                                if selected_cantons:
+                                    filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)]
+                                
+                            elif filter_type == "Operator":
+                                # Check if 'operator' column exists in merged_df
+                                if 'operator' in merged_df.columns:
+                                    # Get all unique operators
+                                    all_operators = sorted(merged_df["operator"].unique().tolist())
+                                    
+                                    # Create a multiselect widget for operators
+                                    selected_operators = st.multiselect(
+                                        "Select Operators:",
+                                        options=all_operators,
+                                        default=all_operators  # By default, select all operators
+                                    )
+                                    
+                                    # Filter the dataframe based on selected operators
+                                    if selected_operators:
+                                        filtered_df = merged_df[merged_df["operator"].isin(selected_operators)]
                                 else:
-                                    filtered_df = merged_df.copy()  # Show all if nothing selected
-                            else:
-                                st.warning("No 'Operator' column found in the data. Please use Canton filtering instead.")
-                                filtered_df = merged_df.copy()
+                                    st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
                         
                         # Display the filtered dataframe
                         st.subheader("Solar Forecast with Capacity Data")
