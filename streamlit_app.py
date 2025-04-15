@@ -244,7 +244,6 @@ def home_page():
                         if filter_type == "Canton" and selected_cantons:
                             # Group by datetime and Canton, then sum the values
                             plot_df = filtered_df.copy()
-                            selected_operators = [0]
                             
                             # Create the plot
                             fig = go.Figure()
@@ -291,7 +290,6 @@ def home_page():
                         elif filter_type == "Operator" and 'operator' in filtered_df.columns and selected_operators:
                             # Group by datetime and Operator, then sum the values
                             plot_df = filtered_df.copy()
-                            selected_cantons = [0]
                             # Create the plot
                             fig = go.Figure()
                             
@@ -371,6 +369,16 @@ def home_page():
                                 line=dict(width=1, dash='dash')
                             ))
                         
+
+                        try:
+                            len(selected_operators)>1
+                        except:
+                            selected_operators = [0]
+                        
+                        try:
+                            len(selected_cantons)>1
+                        except:
+                            selected_cantons = [0]
 
                         if (len(selected_operators)>1) or (len(selected_cantons)>1): 
                                 if len(selected_operators)>1:
