@@ -210,7 +210,7 @@ def home_page():
                                     selected_operators = st.multiselect(
                                         "Select Operators:",
                                         options=all_operators,
-                                        default=all_operators  # By default, select all operators
+                                        #default=all_operators  # By default, select all operators
                                     )
                                     
                                     # Filter the dataframe based on selected operators
