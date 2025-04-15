@@ -258,7 +258,7 @@ def home_page():
                                 # Add median forecast line
                                 fig.add_trace(go.Scatter(
                                     x=canton_df['datetime'],
-                                    y=canton_df['p0.5_canton'],
+                                    y=canton_df['p0.5_operator'],
                                     mode='lines',
                                     name=f'{canton} - Median (P50)',
                                     line=dict(width=2)
@@ -267,7 +267,7 @@ def home_page():
                                 # Add lower bound
                                 fig.add_trace(go.Scatter(
                                     x=canton_df['datetime'],
-                                    y=canton_df['p0.2_canton'],
+                                    y=canton_df['p0.2_operator'],
                                     mode='lines',
                                     name=f'{canton} - Lower Bound (P20)',
                                     line=dict(width=1, dash='dash')
@@ -276,7 +276,7 @@ def home_page():
                                 # Add upper bound
                                 fig.add_trace(go.Scatter(
                                     x=canton_df['datetime'],
-                                    y=canton_df['p0.8_canton'],
+                                    y=canton_df['p0.8_operator'],
                                     mode='lines',
                                     name=f'{canton} - Upper Bound (P80)',
                                     line=dict(width=1, dash='dash')
