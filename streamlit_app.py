@@ -359,7 +359,7 @@ def home_page():
                                 y=operator_df['p0.5_operator'],
                                 mode='lines',
                                 name=f'Total - Median (P50)',
-                                line=dict(width=2)
+                                line=dict(width=2, color='white' )
                             ))
                             
                             # Add lower bound
@@ -368,7 +368,7 @@ def home_page():
                                 y=operator_df['p0.1_operator'],
                                 mode='lines',
                                 name=f'Total - Lower Bound (P10)',
-                                line=dict(width=1, dash='dash')
+                                line=dict(width=1, dash='dash', color='white')
                             ))
                             
                             # Add upper bound
@@ -377,7 +377,7 @@ def home_page():
                                 y=operator_df['p0.9_operator'],
                                 mode='lines',
                                 name=f'Total - Upper Bound (P90)',
-                                line=dict(width=1, dash='dash')
+                                line=dict(width=1, dash='dash', color='white')
                             ))
                         
 
@@ -409,7 +409,7 @@ def home_page():
                                     y=total_df['p0.5_operator'],
                                     mode='lines',
                                     name='Total - Median (P50)',
-                                    line=dict(width=3, color='black')  # Making Total line thicker and black for emphasis
+                                    line=dict(width=3, color='white')  # Making Total line thicker and black for emphasis
                                 ))
 
                                 # Add lower bound for Total
@@ -418,7 +418,7 @@ def home_page():
                                     y=total_df['p0.1_operator'],
                                     mode='lines',
                                     name='Total - Lower Bound (P10)',
-                                    line=dict(width=2, dash='dash', color='black')
+                                    line=dict(width=2, dash='dash', color='white')
                                 ))
 
                                 # Add upper bound for Total
@@ -427,7 +427,7 @@ def home_page():
                                     y=total_df['p0.9_operator'],
                                     mode='lines',
                                     name='Total - Upper Bound (P90)',
-                                    line=dict(width=2, dash='dash', color='black')
+                                    line=dict(width=2, dash='dash', color='white')
                                 ))
                         # Update layout for all plots
                         fig.update_layout(
