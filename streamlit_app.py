@@ -224,15 +224,15 @@ def home_page():
                         capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()]['cum_operator'].sum())
                         st.success(f"{round(capa_installed/1000):,.0f} MW")
 
-                        filtered_df['p0.5_canton'] = filtered_df['p0.5'] * filtered_df['cum_canton']
-                        filtered_df['p0.2_canton'] = filtered_df['p0.2'] * filtered_df['cum_canton']
-                        filtered_df['p0.8_canton'] = filtered_df['p0.8'] * filtered_df['cum_canton']
+                        filtered_df['p0.5_canton'] = filtered_df['p0.5'] * filtered_df['cum_canton']/1000
+                        filtered_df['p0.1_canton'] = filtered_df['p0.1'] * filtered_df['cum_canton']/1000
+                        filtered_df['p0.9_canton'] = filtered_df['p0.9'] * filtered_df['cum_canton']/1000
 
-                        filtered_df['p0.5_operator'] = filtered_df['p0.5'] * filtered_df['cum_operator']
-                        filtered_df['p0.2_operator'] = filtered_df['p0.2'] * filtered_df['cum_operator']
-                        filtered_df['p0.8_operator'] = filtered_df['p0.8'] * filtered_df['cum_operator']
+                        filtered_df['p0.5_operator'] = filtered_df['p0.5'] * filtered_df['cum_operator']/1000
+                        filtered_df['p0.1_operator'] = filtered_df['p0.1'] * filtered_df['cum_operator']/1000
+                        filtered_df['p0.9_operator'] = filtered_df['p0.9'] * filtered_df['cum_operator']/1000
 
-                        st.dataframe(filtered_df)
+                        #st.dataframe(filtered_df)
                         
                         # Create scatter plot based on filter type
                         st.subheader("Forecast Visualization")
@@ -251,8 +251,8 @@ def home_page():
 
                                 canton_df = canton_df.groupby(['datetime']).agg({
                                 'p0.5_operator': 'sum',
-                                'p0.2_operator': 'sum',
-                                'p0.8_operator': 'sum'
+                                'p0.1_operator': 'sum',
+                                'p0.9_operator': 'sum'
                                 }).reset_index()
                                 
                                 # Add median forecast line
@@ -267,18 +267,18 @@ def home_page():
                                 # Add lower bound
                                 fig.add_trace(go.Scatter(
                                     x=canton_df['datetime'],
-                                    y=canton_df['p0.2_operator'],
+                                    y=canton_df['p0.1_operator'],
                                     mode='lines',
-                                    name=f'{canton} - Lower Bound (P20)',
+                                    name=f'{canton} - Lower Bound (P10)',
                                     line=dict(width=1, dash='dash')
                                 ))
                                 
                                 # Add upper bound
                                 fig.add_trace(go.Scatter(
                                     x=canton_df['datetime'],
-                                    y=canton_df['p0.8_operator'],
+                                    y=canton_df['p0.9_operator'],
                                     mode='lines',
-                                    name=f'{canton} - Upper Bound (P80)',
+                                    name=f'{canton} - Upper Bound (P90)',
                                     line=dict(width=1, dash='dash')
                                 ))
                             
@@ -294,6 +294,13 @@ def home_page():
                             for operator in selected_operators:
                                 operator_df = plot_df[plot_df['operator'] == operator]
                                 operator_df = operator_df.sort_values('datetime')
+
+                                operator_df = operator_df.groupby(['datetime']).agg({
+                                'p0.5_operator': 'sum',
+                                'p0.1_operator': 'sum',
+                                'p0.9_operator': 'sum'
+                                }).reset_index()
+                                
                                 
                                 # Add median forecast line
                                 fig.add_trace(go.Scatter(
@@ -307,65 +314,59 @@ def home_page():
                                 # Add lower bound
                                 fig.add_trace(go.Scatter(
                                     x=operator_df['datetime'],
-                                    y=operator_df['p0.2_operator'],
+                                    y=operator_df['p0.1_operator'],
                                     mode='lines',
-                                    name=f'{operator} - Lower Bound (P20)',
+                                    name=f'{operator} - Lower Bound (P10)',
                                     line=dict(width=1, dash='dash')
                                 ))
                                 
                                 # Add upper bound
                                 fig.add_trace(go.Scatter(
                                     x=operator_df['datetime'],
-                                    y=operator_df['p0.8_operator'],
+                                    y=operator_df['p0.9_operator'],
                                     mode='lines',
-                                    name=f'{operator} - Upper Bound (P80)',
+                                    name=f'{operator} - Upper Bound (P90)',
                                     line=dict(width=1, dash='dash')
                                 ))
                             
-                            # Also add a total line that sums all selected operators
-                            agg_df = filtered_df.groupby(['datetime','operator']).agg({
-                                'p0.5_operator': 'sum',
-                                'p0.2_operator': 'sum',
-                                'p0.8_operator': 'sum'
-                            }).reset_index()
                             
-                            # Add total lines with distinct styling
-                            fig.add_trace(go.Scatter(
-                                x=agg_df['datetime'],
-                                y=agg_df['p0.5_operator'],
-                                mode='lines',
-                                name='Total - Median (P50)',
-                                line=dict(color='black', width=3)
-                            ))
-                            
-                            fig.add_trace(go.Scatter(
-                                x=agg_df['datetime'],
-                                y=agg_df['p0.2_operator'],
-                                mode='lines',
-                                name='Total - Lower Bound (P20)',
-                                line=dict(color='black', width=2, dash='dash')
-                            ))
-                            
-                            fig.add_trace(go.Scatter(
-                                x=agg_df['datetime'],
-                                y=agg_df['p0.8_operator'],
-                                mode='lines',
-                                name='Total - Upper Bound (P80)',
-                                line=dict(color='black', width=2, dash='dash')
-                            ))
                         else:
                             # Create an empty figure if no selections are made
-                            fig = go.Figure()
-                            fig.update_layout(
-                                annotations=[dict(
-                                    text="Please select at least one Canton or Operator to display the forecast.",
-                                    showarrow=False,
-                                    xref="paper",
-                                    yref="paper",
-                                    x=0.5,
-                                    y=0.5
-                                )]
-                            )
+                            operator_df = operator_df.sort_values('datetime')
+
+                            operator_df = operator_df.groupby(['datetime']).agg({
+                            'p0.5_operator': 'sum',
+                            'p0.1_operator': 'sum',
+                            'p0.9_operator': 'sum'
+                            }).reset_index()
+                            
+                            
+                            # Add median forecast line
+                            fig.add_trace(go.Scatter(
+                                x=operator_df['datetime'],
+                                y=operator_df['p0.5_operator'],
+                                mode='lines',
+                                name=f'Total - Median (P50)',
+                                line=dict(width=2)
+                            ))
+                            
+                            # Add lower bound
+                            fig.add_trace(go.Scatter(
+                                x=operator_df['datetime'],
+                                y=operator_df['p0.1_operator'],
+                                mode='lines',
+                                name=f'Total - Lower Bound (P10)',
+                                line=dict(width=1, dash='dash')
+                            ))
+                            
+                            # Add upper bound
+                            fig.add_trace(go.Scatter(
+                                x=operator_df['datetime'],
+                                y=operator_df['p0.9_operator'],
+                                mode='lines',
+                                name=f'Total - Upper Bound (P90)',
+                                line=dict(width=1, dash='dash')
+                            ))
                         
                         # Update layout for all plots
                         fig.update_layout(
