@@ -164,7 +164,7 @@ def home_page():
                     forecast_df, _ = get_solar_forecast(selected_file)
 
                     if selected_model == 'icon_d2':
-                        st.write('here')
+                        
                         max_idx = forecast_df.index.max()
                         
                         percentile_cols = ['p0.05', 'p0.1', 'p0.2', 'p0.3', 'p0.4', 'p0.5', 
@@ -172,6 +172,8 @@ def home_page():
                         
                         # Set these columns to NaN for the row with max index
                         forecast_df.loc[forecast_df.index == max_idx, percentile_cols] = np.nan
+
+                        st.dataframe(forecast_df)
 
 
                     
