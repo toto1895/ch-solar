@@ -220,7 +220,8 @@ def home_page():
                                     st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
                         
                         # Display the filtered dataframe
-                        st.subheader("Solar Forecast with Capacity Data")
+                        #st.subheader("Solar Forecast with Capacity Data")
+                        st.success(filtered_df.groupby(['Canton','operator']).max()['cum_canton'].sum())
                         st.dataframe(filtered_df)
                         
                         # Display selection information
@@ -230,9 +231,6 @@ def home_page():
                         if len(filtered_df) < len(merged_df):
                             st.success(f"Filtered data: {len(filtered_df)} of {len(merged_df)} records shown based on current filters.")
                         
-                        # Print the dataframe to console for debugging
-                        print("Merged DataFrame:")
-                        print(merged_df)
                     else:
                         st.error("Failed to load solar forecast data.")
             else:
