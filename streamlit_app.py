@@ -165,14 +165,14 @@ def home_page():
 
                     if selected_model == 'icon_d2':
                         
-                        max_idx = forecast_df.index.unique()[-2:]
+                        max_idx = forecast_df.index.unique()[-1:]
                         
                         percentile_cols = ['p0.05', 'p0.1', 'p0.2', 'p0.3', 'p0.4', 'p0.5', 
                                         'p0.6', 'p0.7', 'p0.8', 'p0.9', 'p0.95']
                         
                         # Set these columns to NaN for the row with max index
-                        forecast_df.loc[forecast_df.index == max_idx[0], percentile_cols] = np.nan
-                        forecast_df.loc[forecast_df.index == max_idx[1], percentile_cols] = np.nan
+                        forecast_df = forecast_df.loc[forecast_df.index != max_idx[0]]
+                        #forecast_df.loc[forecast_df.index == max_idx[1], percentile_cols] = np.nan
 
 
                         st.dataframe(forecast_df)
