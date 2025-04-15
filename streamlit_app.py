@@ -175,7 +175,7 @@ def home_page():
                         #forecast_df.loc[forecast_df.index == max_idx[1], percentile_cols] = np.nan
 
 
-                        st.dataframe(forecast_df)
+                        #st.dataframe(forecast_df)
 
 
                     
