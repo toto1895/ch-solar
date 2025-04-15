@@ -171,7 +171,9 @@ def home_page():
                                         'p0.6', 'p0.7', 'p0.8', 'p0.9', 'p0.95']
                         
                         # Set these columns to NaN for the row with max index
-                        forecast_df.loc[forecast_df.index in max_idx, percentile_cols] = np.nan
+                        forecast_df.loc[forecast_df.index == max_idx[0], percentile_cols] = np.nan
+                        forecast_df.loc[forecast_df.index == max_idx[1], percentile_cols] = np.nan
+
 
                         st.dataframe(forecast_df)
 
