@@ -239,7 +239,7 @@ def home_page():
 
                         #st.write(filtered_df.columns)
                         # Create scatter plot based on filter type
-                        st.subheader("Forecast Visualization")
+                        #st.subheader("Forecast Visualization")
                         
                         if filter_type == "Canton" and selected_cantons:
                             # Group by datetime and Canton, then sum the values
@@ -433,11 +433,11 @@ def home_page():
                         st.plotly_chart(fig, use_container_width=True)
                         
                         # Display selection information
-                        st.info(f"Displaying data for Model: {selected_model}, Cluster: {selected_cluster}, File: {os.path.basename(selected_file)}")
+                        #st.info(f"Displaying data for Model: {selected_model}, Cluster: {selected_cluster}, File: {os.path.basename(selected_file)}")
                         
                         # Display filtering stats
-                        if len(filtered_df) < len(merged_df):
-                            st.success(f"Filtered data: {len(filtered_df)} of {len(merged_df)} records shown based on current filters.")
+                        #if len(filtered_df) < len(merged_df):
+                         #   st.success(f"Filtered data: {len(filtered_df)} of {len(merged_df)} records shown based on current filters.")
                         
                     else:
                         st.error("Failed to load solar forecast data.")
