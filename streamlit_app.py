@@ -250,9 +250,9 @@ def home_page():
                                 canton_df = canton_df.sort_values('datetime')
 
                                 canton_df = canton_df.groupby(['datetime']).agg({
-                                'p0.5_canton': 'sum',
-                                'p0.2_canton': 'sum',
-                                'p0.8_canton': 'sum'
+                                'p0.5_operator': 'sum',
+                                'p0.2_operator': 'sum',
+                                'p0.8_operator': 'sum'
                                 }).reset_index()
                                 
                                 # Add median forecast line
