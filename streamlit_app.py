@@ -193,7 +193,7 @@ def home_page():
                                 selected_cantons = st.multiselect(
                                     "Select Cantons:",
                                     options=all_cantons,
-                                    default=all_cantons  # By default, select all cantons
+                                    #default=all_cantons  # By default, select all cantons
                                 )
                                 
                                 # Filter the dataframe based on selected cantons
@@ -223,6 +223,15 @@ def home_page():
                         #st.subheader("Solar Forecast with Capacity Data")
                         capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()]['cum_operator'].sum())
                         st.success(f"{round(capa_installed/1000):,.0f} MW")
+
+                        filtered_df['p0.5_canton'] = filtered_df['p0.5'] * filtered_df['cum_canton']
+                        filtered_df['p0.2_canton'] = filtered_df['p0.2'] * filtered_df['cum_canton']
+                        filtered_df['p0.8_canton'] = filtered_df['p0.8'] * filtered_df['cum_canton']
+
+                        filtered_df['p0.5_operator'] = filtered_df['p0.5'] * filtered_df['cum_operator']
+                        filtered_df['p0.2_operator'] = filtered_df['p0.2'] * filtered_df['cum_operator']
+                        filtered_df['p0.8_operator'] = filtered_df['p0.8'] * filtered_df['cum_operator']
+
                         st.dataframe(filtered_df)
                         
                         # Display selection information
