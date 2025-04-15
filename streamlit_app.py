@@ -179,7 +179,7 @@ def home_page():
                             selected_cantons = st.multiselect(
                                 "Select Cantons:",
                                 options=all_cantons,
-                                default=all_cantons  # By default, select all cantons
+                                default=all_cantons[0]  # By default, select all cantons
                             )
                             
                             # Filter the dataframe based on selected cantons
@@ -198,7 +198,7 @@ def home_page():
                                 selected_operators = st.multiselect(
                                     "Select Operators:",
                                     options=all_operators,
-                                    default=all_operators  # By default, select all operators
+                                    default=all_operators[0]  # By default, select all operators
                                 )
                                 
                                 # Filter the dataframe based on selected operators
