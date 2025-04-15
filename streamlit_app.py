@@ -259,5 +259,6 @@ def main():
         st.write("This application displays solar power forecasts for Switzerland along with ENTSOE actual data.")
         st.write("It compares different forecasting models and calculates performance metrics.")
 
+
 if __name__ == "__main__":
     main()
