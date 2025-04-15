@@ -248,6 +248,8 @@ def home_page():
                             for canton in selected_cantons:
                                 canton_df = plot_df[plot_df['Canton'] == canton]
                                 canton_df = canton_df.sort_values('datetime')
+
+                                canton_df = canton_df.groupby(['datetime']).sum()
                                 
                                 # Add median forecast line
                                 fig.add_trace(go.Scatter(
@@ -276,37 +278,6 @@ def home_page():
                                     line=dict(width=1, dash='dash')
                                 ))
                             
-                            # Also add a total line that sums all selected cantons
-                            agg_df = filtered_df.groupby(['datetime','operator']).agg({
-                                'p0.5_canton': 'sum',
-                                'p0.2_canton': 'sum',
-                                'p0.8_canton': 'sum'
-                            }).reset_index()
-                            
-                            # Add total lines with distinct styling
-                            fig.add_trace(go.Scatter(
-                                x=agg_df['datetime'],
-                                y=agg_df['p0.5_canton'],
-                                mode='lines',
-                                name='Total - Median (P50)',
-                                line=dict(color='black', width=3)
-                            ))
-                            
-                            fig.add_trace(go.Scatter(
-                                x=agg_df['datetime'],
-                                y=agg_df['p0.2_canton'],
-                                mode='lines',
-                                name='Total - Lower Bound (P20)',
-                                line=dict(color='black', width=2, dash='dash')
-                            ))
-                            
-                            fig.add_trace(go.Scatter(
-                                x=agg_df['datetime'],
-                                y=agg_df['p0.8_canton'],
-                                mode='lines',
-                                name='Total - Upper Bound (P80)',
-                                line=dict(color='black', width=2, dash='dash')
-                            ))
                             
                         elif filter_type == "Operator" and 'operator' in filtered_df.columns and selected_operators:
                             # Group by datetime and Operator, then sum the values
