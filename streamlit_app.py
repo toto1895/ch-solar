@@ -332,7 +332,7 @@ def home_page():
                             
                         else:
                             # Create an empty figure if no selections are made
-                            operator_df = operator_df.sort_values('datetime')
+                            operator_df = plot_df.copy().sort_values('datetime')
 
                             operator_df = operator_df.groupby(['datetime']).agg({
                             'p0.5_operator': 'sum',
