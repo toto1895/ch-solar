@@ -199,7 +199,7 @@ def home_page():
                                 # Filter the dataframe based on selected cantons
                                 if selected_cantons:
                                     filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)]
-                                    capa_installed =  round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()]['cum_canton'].sum())
+                                    capa_installed =  round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()]['cum_operator'].sum())
                                 
                             elif filter_type == "Operator":
                                 # Check if 'operator' column exists in merged_df
