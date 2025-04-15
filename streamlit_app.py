@@ -431,9 +431,9 @@ def home_page():
                                 ))
                         # Update layout for all plots
                         fig.update_layout(
-                            title="Solar Power Forecast",
+                            title="Solar Generation Forecast",
                             xaxis_title="Date and Time",
-                            yaxis_title="Power (W)",
+                            yaxis_title="Power (MW)",
                             legend_title="Legend",
                             template="plotly_dark",
                             height=600,
