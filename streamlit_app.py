@@ -199,7 +199,6 @@ def home_page():
                                 # Filter the dataframe based on selected cantons
                                 if selected_cantons:
                                     filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)]
-                                    capa_installed =  round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()]['cum_operator'].sum())
                                 
                             elif filter_type == "Operator":
                                 # Check if 'operator' column exists in merged_df
@@ -217,12 +216,12 @@ def home_page():
                                     # Filter the dataframe based on selected operators
                                     if selected_operators:
                                         filtered_df = merged_df[merged_df["operator"].isin(selected_operators)]
-                                        capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()]['cum_operator'].sum())
                                 else:
                                     st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
                         
                         # Display the filtered dataframe
                         #st.subheader("Solar Forecast with Capacity Data")
+                        capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()]['cum_operator'].sum())
                         st.success(capa_installed)
                         st.dataframe(filtered_df)
                         
