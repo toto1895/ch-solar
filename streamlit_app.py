@@ -164,9 +164,9 @@ def home_page():
                     forecast_df, _ = get_solar_forecast(selected_file)
 
                     if selected_model == 'icon_d2':
+                        st.write('here')
                         max_idx = forecast_df.index.max()
                         
-                        # Define columns to set to NaN
                         percentile_cols = ['p0.05', 'p0.1', 'p0.2', 'p0.3', 'p0.4', 'p0.5', 
                                         'p0.6', 'p0.7', 'p0.8', 'p0.9', 'p0.95']
                         
