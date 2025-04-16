@@ -551,7 +551,6 @@ def main():
         st.cache_data.clear()
         st.sidebar.success("Cache cleared!")
     
-    # Page navigation
     page_choice = st.sidebar.radio("Go to page:", ["Home", "About"])
     
     if page_choice == "Home":
