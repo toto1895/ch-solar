@@ -244,7 +244,7 @@ def home_page():
                         
                         # Display the filtered dataframe
                         capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()]['cum_operator'].sum())
-                        st.write(f"master data latest update {latest_mastr_date.strftime('%Y-%m-%d')}")
+                        st.warning(f"Master data latest update {latest_mastr_date.strftime('%Y-%m-%d')}")
                         st.success(f"Installed capacity: {round(capa_installed/1000):,.0f} MW")
 
                         filtered_df['p0.5_canton'] = filtered_df['p0.5'] * filtered_df['cum_canton']/1000
