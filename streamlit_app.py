@@ -491,25 +491,25 @@ def home_page():
                             merged_plants['forecast_power'] = merged_plants['p0.5'] * merged_plants['TotalPower'] / 1000  # MW
                             
                             # Create the heatmap using plotly
-                            fig = px.scatter_mapbox(
+                            fig = px.density_mapbox(
                                 merged_plants,
                                 lat="latitude",
                                 lon="longitude",
-                                color="forecast_power",
-                                size="TotalPower",
+                                z="forecast_power",  # Color intensity based on forecast power
                                 hover_name="operator",
                                 hover_data={
                                     "Canton": True,
+                                    "operator":True,
                                     "TotalPower": True,
-                                    "forecast_power": ":.2f",
-                                    "latitude": False,
-                                    "longitude": False
+                                    #"forecast_power": ":.2f",
+                                    #"latitude": False,
+                                    #"longitude": False
                                 },
                                 color_continuous_scale="Viridis",
-                                size_max=15,
+                                radius=10,
                                 zoom=7,
                                 mapbox_style="carto-darkmatter",
-                                title="Solar Power Plant Locations with Forecast Power",
+                                title="Solar Power Plant Density with Forecast Power",
                                 center={"lat": 46.8, "lon": 8.2},  # Center of Switzerland
                                 opacity=0.8
                             )
