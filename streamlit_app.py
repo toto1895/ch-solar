@@ -167,6 +167,9 @@ def home_page():
                 capa = capa_df.loc[capa_df.datetime == latest_mastr_date].drop(columns='datetime').reset_index(drop=True)
                 
                 # Download the selected solar forecast data
+                st.warning(f"Master data latest update {latest_mastr_date.strftime('%Y-%m-%d')}")
+
+                
                 with st.spinner(f"Downloading solar forecast data from {selected_file}..."):
                     forecast_df, _ = get_solar_forecast(selected_file)
 
@@ -244,7 +247,7 @@ def home_page():
                         
                         # Display the filtered dataframe
                         capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()]['cum_operator'].sum())
-                        st.warning(f"Master data latest update {latest_mastr_date.strftime('%Y-%m-%d')}")
+                        
                         st.success(f"Installed capacity: {round(capa_installed/1000):,.0f} MW")
 
                         filtered_df['p0.5_canton'] = filtered_df['p0.5'] * filtered_df['cum_canton']/1000
