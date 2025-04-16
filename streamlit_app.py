@@ -243,7 +243,6 @@ def home_page():
                                     st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
                         
                         # Display the filtered dataframe
-                        #st.subheader("Solar Forecast with Capacity Data")
                         capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()]['cum_operator'].sum())
                         st.success(f"Installed capacity: {round(capa_installed/1000):,.0f} MW   (master data {latest_mastr_date}")
 
