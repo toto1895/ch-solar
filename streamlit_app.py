@@ -465,7 +465,7 @@ def home_page():
                                 merged_plants = pd.merge(
                                     powerplants, 
                                     latest_forecast, 
-                                    on=["Canton"], 
+                                    on=["Canton","operator"], 
                                     how="inner"
                                 )
                                 if selected_cantons:
@@ -483,19 +483,19 @@ def home_page():
                                 merged_plants = pd.merge(
                                     powerplants, 
                                     latest_forecast, 
-                                    on=["Canton"], 
+                                    on=["Canton","operator"], 
                                     how="inner"
                                 )
                             
                             # Calculate the forecast power for each plant
-                            merged_plants['forecast_power'] = merged_plants['p0.5'] * merged_plants['TotalPower'] / 1000  # MW
+                            #merged_plants['forecast_power'] = merged_plants['p0.5'] * merged_plants['TotalPower'] / 1000  # MW
                             
                             # Create the heatmap using plotly
                             fig = px.density_mapbox(
                                 merged_plants,
                                 lat="latitude",
                                 lon="longitude",
-                                z="forecast_power",  # Color intensity based on forecast power
+                                z="TotalPower",  # Color intensity based on forecast power
                                 hover_name="operator",
                                 hover_data={
                                     "Canton": True,
@@ -518,7 +518,7 @@ def home_page():
                                 height=600,
                                 margin={"r": 0, "t": 30, "l": 0, "b": 0},
                                 coloraxis_colorbar=dict(
-                                    title="Forecast Power (MW)",
+                                    title="Installed CAPA (MW)",
                                     tickformat=",.1f"
                                 )
                             )
