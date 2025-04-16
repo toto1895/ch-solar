@@ -513,8 +513,8 @@ def home_page():
                                 color_continuous_scale="Jet",
                                 radius=10,
                                 zoom=6,
-                                mapbox_style="carto-darkmatter",
-                                title="Solar Power Plant Density with Forecast Power",
+                                #mapbox_style="carto-darkmatter",
+                                title="Solar Power Plant Density",
                                 center={"lat": 46.8, "lon": 8.2},  # Center of Switzerland
                                 opacity=0.8
                             )
