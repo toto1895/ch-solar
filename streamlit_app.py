@@ -155,7 +155,7 @@ def home_page():
     powerplants = download_and_load_parquet('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv','csv', conn)[
         ['Canton','operator','longitude','latitude','TotalPower']
     ]
-    st.dataframe(powerplants.head(10))
+    #st.dataframe(powerplants.head(10))
     
     if latest_file:
         with st.spinner("Downloading and processing capacity data..."):
@@ -489,7 +489,12 @@ def home_page():
                             
                             # Calculate the forecast power for each plant
                             #merged_plants['forecast_power'] = merged_plants['p0.5'] * merged_plants['TotalPower'] / 1000  # MW
-                            
+                            #st.subheader("Power Plant Statistics")
+                            col1, col2, col3 = st.columns(3)
+                            with col1:
+                                st.metric("Total Plants", f"{len(merged_plants):,}")
+                            with col2:
+                                st.metric("Total Capacity", f"{merged_plants['TotalPower'].sum()/1000:,.2f} MW")
                             # Create the heatmap using plotly
                             fig = px.density_mapbox(
                                 merged_plants,
@@ -526,12 +531,7 @@ def home_page():
                             st.plotly_chart(fig, use_container_width=True)
                             
                             # Display additional statistics
-                            st.subheader("Power Plant Statistics")
-                            col1, col2, col3 = st.columns(3)
-                            with col1:
-                                st.metric("Total Plants", f"{len(merged_plants):,}")
-                            with col2:
-                                st.metric("Total Capacity", f"{merged_plants['TotalPower'].sum()/1000:,.2f} MW")
+                            
                            # with col3:
                             #    st.metric("Forecast Power", f"{merged_plants['forecast_power'].sum():,.2f} MW")
                             
