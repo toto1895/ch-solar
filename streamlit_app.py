@@ -496,7 +496,7 @@ def home_page():
                             with col2:
                                 st.metric("Total Capacity", f"{merged_plants['TotalPower'].sum()/1000:,.2f} MW")
                             # Create the heatmap using plotly
-                            fig = px.density_mapbox(
+                            fig = px.density_map(
                                 merged_plants,
                                 lat="latitude",
                                 lon="longitude",
