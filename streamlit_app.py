@@ -510,7 +510,7 @@ def home_page():
                                     #"latitude": False,
                                     #"longitude": False
                                 },
-                                color_continuous_scale="Viridis",
+                                color_continuous_scale="Jet",
                                 radius=10,
                                 zoom=6,
                                 mapbox_style="carto-darkmatter",
