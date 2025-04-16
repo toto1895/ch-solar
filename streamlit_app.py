@@ -488,26 +488,26 @@ def home_page():
                                 )
                             
                             # Calculate the forecast power for each plant
-                            merged_plants['forecast_power'] = merged_plants['p0.5'] * merged_plants['TotalPower'] / 1000  # MW
+                            #merged_plants['forecast_power'] = merged_plants['p0.5'] * merged_plants['TotalPower'] / 1000  # MW
                             
                             # Create the heatmap using plotly
                             fig = px.density_mapbox(
                                 merged_plants,
                                 lat="latitude",
                                 lon="longitude",
-                                z="forecast_power",  # Color intensity based on forecast power
+                                z="TotalPower",  # Color intensity based on forecast power
                                 hover_name="operator",
                                 hover_data={
                                     "Canton": True,
                                     "operator":True,
                                     "TotalPower": True,
-                                    "forecast_power": ":.2f",
+                                    #"forecast_power": ":.2f",
                                     #"latitude": False,
                                     #"longitude": False
                                 },
                                 color_continuous_scale="Viridis",
                                 radius=10,
-                                zoom=7,
+                                zoom=6,
                                 mapbox_style="carto-darkmatter",
                                 title="Solar Power Plant Density with Forecast Power",
                                 center={"lat": 46.8, "lon": 8.2},  # Center of Switzerland
@@ -532,8 +532,8 @@ def home_page():
                                 st.metric("Total Plants", f"{len(merged_plants):,}")
                             with col2:
                                 st.metric("Total Capacity", f"{merged_plants['TotalPower'].sum()/1000:,.2f} MW")
-                            with col3:
-                                st.metric("Forecast Power", f"{merged_plants['forecast_power'].sum():,.2f} MW")
+                           # with col3:
+                            #    st.metric("Forecast Power", f"{merged_plants['forecast_power'].sum():,.2f} MW")
                             
                     else:
                         st.error("Failed to load solar forecast data.")
