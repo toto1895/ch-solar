@@ -532,8 +532,8 @@ def home_page():
                                 st.metric("Total Plants", f"{len(merged_plants):,}")
                             with col2:
                                 st.metric("Total Capacity", f"{merged_plants['TotalPower'].sum()/1000:,.2f} MW")
-                            with col3:
-                                st.metric("Forecast Power", f"{merged_plants['forecast_power'].sum():,.2f} MW")
+                            #with col3:
+                            #    st.metric("Forecast Power", f"{merged_plants['forecast_power'].sum():,.2f} MW")
                             
                     else:
                         st.error("Failed to load solar forecast data.")
