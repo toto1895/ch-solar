@@ -70,11 +70,11 @@ def get_latest_parquet_file():
     
     return latest_file, conn
 
-def download_and_load_parquet(file_path, conn):
+def download_and_load_parquet(file_path,format, conn):
     """Download and load the parquet file into a pandas DataFrame"""
     try:
         # Use the connection to read the parquet file directly
-        df = conn.read(file_path, input_format="parquet")
+        df = conn.read(file_path, input_format=format)
         return df
     except Exception as e:
         st.error(f"Error loading parquet file: {e}")
@@ -150,11 +150,14 @@ def home_page():
     
     # Get the latest parquet file for capacity data
     latest_file, conn = get_latest_parquet_file()
+
+    powerplants = download_and_load_parquet('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv','csv', conn)
+    st.dataframe(powerplants)
     
     if latest_file:
         with st.spinner("Downloading and processing capacity data..."):
             # Load capacity data
-            capa_df = download_and_load_parquet(latest_file, conn)
+            capa_df = download_and_load_parquet(latest_file,'parquet', conn)
             if capa_df is not None:
                 # Get the latest date's capacity data
                 capa = capa_df.loc[capa_df.datetime == capa_df.datetime.max()].drop(columns='datetime').reset_index(drop=True)
