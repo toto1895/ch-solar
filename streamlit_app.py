@@ -151,8 +151,10 @@ def home_page():
     # Get the latest parquet file for capacity data
     latest_file, conn = get_latest_parquet_file()
 
-    powerplants = download_and_load_parquet('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv','csv', conn)
-    st.dataframe(powerplants)
+    powerplants = download_and_load_parquet('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv','csv', conn)[
+        ['Canton','operator','longitude','latitude','TotalPower']
+    ]
+    st.dataframe(powerplants.head(10))
     
     if latest_file:
         with st.spinner("Downloading and processing capacity data..."):
