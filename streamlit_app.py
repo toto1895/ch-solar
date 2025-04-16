@@ -163,7 +163,8 @@ def home_page():
             capa_df = download_and_load_parquet(latest_file,'parquet', conn)
             if capa_df is not None:
                 # Get the latest date's capacity data
-                capa = capa_df.loc[capa_df.datetime == capa_df.datetime.max()].drop(columns='datetime').reset_index(drop=True)
+                latest_mastr_date =capa_df.datetime.max()
+                capa = capa_df.loc[capa_df.datetime == latest_mastr_date].drop(columns='datetime').reset_index(drop=True)
                 
                 # Download the selected solar forecast data
                 with st.spinner(f"Downloading solar forecast data from {selected_file}..."):
@@ -244,7 +245,7 @@ def home_page():
                         # Display the filtered dataframe
                         #st.subheader("Solar Forecast with Capacity Data")
                         capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()]['cum_operator'].sum())
-                        st.success(f"{round(capa_installed/1000):,.0f} MW")
+                        st.success(f"Installed capacity: {round(capa_installed/1000):,.0f} MW   (master data {latest_mastr_date}")
 
                         filtered_df['p0.5_canton'] = filtered_df['p0.5'] * filtered_df['cum_canton']/1000
                         filtered_df['p0.1_canton'] = filtered_df['p0.1'] * filtered_df['cum_canton']/1000
@@ -516,7 +517,7 @@ def home_page():
                                 #mapbox_style="carto-darkmatter",
                                 title="Solar Power Plant Density",
                                 center={"lat": 46.8, "lon": 8.2},  # Center of Switzerland
-                                opacity=0.8
+                                opacity=0.9
                             )
                             
                             fig.update_layout(
