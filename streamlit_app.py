@@ -195,7 +195,7 @@ def home_page():
                     
                     if forecast_df is not None:
                         # Merge forecast with capacity data on Canton
-                        merged_df = pd.merge(forecast_df.reset_index(), capa, on="Canton", how="left")
+                        merged_df = pd.merge(forecast_df.reset_index(), capa.copy(), on="Canton", how="left")
                         
                         # Add filter section
                         st.subheader("Filter Data")
@@ -228,7 +228,7 @@ def home_page():
                                 
                                 # Filter the dataframe based on selected cantons
                                 if selected_cantons:
-                                    filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)]
+                                    filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)].copy()
                                 
                             elif filter_type == "Operator":
                                 # Check if 'operator' column exists in merged_df
@@ -245,7 +245,7 @@ def home_page():
                                     
                                     # Filter the dataframe based on selected operators
                                     if selected_operators:
-                                        filtered_df = merged_df[merged_df["operator"].isin(selected_operators)]
+                                        filtered_df = merged_df[merged_df["operator"].isin(selected_operators)].copy()
                                 else:
                                     st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
                         
