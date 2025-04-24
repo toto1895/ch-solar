@@ -191,10 +191,10 @@ def home_page():
                         #st.dataframe(forecast_df)
 
 
-                    
                     if forecast_df is not None:
                         # Merge forecast with capacity data on Canton
-                        merged_df = pd.merge(forecast_df.reset_index(), capa.copy(), on="Canton", how="left").drop_duplicates(['datetime','Canton','operator']).copy()
+                        merged_df = pd.merge(forecast_df.reset_index(), capa, on="Canton", how="left")
+                        merged_df.drop_duplicates(['datetime','Canton','operator'], inplace=True)
                         
                         # Add filter section
                         st.subheader("Filter Data")
@@ -228,7 +228,6 @@ def home_page():
                                 # Filter the dataframe based on selected cantons
                                 if selected_cantons:
                                     filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)].copy()
-                                    print(filtered_df.Canton.unique())
                                 
                             elif filter_type == "Operator":
                                 # Check if 'operator' column exists in merged_df
