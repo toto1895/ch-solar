@@ -165,9 +165,8 @@ def home_page():
             capa_df = download_and_load_parquet(latest_file,'parquet', conn)
             if capa_df is not None:
                 # Get the latest date's capacity data
-                
                 #print(capa_df)
-                latest_mastr_date =capa_df.Date.max()
+                latest_mastr_date = capa_df.Date.max()
                 capa = capa_df.loc[capa_df.Date == latest_mastr_date].drop(columns='Date').reset_index(drop=True)
                 
                 # Download the selected solar forecast data
@@ -195,7 +194,7 @@ def home_page():
                     
                     if forecast_df is not None:
                         # Merge forecast with capacity data on Canton
-                        merged_df = pd.merge(forecast_df.reset_index(), capa.copy(), on="Canton", how="left").drop_duplicates(['datetime','Canton','operator'])
+                        merged_df = pd.merge(forecast_df.reset_index(), capa.copy(), on="Canton", how="left").drop_duplicates(['datetime','Canton','operator']).copy()
                         
                         # Add filter section
                         st.subheader("Filter Data")
@@ -229,6 +228,7 @@ def home_page():
                                 # Filter the dataframe based on selected cantons
                                 if selected_cantons:
                                     filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)].copy()
+                                    print(filtered_df.Canton.unique())
                                 
                             elif filter_type == "Operator":
                                 # Check if 'operator' column exists in merged_df
