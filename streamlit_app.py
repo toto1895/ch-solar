@@ -164,7 +164,7 @@ def home_page():
             if capa_df is not None:
                 # Get the latest date's capacity data
                 
-                print(capa_df)
+                #print(capa_df)
                 latest_mastr_date =capa_df.Date.max()
                 capa = capa_df.loc[capa_df.Date == latest_mastr_date].drop(columns='Date').reset_index(drop=True)
                 
