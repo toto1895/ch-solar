@@ -55,7 +55,6 @@ def get_latest_parquet_file():
     
     return latest_file, conn
 
-@st.cache_data(ttl=3600)  # Cache for 1 hour
 def get_available_forecast_files(model, cluster):
     """Get list of available forecast files for the selected model and cluster"""
     conn = st.connection('gcs', type=FilesConnection)
@@ -86,11 +85,11 @@ def download_and_load_parquet(file_path, format, conn):
         return None
 
 @st.cache_data(ttl=3600)  # Cache for 1 hour
-def get_solar_forecast(forecast_path, conn):
+def get_solar_forecast(forecast_path, _conn):
     """Get the specific solar forecast parquet file"""
     try:
         # Download and load the forecast
-        forecast_df = conn.read(forecast_path, input_format="parquet")
+        forecast_df = _conn.read(forecast_path, input_format="parquet")
         return forecast_df
     except Exception as e:
         st.error(f"Error loading forecast parquet file: {e}")
