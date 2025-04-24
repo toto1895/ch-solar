@@ -390,7 +390,7 @@ def home_page():
             
             # Prepare the filtered dataframe for visualization
             filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator', 
-                                    'CumulativePower_canton', 'CumulativePower_operator']].copy()
+                                    'CumulativePower_canton', 'CumulativePower_operator']].drop_duplicates(['datetime','Canton','operator']).copy()
  
             st.dataframe(filtered_df)
             # Calculate installed capacity
