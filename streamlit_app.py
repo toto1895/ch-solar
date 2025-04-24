@@ -253,10 +253,12 @@ def home_page():
                         del capa
                         del forecast_df
                         gc.collect()
+
+                        
                         # Display the filtered dataframe
                         filtered_df = filtered_df[['datetime','p0.5','p0.1','p0.9','Canton','operator','CumulativePower_canton','CumulativePower_operator']].copy()
 
-                        
+                        print(filtered_df)
 
                         capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()].drop_duplicates('operator')['CumulativePower_operator'].sum())
                         
