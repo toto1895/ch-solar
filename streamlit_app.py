@@ -195,7 +195,7 @@ def home_page():
                     
                     if forecast_df is not None:
                         # Merge forecast with capacity data on Canton
-                        merged_df = pd.merge(forecast_df.reset_index(), capa.copy(), on="Canton", how="left")
+                        merged_df = pd.merge(forecast_df.reset_index(), capa.copy(), on="Canton", how="left").drop_duplicates(['datetime','Canton','operator'])
                         
                         # Add filter section
                         st.subheader("Filter Data")
