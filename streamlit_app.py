@@ -311,7 +311,6 @@ def home_page():
                                         line=dict(width=1, dash='dash')
                                     ))
                                 
-                                
                             elif filter_type == "Operator" and 'operator' in filtered_df.columns and selected_operators:
                                 # Group by datetime and Operator, then sum the values
                                 plot_df = filtered_df.copy()
