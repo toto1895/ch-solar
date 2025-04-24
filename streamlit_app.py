@@ -274,7 +274,6 @@ def home_page():
                                 # Create the plot
                                 fig = go.Figure()
                                 
-                                # Add traces for each canton
                                 for canton in selected_cantons:
                                     canton_df = plot_df[plot_df['Canton'] == canton]
                                     canton_df = canton_df.sort_values('datetime')
