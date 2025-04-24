@@ -385,7 +385,7 @@ def home_page():
             # Prepare the filtered dataframe for visualization
             filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator', 
                                     'CumulativePower_canton', 'CumulativePower_operator']].copy()
-            
+            st.dataframe(filtered_df)
             # Calculate installed capacity
             capa_installed = round(filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()]
                                 .drop_duplicates('operator')['CumulativePower_operator'].sum())
