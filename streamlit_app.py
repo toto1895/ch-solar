@@ -473,6 +473,11 @@ def main():
     if st.sidebar.button("Clear Memory"):
         gc.collect()
         st.sidebar.success("Memory cleared!")
+    if st.sidebar.button("Clear Cache"):
+        st.cache_resource.clear()
+        st.cache_data.clear()
+        st.experimental_memo.clear()  # For older Streamlit versions
+        st.sidebar.success("Cache cleared!")
     
     page_choice = st.sidebar.radio("Go to page:", ["Home", "About"])
     
