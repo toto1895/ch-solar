@@ -285,14 +285,14 @@ def home_page():
         st.warning("No capacity data files found")
         return
     
-    map = powerplants.drop_duplicates(['Canton','operator'])[['Canton','operator']].reset_index(drop=True)
+    #map = powerplants.drop_duplicates(['Canton','operator'])[['Canton','operator']].reset_index(drop=True)
     # Main data loading and processing
     with st.spinner("Downloading and processing capacity data..."):
         # Load capacity data
-        capa_d = load_data(latest_file, 'parquet', conn)
+        capa_df = load_data(latest_file, 'parquet', conn)
 
-        unique_pairs = set(zip(map['Canton'], map['operator']))
-        capa_df = capa_d[capa_d.apply(lambda row: (row['Canton'], row['operator']) in unique_pairs, axis=1)]
+        #unique_pairs = set(zip(map['Canton'], map['operator']))
+        #capa_df = capa_d[capa_d.apply(lambda row: (row['Canton'], row['operator']) in unique_pairs, axis=1)]
 
         del capa_d
         
