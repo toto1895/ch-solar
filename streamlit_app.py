@@ -252,7 +252,7 @@ def home_page():
 
                         print(filtered_df)
 
-                        capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()]['CumulativePower_operator'].sum())
+                        capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()].drop_duplicates('operator')['CumulativePower_operator'].sum())
                         
                         st.success(f"Installed capacity: {round(capa_installed/1000):,.0f} MW")
 
