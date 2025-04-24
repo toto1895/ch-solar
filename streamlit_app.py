@@ -4,13 +4,11 @@ import os
 import numpy as np 
 import plotly.graph_objects as go
 import plotly.express as px
-from datetime import datetime, timedelta
-import json
+from datetime import datetime
+import re
 from google.oauth2 import service_account
 from st_files_connection import FilesConnection
-from google.cloud import storage
-import tempfile
-import re
+import gc
 
 # Page configuration
 st.set_page_config(
@@ -32,89 +30,212 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Environment variables
-GCLOUD = os.getenv("service_account_json")
+# Create a connection instance once
+def get_connection():
+    """Get the GCS connection instance"""
+    return st.connection('gcs', type=FilesConnection)
 
-def get_latest_capa():
-    """Get list of forecast files from GCS bucket"""
-    conn = st.connection('gcs', type=FilesConnection)
-    prefix = "oracle_predictions/swiss_solar/datasets/capa_timeseries"
-    
-    # Invalidate the cache to refresh the bucket listing
-    conn._instance.invalidate_cache(prefix)
-    
-    # Retrieve all files
-    all_files = conn._instance.ls(prefix, max_results=100)
-    
-    return sorted(all_files, reverse=True), conn
+def fetch_files(conn, prefix, pattern=None):
+    """Fetch files from a bucket prefix with optional pattern matching"""
+    try:
+        # Invalidate the cache to refresh the bucket listing
+        conn._instance.invalidate_cache(prefix)
+        # Retrieve all files
+        files = conn._instance.ls(prefix, max_results=100)
+        
+        # Apply pattern filtering if provided
+        if pattern:
+            regex = re.compile(pattern)
+            files = [f for f in files if regex.search(f)]
+            
+        return sorted(files, reverse=True)
+    except Exception as e:
+        st.error(f"Error listing files: {e}")
+        return []
 
-def get_latest_parquet_file():
+def get_latest_parquet_file(conn):
     """Get the latest parquet file with format %Y-%m.parquet"""
-    conn = st.connection('gcs', type=FilesConnection)
     prefix = "oracle_predictions/swiss_solar/datasets/capa_timeseries"
+    pattern = r'(\d{4}-\d{2})\.parquet$'
     
-    # Invalidate the cache to refresh the bucket listing
-    conn._instance.invalidate_cache(prefix)
+    files = fetch_files(conn, prefix, pattern)
     
-    # Retrieve all files
-    all_files = conn._instance.ls(prefix, max_results=100)
-    
-    # Filter for parquet files with the format YYYY-MM.parquet
-    date_pattern = re.compile(r'(\d{4}-\d{2})\.parquet$')
-    parquet_files = [f for f in all_files if date_pattern.search(f)]
-    
-    if not parquet_files:
-        return None, conn
+    if not files:
+        return None
     
     # Sort files by date in filename (newest first)
-    latest_file = sorted(parquet_files, key=lambda x: date_pattern.search(x).group(1), reverse=True)[0]
-    
-    return latest_file, conn
+    date_pattern = re.compile(r'(\d{4}-\d{2})\.parquet$')
+    return sorted(files, key=lambda x: date_pattern.search(x).group(1), reverse=True)[0]
 
-def download_and_load_parquet(file_path,format, conn):
-    """Download and load the parquet file into a pandas DataFrame"""
+def load_data(file_path, input_format, conn):
+    """Load data from a file using the connection"""
     try:
-        # Use the connection to read the parquet file directly
-        df = conn.read(file_path, input_format=format)
-        return df
+        return conn.read(file_path, input_format=input_format)
     except Exception as e:
-        st.error(f"Error loading parquet file: {e}")
+        st.error(f"Error loading file {file_path}: {e}")
         return None
 
-def get_available_forecast_files(model, cluster):
+def get_forecast_files(model, cluster, conn):
     """Get list of available forecast files for the selected model and cluster"""
-    conn = st.connection('gcs', type=FilesConnection)
     prefix = f"oracle_predictions/swiss_solar/canton_forecasts_factor/{model}/{cluster}"
-    
-    # Invalidate the cache to refresh the bucket listing
-    conn._instance.invalidate_cache(prefix)
-    
-    # Retrieve all files
-    try:
-        all_files = conn._instance.ls(prefix, max_results=100)
-        # Filter for parquet files only
-        parquet_files = [f for f in all_files if f.endswith('.parquet')]
-        return sorted(parquet_files, reverse=True), conn
-    except Exception as e:
-        st.error(f"Error listing forecast files: {e}")
-        return [], conn
+    return fetch_files(conn, prefix, r'\.parquet$'), conn
 
-def get_solar_forecast(forecast_path):
-    """Get the specific solar forecast parquet file"""
-    conn = st.connection('gcs', type=FilesConnection)
+def create_forecast_chart(filtered_df, filter_type, selected_cantons=None, selected_operators=None):
+    """Create a forecast chart based on filtered data"""
+    fig = go.Figure()
+    plot_df = filtered_df.copy()
     
+    # Case 1: Canton filtering
+    if filter_type == "Canton" and selected_cantons:
+        for canton in selected_cantons:
+            canton_df = plot_df[plot_df['Canton'] == canton]
+            canton_df = canton_df.sort_values('datetime')
+            
+            canton_df = canton_df.groupby(['datetime']).agg({
+                'p0.5_operator': 'sum',
+                'p0.1_operator': 'sum',
+                'p0.9_operator': 'sum'
+            }).reset_index()
+            
+            # Add traces for this canton
+            add_forecast_traces(fig, canton_df, canton)
+            
+    # Case 2: Operator filtering
+    elif filter_type == "Operator" and 'operator' in filtered_df.columns and selected_operators:
+        for operator in selected_operators:
+            operator_df = plot_df[plot_df['operator'] == operator]
+            operator_df = operator_df.sort_values('datetime')
+            
+            operator_df = operator_df.groupby(['datetime']).agg({
+                'p0.5_operator': 'sum',
+                'p0.1_operator': 'sum',
+                'p0.9_operator': 'sum'
+            }).reset_index()
+            
+            # Add traces for this operator
+            add_forecast_traces(fig, operator_df, operator)
+    
+    # Case 3: No specific filtering
+    else:
+        operator_df = filtered_df.copy().sort_values('datetime')
+        operator_df = operator_df.groupby(['datetime']).agg({
+            'p0.5_operator': 'sum',
+            'p0.1_operator': 'sum',
+            'p0.9_operator': 'sum'
+        }).reset_index()
+        
+        # Add traces for the total
+        add_forecast_traces(fig, operator_df, "Total", color='white')
+    
+    # Add total line if multiple selections
     try:
-        # Download and load the forecast
-        forecast_df = conn.read(forecast_path, input_format="parquet")
-        return forecast_df, conn
-    except Exception as e:
-        st.error(f"Error loading forecast parquet file: {e}")
-        return None, conn
+        multiple_selections = (selected_operators and len(selected_operators) > 1) or (selected_cantons and len(selected_cantons) > 1)
+    except:
+        multiple_selections = False
+        
+    if multiple_selections:
+        if filter_type == "Canton" and selected_cantons:
+            total_df = plot_df[plot_df['Canton'].isin(selected_cantons)]
+        else:
+            total_df = plot_df[plot_df['operator'].isin(selected_operators)]
+            
+        total_df = total_df.groupby(['datetime']).agg({
+            'p0.5_operator': 'sum',
+            'p0.1_operator': 'sum',
+            'p0.9_operator': 'sum'
+        }).reset_index()
+        
+        # Add traces for the total
+        add_forecast_traces(fig, total_df, "Total", line_width=3, color='white')
     
-import gc
+    # Update layout
+    fig.update_layout(
+        title="Solar Generation Forecast",
+        xaxis_title="Date and Time",
+        yaxis_title="Power (MW)",
+        legend_title="Legend",
+        template="plotly_dark",
+        height=600,
+        hovermode="x unified"
+    )
+    
+    return fig
+
+def add_forecast_traces(fig, df, name, line_width=2, color=None):
+    """Add forecast traces to the figure"""
+    # Base style settings
+    line_style = dict(width=line_width)
+    dash_style = dict(width=max(1, line_width-1), dash='dash')
+    
+    # Apply color if specified
+    if color:
+        line_style['color'] = color
+        dash_style['color'] = color
+    
+    # Add median forecast line
+    fig.add_trace(go.Scatter(
+        x=df['datetime'],
+        y=df['p0.5_operator'],
+        mode='lines',
+        name=f'{name} - Median (P50)',
+        line=line_style
+    ))
+    
+    # Add lower bound
+    fig.add_trace(go.Scatter(
+        x=df['datetime'],
+        y=df['p0.1_operator'],
+        mode='lines',
+        name=f'{name} - Lower Bound (P10)',
+        line=dash_style
+    ))
+    
+    # Add upper bound
+    fig.add_trace(go.Scatter(
+        x=df['datetime'],
+        y=df['p0.9_operator'],
+        mode='lines',
+        name=f'{name} - Upper Bound (P90)',
+        line=dash_style
+    ))
+
+def create_heatmap(merged_plants):
+    """Create a heatmap visualization for plant locations"""
+    fig = px.density_map(
+        merged_plants,
+        lat="latitude",
+        lon="longitude",
+        z="TotalPower",
+        hover_name="operator",
+        hover_data={
+            "Canton": True,
+            "operator": True,
+            "TotalPower": True,
+        },
+        color_continuous_scale="Jet",
+        radius=10,
+        zoom=6,
+        title="Solar Power Plant Density",
+        center={"lat": 46.8, "lon": 8.2},  # Center of Switzerland
+        opacity=0.9
+    )
+    
+    fig.update_layout(
+        height=600,
+        margin={"r": 0, "t": 30, "l": 0, "b": 0},
+        coloraxis_colorbar=dict(
+            title="Installed CAPA (MW)",
+            tickformat=",.1f"
+        )
+    )
+    
+    return fig
 
 def home_page():
     st.title("Swiss Solar Forecasts")
+    
+    # Initialize connection
+    conn = get_connection()
     
     # Define available models and clusters
     available_models = ["dmi_seamless", "metno_seamless", "icon_d2", "meteofrance_seamless"]
@@ -138,7 +259,7 @@ def home_page():
         )
     
     # Get available forecast files for the selected model and cluster
-    forecast_files, conn = get_available_forecast_files(selected_model, selected_cluster)
+    forecast_files, _ = get_forecast_files(selected_model, selected_cluster, conn)
     
     if not forecast_files:
         st.warning(f"No forecast files found for {selected_model}/{selected_cluster}")
@@ -152,426 +273,208 @@ def home_page():
     )
     
     # Get the latest parquet file for capacity data
-    latest_file, conn = get_latest_parquet_file()
-
-    powerplants = download_and_load_parquet('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv','csv', conn)[
-        ['Canton','operator','longitude','latitude','TotalPower']
-    ]
-    #st.dataframe(powerplants.head(10))
+    latest_file = get_latest_parquet_file(conn)
     
-    if latest_file:
-        with st.spinner("Downloading and processing capacity data..."):
-            # Load capacity data
-            capa_df = download_and_load_parquet(latest_file,'parquet', conn)
-            if capa_df is not None:
-                # Get the latest date's capacity data
-                #print(capa_df)
-                latest_mastr_date = capa_df.Date.max()
-                capa = capa_df.loc[capa_df.Date == latest_mastr_date].drop(columns='Date').reset_index(drop=True)
+    # Load the power plants data
+    powerplants = load_data('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv', 'csv', conn)
+    
+    if powerplants is not None:
+        powerplants = powerplants[['Canton', 'operator', 'longitude', 'latitude', 'TotalPower']]
+    
+    if not latest_file:
+        st.warning("No capacity data files found")
+        return
+        
+    # Main data loading and processing
+    with st.spinner("Downloading and processing capacity data..."):
+        # Load capacity data
+        capa_df = load_data(latest_file, 'parquet', conn)
+        
+        if capa_df is None:
+            st.error("Failed to load capacity data")
+            return
+            
+        # Get the latest date's capacity data
+        latest_mastr_date = capa_df.Date.max()
+        capa = capa_df.loc[capa_df.Date == latest_mastr_date].drop(columns='Date').reset_index(drop=True)
+        
+        # Status notification
+        st.warning(f"Master data latest update {latest_mastr_date.strftime('%Y-%m-%d')}")
+        
+        # Download the selected solar forecast data
+        with st.spinner(f"Downloading solar forecast data from {selected_file}..."):
+            forecast_df = load_data(selected_file, 'parquet', conn)
+            
+            if forecast_df is None:
+                st.error("Failed to load forecast data")
+                return
                 
-                # Download the selected solar forecast data
-                st.warning(f"Master data latest update {latest_mastr_date.strftime('%Y-%m-%d')}")
-
+            # Special handling for icon_d2 model
+            if selected_model == 'icon_d2':
+                percentile_cols = ['p0.05', 'p0.1', 'p0.2', 'p0.3', 'p0.4', 'p0.5', 
+                                'p0.6', 'p0.7', 'p0.8', 'p0.9', 'p0.95']
+                max_idx = forecast_df.index.unique()[-1:]
+                forecast_df = forecast_df.loc[forecast_df.index != max_idx[0]]
+            
+            # Merge forecast with capacity data
+            merged_df = pd.merge(forecast_df.reset_index(), capa, on="Canton", how="left")
+            merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
+            
+            # Clean up to free memory
+            del capa_df
+            del forecast_df
+            gc.collect()
+            
+            # Add filter section
+            st.subheader("Filter Data")
+            
+            # Create columns for filter selection
+            filter_col1, filter_col2 = st.columns([1, 3])
+            
+            with filter_col1:
+                filter_type = st.selectbox(
+                    "Filter by:",
+                    options=["Canton", "Operator"],
+                    index=0
+                )
+            
+            # Initialize variables
+            selected_cantons = []
+            selected_operators = []
+            
+            with filter_col2:
+                # Initialize filtered_df
+                filtered_df = merged_df.copy()
                 
-                with st.spinner(f"Downloading solar forecast data from {selected_file}..."):
-                    forecast_df, _ = get_solar_forecast(selected_file)
-
-                    if selected_model == 'icon_d2':
+                if filter_type == "Canton":
+                    # Get all unique cantons
+                    all_cantons = sorted(merged_df["Canton"].unique().tolist())
+                    
+                    # Create a multiselect widget for cantons
+                    selected_cantons = st.multiselect(
+                        "Select Cantons:",
+                        options=all_cantons
+                    )
+                    
+                    # Filter the dataframe based on selected cantons
+                    if selected_cantons:
+                        filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)].copy()
+                    
+                elif filter_type == "Operator":
+                    # Check if 'operator' column exists in merged_df
+                    if 'operator' in merged_df.columns:
+                        # Get all unique operators
+                        all_operators = sorted(merged_df["operator"].unique().tolist())
                         
-                        max_idx = forecast_df.index.unique()[-1:]
-                        
-                        percentile_cols = ['p0.05', 'p0.1', 'p0.2', 'p0.3', 'p0.4', 'p0.5', 
-                                        'p0.6', 'p0.7', 'p0.8', 'p0.9', 'p0.95']
-                        
-                        # Set these columns to NaN for the row with max index
-                        forecast_df = forecast_df.loc[forecast_df.index != max_idx[0]]
-                        #forecast_df.loc[forecast_df.index == max_idx[1], percentile_cols] = np.nan
-
-
-                        #st.dataframe(forecast_df)
-
-
-                    if forecast_df is not None:
-                        # Merge forecast with capacity data on Canton
-                        merged_df = pd.merge(forecast_df.reset_index(), capa, on="Canton", how="left")
-                        merged_df.drop_duplicates(['datetime','Canton','operator'], inplace=True)
-                        
-                        # Add filter section
-                        st.subheader("Filter Data")
-                        
-                        # Create two columns for filter type selection and the actual filter
-                        filter_col1, filter_col2 = st.columns([1, 3])
-                        
-                        with filter_col1:
-                            # Dropdown to select filter type
-                            filter_type = st.selectbox(
-                                "Filter by:",
-                                options=["Canton", "Operator"],
-                                index=0
-                            )
-                        
-                        with filter_col2:
-                            # Initialize filtered_df
-                            filtered_df = merged_df.copy()
-                            
-                            if filter_type == "Canton":
-                                # Get all unique cantons
-                                all_cantons = sorted(merged_df["Canton"].unique().tolist())
-                                
-                                # Create a multiselect widget for cantons
-                                selected_cantons = st.multiselect(
-                                    "Select Cantons:",
-                                    options=all_cantons,
-                                    #default=all_cantons  # By default, select all cantons
-                                )
-                                
-                                # Filter the dataframe based on selected cantons
-                                if selected_cantons:
-                                    filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)].copy()
-                                
-                            elif filter_type == "Operator":
-                                # Check if 'operator' column exists in merged_df
-                                if 'operator' in merged_df.columns:
-                                    # Get all unique operators
-                                    all_operators = sorted(merged_df["operator"].unique().tolist())
-                                    
-                                    # Create a multiselect widget for operators
-                                    selected_operators = st.multiselect(
-                                        "Select Operators:",
-                                        options=all_operators,
-                                        #default=all_operators  # By default, select all operators
-                                    )
-                                    
-                                    # Filter the dataframe based on selected operators
-                                    if selected_operators:
-                                        filtered_df = merged_df[merged_df["operator"].isin(selected_operators)].copy()
-                                else:
-                                    st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
-                        
-                        del merged_df
-                        del capa
-                        del forecast_df
-                        gc.collect()
-
-                        
-                        # Display the filtered dataframe
-                        filtered_df = filtered_df[['datetime','p0.5','p0.1','p0.9','Canton','operator','CumulativePower_canton','CumulativePower_operator']].copy()
-
-                        print(filtered_df)
-
-                        capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()].drop_duplicates('operator')['CumulativePower_operator'].sum())
-                        
-                        st.success(f"Installed capacity: {round(capa_installed/1000):,.0f} MW")
-
-                        filtered_df['p0.5_canton'] = filtered_df['p0.5'] * filtered_df['CumulativePower_canton']/1000
-                        filtered_df['p0.1_canton'] = filtered_df['p0.1'] * filtered_df['CumulativePower_canton']/1000
-                        filtered_df['p0.9_canton'] = filtered_df['p0.9'] * filtered_df['CumulativePower_canton']/1000
-
-                        filtered_df['p0.5_operator'] = filtered_df['p0.5'] * filtered_df['CumulativePower_operator']/1000
-                        filtered_df['p0.1_operator'] = filtered_df['p0.1'] * filtered_df['CumulativePower_operator']/1000
-                        filtered_df['p0.9_operator'] = filtered_df['p0.9'] * filtered_df['CumulativePower_operator']/1000
-
-                        # Add a radio button for chart type selection
-                        chart_type = st.radio(
-                            "Select visualization type:",
-                            options=["Forecast Chart", "Powerplant Location Heatmap"],
-                            horizontal=True
+                        # Create a multiselect widget for operators
+                        selected_operators = st.multiselect(
+                            "Select Operators:",
+                            options=all_operators
                         )
                         
-                        if chart_type == "Forecast Chart":
-                            # Original chart visualization code
-                            if filter_type == "Canton" and selected_cantons:
-                                # Group by datetime and Canton, then sum the values
-                                plot_df = filtered_df.copy()
-                                
-                                # Create the plot
-                                fig = go.Figure()
-                                
-                                for canton in selected_cantons:
-                                    canton_df = plot_df[plot_df['Canton'] == canton]
-                                    canton_df = canton_df.sort_values('datetime')
-
-                                    canton_df = canton_df.groupby(['datetime']).agg({
-                                    'p0.5_operator': 'sum',
-                                    'p0.1_operator': 'sum',
-                                    'p0.9_operator': 'sum'
-                                    }).reset_index()
-                                    
-                                    # Add median forecast line
-                                    fig.add_trace(go.Scatter(
-                                        x=canton_df['datetime'],
-                                        y=canton_df['p0.5_operator'],
-                                        mode='lines',
-                                        name=f'{canton} - Median (P50)',
-                                        line=dict(width=2)
-                                    ))
-                                    
-                                    # Add lower bound
-                                    fig.add_trace(go.Scatter(
-                                        x=canton_df['datetime'],
-                                        y=canton_df['p0.1_operator'],
-                                        mode='lines',
-                                        name=f'{canton} - Lower Bound (P10)',
-                                        line=dict(width=1, dash='dash')
-                                    ))
-                                    
-                                    # Add upper bound
-                                    fig.add_trace(go.Scatter(
-                                        x=canton_df['datetime'],
-                                        y=canton_df['p0.9_operator'],
-                                        mode='lines',
-                                        name=f'{canton} - Upper Bound (P90)',
-                                        line=dict(width=1, dash='dash')
-                                    ))
-                                
-                            elif filter_type == "Operator" and 'operator' in filtered_df.columns and selected_operators:
-                                # Group by datetime and Operator, then sum the values
-                                plot_df = filtered_df.copy()
-                                # Create the plot
-                                fig = go.Figure()
-                                
-                                # Add traces for each operator
-                                for operator in selected_operators:
-                                    operator_df = plot_df[plot_df['operator'] == operator]
-                                    operator_df = operator_df.sort_values('datetime')
-
-                                    operator_df = operator_df.groupby(['datetime']).agg({
-                                    'p0.5_operator': 'sum',
-                                    'p0.1_operator': 'sum',
-                                    'p0.9_operator': 'sum'
-                                    }).reset_index()
-                                    
-                                    # Add median forecast line
-                                    fig.add_trace(go.Scatter(
-                                        x=operator_df['datetime'],
-                                        y=operator_df['p0.5_operator'],
-                                        mode='lines',
-                                        name=f'{operator} - Median (P50)',
-                                        line=dict(width=2)
-                                    ))
-                                    
-                                    # Add lower bound
-                                    fig.add_trace(go.Scatter(
-                                        x=operator_df['datetime'],
-                                        y=operator_df['p0.1_operator'],
-                                        mode='lines',
-                                        name=f'{operator} - Lower Bound (P10)',
-                                        line=dict(width=1, dash='dash')
-                                    ))
-                                    
-                                    # Add upper bound
-                                    fig.add_trace(go.Scatter(
-                                        x=operator_df['datetime'],
-                                        y=operator_df['p0.9_operator'],
-                                        mode='lines',
-                                        name=f'{operator} - Upper Bound (P90)',
-                                        line=dict(width=1, dash='dash')
-                                    ))  
-                                
-                            else:
-                                # Create an empty figure if no selections are made
-                                operator_df = filtered_df.copy().sort_values('datetime')
-
-                                operator_df = operator_df.groupby(['datetime']).agg({
-                                'p0.5_operator': 'sum',
-                                'p0.1_operator': 'sum',
-                                'p0.9_operator': 'sum'
-                                }).reset_index()
-                                
-                                fig = go.Figure()
-                                # Add median forecast line
-                                fig.add_trace(go.Scatter(
-                                    x=operator_df['datetime'],
-                                    y=operator_df['p0.5_operator'],
-                                    mode='lines',
-                                    name=f'Total - Median (P50)',
-                                    line=dict(width=2, color='white' )
-                                ))
-                                
-                                # Add lower bound
-                                fig.add_trace(go.Scatter(
-                                    x=operator_df['datetime'],
-                                    y=operator_df['p0.1_operator'],
-                                    mode='lines',
-                                    name=f'Total - Lower Bound (P10)',
-                                    line=dict(width=1, dash='dash', color='white')
-                                ))
-                                
-                                # Add upper bound
-                                fig.add_trace(go.Scatter(
-                                    x=operator_df['datetime'],
-                                    y=operator_df['p0.9_operator'],
-                                    mode='lines',
-                                    name=f'Total - Upper Bound (P90)',
-                                    line=dict(width=1, dash='dash', color='white')
-                                ))
-                            
-
-                            try:
-                                len(selected_operators)>1
-                            except:
-                                selected_operators = [0]
-                            
-                            try:
-                                len(selected_cantons)>1
-                            except:
-                                selected_cantons = [0]
-
-                            if (len(selected_operators)>1) or (len(selected_cantons)>1): 
-                                    if len(selected_operators)>1:
-                                        total_df = plot_df[plot_df['operator'].isin(selected_operators)]
-                                    elif (len(selected_cantons)>1):
-                                        total_df = plot_df[plot_df['Canton'].isin(selected_cantons)]
-                                    # Group by datetime and sum
-                                    total_df = total_df.groupby(['datetime']).agg({
-                                        'p0.5_operator': 'sum',
-                                        'p0.1_operator': 'sum',
-                                        'p0.9_operator': 'sum'
-                                    }).reset_index()
-
-                                    # Add median forecast line for Total
-                                    fig.add_trace(go.Scatter(
-                                        x=total_df['datetime'],
-                                        y=total_df['p0.5_operator'],
-                                        mode='lines',
-                                        name='Total - Median (P50)',
-                                        line=dict(width=3, color='white')  # Making Total line thicker and black for emphasis
-                                    ))
-
-                                    # Add lower bound for Total
-                                    fig.add_trace(go.Scatter(
-                                        x=total_df['datetime'],
-                                        y=total_df['p0.1_operator'],
-                                        mode='lines',
-                                        name='Total - Lower Bound (P10)',
-                                        line=dict(width=2, dash='dash', color='white')
-                                    ))
-
-                                    # Add upper bound for Total
-                                    fig.add_trace(go.Scatter(
-                                        x=total_df['datetime'],
-                                        y=total_df['p0.9_operator'],
-                                        mode='lines',
-                                        name='Total - Upper Bound (P90)',
-                                        line=dict(width=2, dash='dash', color='white')
-                                    ))
-                            # Update layout for all plots
-                            fig.update_layout(
-                                title="Solar Generation Forecast",
-                                xaxis_title="Date and Time",
-                                yaxis_title="Power (MW)",
-                                legend_title="Legend",
-                                template="plotly_dark",
-                                height=600,
-                                hovermode="x unified"
-                            )
-                            
-                            # Display the plot
-                            st.plotly_chart(fig, use_container_width=True)
-                            
-                        else:  # Powerplant Location Heatmap
-                            # Merge powerplants with filtered data based on Canton and operator
-                            # First extract the latest datetime for forecast
-                            latest_datetime = filtered_df['datetime'].max()
-                            latest_forecast = filtered_df[filtered_df['datetime'] == latest_datetime].copy()
-                            
-                            # Merge with powerplants data
-                            if filter_type == "Canton" and selected_cantons:
-                                merged_plants = pd.merge(
-                                    powerplants, 
-                                    latest_forecast, 
-                                    on=["Canton","operator"], 
-                                    how="inner"
-                                )
-                                if selected_cantons:
-                                    merged_plants = merged_plants[merged_plants['Canton'].isin(selected_cantons)]
-                            elif filter_type == "Operator" and 'operator' in filtered_df.columns and selected_operators:
-                                merged_plants = pd.merge(
-                                    powerplants, 
-                                    latest_forecast, 
-                                    on=["Canton", "operator"], 
-                                    how="inner"
-                                )
-                                if selected_operators:
-                                    merged_plants = merged_plants[merged_plants['operator'].isin(selected_operators)]
-                            else:
-                                merged_plants = pd.merge(
-                                    powerplants, 
-                                    latest_forecast, 
-                                    on=["Canton","operator"], 
-                                    how="inner"
-                                )
-                            
-
-                            col1, col2, col3 = st.columns(3)
-                            with col1:
-                                st.metric("Total Plants", f"{len(merged_plants):,}")
-                            with col2:
-                                st.metric("Total Capacity", f"{merged_plants['TotalPower'].sum()/1000:,.2f} MW")
-                            # Create the heatmap using plotly
-                            fig = px.density_map(
-                                merged_plants,
-                                lat="latitude",
-                                lon="longitude",
-                                z="TotalPower",  # Color intensity based on forecast power
-                                hover_name="operator",
-                                hover_data={
-                                    "Canton": True,
-                                    "operator":True,
-                                    "TotalPower": True,
-                                    #"forecast_power": ":.2f",
-                                    #"latitude": False,
-                                    #"longitude": False
-                                },
-                                color_continuous_scale="Jet",
-                                radius=10,
-                                zoom=6,
-                                #mapbox_style="carto-darkmatter",
-                                title="Solar Power Plant Density",
-                                center={"lat": 46.8, "lon": 8.2},  # Center of Switzerland
-                                opacity=0.9
-                            )
-                            
-                            fig.update_layout(
-                                height=600,
-                                margin={"r": 0, "t": 30, "l": 0, "b": 0},
-                                coloraxis_colorbar=dict(
-                                    title="Installed CAPA (MW)",
-                                    tickformat=",.1f"
-                                )
-                            )
-                            
-                            st.plotly_chart(fig, use_container_width=True)
-                            
-                            # Display additional statistics
-                            
-                           # with col3:
-                            #    st.metric("Forecast Power", f"{merged_plants['forecast_power'].sum():,.2f} MW")
-                            
+                        # Filter the dataframe based on selected operators
+                        if selected_operators:
+                            filtered_df = merged_df[merged_df["operator"].isin(selected_operators)].copy()
                     else:
-                        st.error("Failed to load solar forecast data.")
-            else:
-                st.error("Failed to load capacity data.")
-    else:
-        st.warning("No parquet files with format YYYY-MM.parquet found in the bucket.")
+                        st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
+            
+            # Clean up merged_df to free memory
+            del merged_df
+            gc.collect()
+            
+            # Prepare the filtered dataframe for visualization
+            filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator', 
+                                    'CumulativePower_canton', 'CumulativePower_operator']].copy()
+            
+            # Calculate installed capacity
+            capa_installed = round(filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()]
+                                .drop_duplicates('operator')['CumulativePower_operator'].sum())
+            
+            st.success(f"Installed capacity: {round(capa_installed/1000):,.0f} MW")
+            
+            # Calculate power metrics
+            filtered_df['p0.5_canton'] = filtered_df['p0.5'] * filtered_df['CumulativePower_canton'] / 1000
+            filtered_df['p0.1_canton'] = filtered_df['p0.1'] * filtered_df['CumulativePower_canton'] / 1000
+            filtered_df['p0.9_canton'] = filtered_df['p0.9'] * filtered_df['CumulativePower_canton'] / 1000
+            
+            filtered_df['p0.5_operator'] = filtered_df['p0.5'] * filtered_df['CumulativePower_operator'] / 1000
+            filtered_df['p0.1_operator'] = filtered_df['p0.1'] * filtered_df['CumulativePower_operator'] / 1000
+            filtered_df['p0.9_operator'] = filtered_df['p0.9'] * filtered_df['CumulativePower_operator'] / 1000
+            
+            # Add a radio button for chart type selection
+            chart_type = st.radio(
+                "Select visualization type:",
+                options=["Forecast Chart", "Powerplant Location Heatmap"],
+                horizontal=True
+            )
+            
+            if chart_type == "Forecast Chart":
+                # Create forecast chart
+                fig = create_forecast_chart(filtered_df, filter_type, selected_cantons, selected_operators)
+                st.plotly_chart(fig, use_container_width=True)
+                
+            else:  # Powerplant Location Heatmap
+                if powerplants is None:
+                    st.error("Powerplant data is not available for the heatmap visualization")
+                    return
+                    
+                # Extract the latest datetime for forecast
+                latest_datetime = filtered_df['datetime'].max()
+                latest_forecast = filtered_df[filtered_df['datetime'] == latest_datetime].copy()
+                
+                # Merge with powerplants data
+                merge_conditions = ["Canton", "operator"]
+                merged_plants = pd.merge(powerplants, latest_forecast, on=merge_conditions, how="inner")
+                
+                # Apply filters
+                if filter_type == "Canton" and selected_cantons:
+                    merged_plants = merged_plants[merged_plants['Canton'].isin(selected_cantons)]
+                elif filter_type == "Operator" and selected_operators:
+                    merged_plants = merged_plants[merged_plants['operator'].isin(selected_operators)]
+                
+                # Display metrics
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric("Total Plants", f"{len(merged_plants):,}")
+                with col2:
+                    st.metric("Total Capacity", f"{merged_plants['TotalPower'].sum()/1000:,.2f} MW")
+                
+                # Create heatmap
+                fig = create_heatmap(merged_plants)
+                st.plotly_chart(fig, use_container_width=True)
+
+def about_page():
+    st.title("About This App")
+    st.write("This application displays solar power forecasts for Switzerland based on PRONOVO data.")
+    
+    st.markdown("""
+    ### Data Sources
+    - Solar installation data from the PRONOVO registry
+    - Weather forecast data from multiple meteorological models
+    
+    ### Features
+    - View forecasts by canton or operator
+    - Compare multiple forecast scenarios
+    - Visualize solar plant locations across Switzerland
+    
+    ### Contact
+    For more information or support, please contact the development team.
+    """)
 
 def main():
     st.sidebar.title("Navigation")
     
-    # Cache clearing button
-    if st.sidebar.button("Clear Cache"):
-        st.cache_resource.clear()
-        st.cache_data.clear()
-        st.sidebar.success("Cache cleared!")
+    # Manual cache clearing button (simplified)
+    if st.sidebar.button("Clear Memory"):
+        gc.collect()
+        st.sidebar.success("Memory cleared!")
     
     page_choice = st.sidebar.radio("Go to page:", ["Home", "About"])
     
     if page_choice == "Home":
         home_page()
     elif page_choice == "About":
-        st.title("About This App")
-        st.write("This application displays solar power forecasts for Switzerland based on PRONOVO data.")
-
+        about_page()
 
 if __name__ == "__main__":
     main()
