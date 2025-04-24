@@ -29,7 +29,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-@st.cache_data(ttl=3600)  # Cache for 1 hour
 def get_available_forecast_files(model, cluster):
     """Get list of available forecast files for the selected model and cluster"""
     conn = st.connection('gcs', type=FilesConnection)
@@ -45,7 +44,6 @@ def get_available_forecast_files(model, cluster):
         st.error(f"Error listing forecast files: {e}")
         return [], conn
 
-@st.cache_data(ttl=3600)  # Cache for 1 hour
 def download_and_load_parquet(file_path, format, conn):
     """Download and load the parquet file into a pandas DataFrame"""
     try:
@@ -56,7 +54,6 @@ def download_and_load_parquet(file_path, format, conn):
         st.error(f"Error loading file: {e}")
         return None
 
-@st.cache_data(ttl=3600)  # Cache for 1 hour
 def get_solar_forecast(forecast_path, conn):
     """Get the specific solar forecast parquet file"""
     try:
@@ -67,7 +64,6 @@ def get_solar_forecast(forecast_path, conn):
         st.error(f"Error loading forecast parquet file: {e}")
         return None
 
-@st.cache_data(ttl=3600)  # Cache for 1 hour
 def get_powerplants_data(conn):
     """Get power plants master data"""
     return download_and_load_parquet(
