@@ -9,7 +9,7 @@ import gc
 from datetime import datetime
 from st_files_connection import FilesConnection
 
-# Page configuration
+
 st.set_page_config(
     page_title="Swiss Solar Forecasts",
     layout="wide",
