@@ -249,8 +249,8 @@ def home_page():
                         
                         # Display the filtered dataframe
                         filtered_df = filtered_df[['p0.5','p0.1','p0.9','Canton','operator','CumulativePower_canton','CumulativePower_operator']].copy()
-                        
-                        print(filtered_df.columns)
+
+                        print(filtered_df)
 
                         capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()]['CumulativePower_operator'].sum())
                         
