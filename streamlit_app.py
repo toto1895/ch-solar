@@ -358,7 +358,7 @@ def home_page():
                     
                     # Filter the dataframe based on selected cantons
                     if selected_cantons:
-                        filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)].copy()
+                        filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)]
                     
                 elif filter_type == "Operator":
                     # Check if 'operator' column exists in merged_df
@@ -374,7 +374,7 @@ def home_page():
                         
                         # Filter the dataframe based on selected operators
                         if selected_operators:
-                            filtered_df = merged_df[merged_df["operator"].isin(selected_operators)].copy()
+                            filtered_df = merged_df[merged_df["operator"].isin(selected_operators)]
                     else:
                         st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
             
