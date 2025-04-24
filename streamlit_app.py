@@ -3,6 +3,8 @@ import pandas as pd
 import os
 import numpy as np
 import plotly.graph_objects as go
+from st_files_connection import FilesConnection
+
 import plotly.express as px
 import re
 import gc
