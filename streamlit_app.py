@@ -29,6 +29,30 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+def get_latest_parquet_file():
+    """Get the latest parquet file with format %Y-%m.parquet"""
+    conn = st.connection('gcs', type=FilesConnection)
+    prefix = "oracle_predictions/swiss_solar/datasets/capa_timeseries"
+    
+    # Retrieve all files - fixed to use the correct API
+    try:
+        all_files = conn.fs.ls(prefix, max_results=100)
+        
+        # Filter for parquet files with the format YYYY-MM.parquet
+        date_pattern = re.compile(r'(\d{4}-\d{2})\.parquet$')
+        parquet_files = [f for f in all_files if date_pattern.search(f)]
+        
+        if not parquet_files:
+            return None, conn
+        
+        # Sort files by date in filename (newest first)
+        latest_file = sorted(parquet_files, key=lambda x: date_pattern.search(x).group(1), reverse=True)[0]
+        
+        return latest_file, conn
+    except Exception as e:
+        st.error(f"Error listing parquet files: {e}")
+        return None, conn
+
 def get_available_forecast_files(model, cluster):
     """Get list of available forecast files for the selected model and cluster"""
     conn = st.connection('gcs', type=FilesConnection)
