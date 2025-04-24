@@ -251,7 +251,8 @@ def home_page():
                         
                         del merged_df
                         del capa
-                        merged_df.collect()
+                        del forecast_df
+                        gc.collect()
                         # Display the filtered dataframe
                         filtered_df = filtered_df[['datetime','p0.5','p0.1','p0.9','Canton','operator','CumulativePower_canton','CumulativePower_operator']].copy()
 
