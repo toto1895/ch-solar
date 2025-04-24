@@ -248,7 +248,7 @@ def home_page():
                                     st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
                         
                         # Display the filtered dataframe
-                        filtered_df = filtered_df[['p0.5','p0.1','p0.9','Canton','operator','CumulativePower_canton','CumulativePower_operator']].copy()
+                        filtered_df = filtered_df[['datetime','p0.5','p0.1','p0.9','Canton','operator','CumulativePower_canton','CumulativePower_operator']].copy()
 
                         print(filtered_df)
 
