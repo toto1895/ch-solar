@@ -163,8 +163,8 @@ def home_page():
             capa_df = download_and_load_parquet(latest_file,'parquet', conn)
             if capa_df is not None:
                 # Get the latest date's capacity data
-                latest_mastr_date =capa_df.datetime.max()
-                capa = capa_df.loc[capa_df.datetime == latest_mastr_date].drop(columns='datetime').reset_index(drop=True)
+                latest_mastr_date =capa_df.Date.max()
+                capa = capa_df.loc[capa_df.Date == latest_mastr_date].drop(columns='Date').reset_index(drop=True)
                 
                 # Download the selected solar forecast data
                 st.warning(f"Master data latest update {latest_mastr_date.strftime('%Y-%m-%d')}")
@@ -246,17 +246,17 @@ def home_page():
                                     st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
                         
                         # Display the filtered dataframe
-                        capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()]['cum_operator'].sum())
+                        capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()]['CumulativePower_operator'].sum())
                         
                         st.success(f"Installed capacity: {round(capa_installed/1000):,.0f} MW")
 
-                        filtered_df['p0.5_canton'] = filtered_df['p0.5'] * filtered_df['cum_canton']/1000
-                        filtered_df['p0.1_canton'] = filtered_df['p0.1'] * filtered_df['cum_canton']/1000
-                        filtered_df['p0.9_canton'] = filtered_df['p0.9'] * filtered_df['cum_canton']/1000
+                        filtered_df['p0.5_canton'] = filtered_df['p0.5'] * filtered_df['CumulativePower_canton']/1000
+                        filtered_df['p0.1_canton'] = filtered_df['p0.1'] * filtered_df['CumulativePower_canton']/1000
+                        filtered_df['p0.9_canton'] = filtered_df['p0.9'] * filtered_df['CumulativePower_canton']/1000
 
-                        filtered_df['p0.5_operator'] = filtered_df['p0.5'] * filtered_df['cum_operator']/1000
-                        filtered_df['p0.1_operator'] = filtered_df['p0.1'] * filtered_df['cum_operator']/1000
-                        filtered_df['p0.9_operator'] = filtered_df['p0.9'] * filtered_df['cum_operator']/1000
+                        filtered_df['p0.5_operator'] = filtered_df['p0.5'] * filtered_df['CumulativePower_operator']/1000
+                        filtered_df['p0.1_operator'] = filtered_df['p0.1'] * filtered_df['CumulativePower_operator']/1000
+                        filtered_df['p0.9_operator'] = filtered_df['p0.9'] * filtered_df['CumulativePower_operator']/1000
 
                         # Add a radio button for chart type selection
                         chart_type = st.radio(
