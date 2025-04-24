@@ -248,7 +248,8 @@ def home_page():
                                     st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
                         
                         # Display the filtered dataframe
-                        capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()]['CumulativePower_operator'].sum())
+                        print(filtered_df.columns)
+                        capa_installed = round(filtered_df.loc[filtered_df.Date==filtered_df.datetime.max()]['CumulativePower_operator'].sum())
                         
                         st.success(f"Installed capacity: {round(capa_installed/1000):,.0f} MW")
 
