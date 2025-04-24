@@ -110,6 +110,8 @@ def get_solar_forecast(forecast_path):
     except Exception as e:
         st.error(f"Error loading forecast parquet file: {e}")
         return None, conn
+    
+import gc
 
 def home_page():
     st.title("Swiss Solar Forecasts")
@@ -247,10 +249,13 @@ def home_page():
                                 else:
                                     st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
                         
+                        del merged_df
+                        del capa
+                        merged_df.collect()
                         # Display the filtered dataframe
                         filtered_df = filtered_df[['datetime','p0.5','p0.1','p0.9','Canton','operator','CumulativePower_canton','CumulativePower_operator']].copy()
 
-                        print(filtered_df)
+                        
 
                         capa_installed = round(filtered_df.loc[filtered_df.datetime==filtered_df.datetime.max()].drop_duplicates('operator')['CumulativePower_operator'].sum())
                         
