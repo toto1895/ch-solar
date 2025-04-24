@@ -358,7 +358,7 @@ def home_page():
                     
                     # Filter the dataframe based on selected cantons
                     if selected_cantons:
-                        filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)]
+                        filter = selected_cantons
                     
                 elif filter_type == "Operator":
                     # Check if 'operator' column exists in merged_df
@@ -374,7 +374,7 @@ def home_page():
                         
                         # Filter the dataframe based on selected operators
                         if selected_operators:
-                            filtered_df = merged_df[merged_df["operator"].isin(selected_operators)]
+                            filter = selected_operators
                     else:
                         st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
             
@@ -385,6 +385,11 @@ def home_page():
             # Prepare the filtered dataframe for visualization
             filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator', 
                                     'CumulativePower_canton', 'CumulativePower_operator']].copy()
+            if filter_type == "Canton":
+                filtered_df = filtered_df[filtered_df['Canton'].isin(filter)]
+            elif filter_type == "Operator":
+                filtered_df = filtered_df[filtered_df['operator'].isin(filter)]
+
             st.dataframe(filtered_df)
             # Calculate installed capacity
             capa_installed = round(filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()]
