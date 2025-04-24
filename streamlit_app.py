@@ -97,12 +97,12 @@ def get_solar_forecast(forecast_path, conn):
         return None
 
 @st.cache_data(ttl=3600)  # Cache for 1 hour
-def get_powerplants_data(conn):
+def get_powerplants_data(_conn):
     """Get power plants master data"""
     return download_and_load_parquet(
         'oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv', 
         'csv', 
-        conn
+        _conn
     )[['Canton', 'operator', 'longitude', 'latitude', 'TotalPower']]
 
 def process_forecast_data(forecast_df, selected_model):
