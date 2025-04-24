@@ -293,8 +293,6 @@ def home_page():
 
         #unique_pairs = set(zip(map['Canton'], map['operator']))
         #capa_df = capa_d[capa_d.apply(lambda row: (row['Canton'], row['operator']) in unique_pairs, axis=1)]
-
-        del capa_d
         
         if capa_df is None:
             st.error("Failed to load capacity data")
