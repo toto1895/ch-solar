@@ -163,7 +163,7 @@ def home_page():
             capa_df = download_and_load_parquet(latest_file,'parquet', conn)
             if capa_df is not None:
                 # Get the latest date's capacity data
-                print(capa_df.columns)
+                print(capa_df)
                 latest_mastr_date =capa_df.Date.max()
                 capa = capa_df.loc[capa_df.Date == latest_mastr_date].drop(columns='Date').reset_index(drop=True)
                 
