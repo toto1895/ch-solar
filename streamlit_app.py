@@ -489,9 +489,7 @@ def home_page():
                                     how="inner"
                                 )
                             
-                            # Calculate the forecast power for each plant
-                            #merged_plants['forecast_power'] = merged_plants['p0.5'] * merged_plants['TotalPower'] / 1000  # MW
-                            #st.subheader("Power Plant Statistics")
+
                             col1, col2, col3 = st.columns(3)
                             with col1:
                                 st.metric("Total Plants", f"{len(merged_plants):,}")
