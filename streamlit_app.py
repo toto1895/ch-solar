@@ -323,7 +323,7 @@ def home_page():
             
             # Merge forecast with capacity data
             merged_df = pd.merge(forecast_df.reset_index(), capa, on="Canton", how="left")
-            merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
+            #merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
             
             # Clean up to free memory
             del capa_df
@@ -390,7 +390,7 @@ def home_page():
             # Prepare the filtered dataframe for visualization
             filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator', 
                                     'CumulativePower_canton', 'CumulativePower_operator']].copy()
-            filtered_df = filtered_df.drop_duplicates(filtered_df.columns)
+ 
             st.dataframe(filtered_df)
             # Calculate installed capacity
             capa_installed = round(filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()]
