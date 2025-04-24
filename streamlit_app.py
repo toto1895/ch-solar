@@ -387,13 +387,12 @@ def home_page():
             gc.collect()
             
             # Prepare the filtered dataframe for visualization
-            filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator', 
-                                    'CumulativePower_canton', 'CumulativePower_operator']].drop_duplicates(['Canton','operator'])
+            filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator','CumulativePower_canton', 'CumulativePower_operator']]
  
             st.dataframe(filtered_df)
             # Calculate installed capacity
             capa_installed = round(filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()]
-                                .drop_duplicates('operator')['CumulativePower_operator'].sum())
+                                .drop_duplicates('CumulativePower_operator')['CumulativePower_operator'].sum())
             
             st.success(f"Installed capacity: {round(capa_installed/1000):,.0f} MW")
             
