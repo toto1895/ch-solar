@@ -344,7 +344,7 @@ def home_page():
             
             with filter_col2:
                 # Initialize filtered_df
-                filtered_df = merged_df.copy()
+                filtered_df = merged_df.reset_index(drop=True).copy()
                 
                 if filter_type == "Canton":
                     # Get all unique cantons
