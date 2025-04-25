@@ -421,6 +421,7 @@ def home_page():
             elif chart_type =='Monthly installed capacity':
                 filtered_df_ = filtered_df.groupby('year_month')['TotalPower'].sum()
 
+
                 fig = go.Figure()
                 fig.add_trace(go.Scatter(
                     x=filtered_df['year_month'].unique(),
