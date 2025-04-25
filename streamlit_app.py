@@ -387,7 +387,8 @@ def home_page():
             gc.collect()
             
             # Prepare the filtered dataframe for visualization
-            filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator','cum_canton', 'cum_operator']]
+            filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator',
+                                       'cum_canton', 'cum_operator','year_month','TotalPower']]
             filtered_df.drop_duplicates(['datetime','Canton','operator'], inplace=True)
             
             st.dataframe(filtered_df)
@@ -408,7 +409,7 @@ def home_page():
             # Add a radio button for chart type selection
             chart_type = st.radio(
                 "Select visualization type:",
-                options=["Forecast Chart", "Powerplant Location Heatmap"],
+                options=["Forecast Chart", 'Monthly installed capacity',"Powerplant Location Heatmap"],
                 horizontal=True
             )
             
@@ -416,7 +417,11 @@ def home_page():
                 # Create forecast chart
                 fig = create_forecast_chart(filtered_df, filter_type, selected_cantons, selected_operators)
                 st.plotly_chart(fig, use_container_width=True)
-                
+            
+            elif chart_type =='Monthly installed capacity':
+                filtered_df = filtered_df.groupby('year_month')['TotalPower'].sum()
+
+
             else:  # Powerplant Location Heatmap
                 if powerplants is None:
                     st.error("Powerplant data is not available for the heatmap visualization")
