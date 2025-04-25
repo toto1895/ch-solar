@@ -397,16 +397,16 @@ def home_page():
 
             capa_installed =filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()
                                                    ].groupby('datetime')['cum_operator'].sum().values[0]
-            st.success(f"Declared installed capacity: {round(capa_installed/1000):,.0f} MW")
+            st.success(f"Declared installed capacity: {round(capa_installed/1000):,.0f} MW (estimated current {1.1*round(capa_installed/1000):,.0f}) MW")
             
             # Calculate power metrics
-            filtered_df['p0.5_canton'] = filtered_df['p0.5'] * filtered_df['cum_canton'] / 1000
-            filtered_df['p0.1_canton'] = filtered_df['p0.1'] * filtered_df['cum_canton'] / 1000
-            filtered_df['p0.9_canton'] = filtered_df['p0.9'] * filtered_df['cum_canton'] / 1000
+            filtered_df['p0.5_canton'] = 1.1*filtered_df['p0.5'] * filtered_df['cum_canton'] / 1000
+            filtered_df['p0.1_canton'] = 1.1*filtered_df['p0.1'] * filtered_df['cum_canton'] / 1000
+            filtered_df['p0.9_canton'] = 1.1*filtered_df['p0.9'] * filtered_df['cum_canton'] / 1000
             
-            filtered_df['p0.5_operator'] = filtered_df['p0.5'] * filtered_df['cum_operator'] / 1000
-            filtered_df['p0.1_operator'] = filtered_df['p0.1'] * filtered_df['cum_operator'] / 1000
-            filtered_df['p0.9_operator'] = filtered_df['p0.9'] * filtered_df['cum_operator'] / 1000
+            filtered_df['p0.5_operator'] = 1.1*filtered_df['p0.5'] * filtered_df['cum_operator'] / 1000
+            filtered_df['p0.1_operator'] = 1.1*filtered_df['p0.1'] * filtered_df['cum_operator'] / 1000
+            filtered_df['p0.9_operator'] = 1.1*filtered_df['p0.9'] * filtered_df['cum_operator'] / 1000
             
             # Add a radio button for chart type selection
             chart_type = st.radio(
