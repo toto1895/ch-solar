@@ -393,7 +393,7 @@ def home_page():
                                        'cum_canton', 'cum_operator','year_month','TotalPower']]
             filtered_df.drop_duplicates(['datetime','Canton','operator'], inplace=True)
             
-            st.dataframe(filtered_df)
+            #st.dataframe(filtered_df)
             # Calculate installed capacity
             capa_installed =filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()
                                                    ].groupby('datetime')['cum_operator'].sum().values[0]
