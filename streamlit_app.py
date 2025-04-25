@@ -392,8 +392,7 @@ def home_page():
             st.dataframe(filtered_df)
             # Calculate installed capacity
             capa_installed = round(filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()
-                                                   ].groupby('datetime')['cum_operator'].sum())
-            st.success(capa_installed)
+                                                   ].groupby('datetime')['cum_operator'].sum()).values[0]
             st.success(f"Installed capacity: {round(capa_installed/1000):,.0f} MW")
             
             # Calculate power metrics
