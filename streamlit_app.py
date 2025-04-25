@@ -388,7 +388,7 @@ def home_page():
             
             # Prepare the filtered dataframe for visualization
             filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator','cum_canton', 'cum_operator']]
-            filtered_df.drop_duplicates(['datetime','Canoton','operator'], inplace=True)
+            filtered_df = filtered_df.drop_duplicates(['datetime','Canoton','operator'])
             
             st.dataframe(filtered_df)
             # Calculate installed capacity
