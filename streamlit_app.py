@@ -421,6 +421,16 @@ def home_page():
             elif chart_type =='Monthly installed capacity':
                 filtered_df = filtered_df.groupby('year_month')['TotalPower'].sum()
 
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(
+                    x=filtered_df['year_month'].unique(),
+                    y=filtered_df['TotalPower'],
+                    mode='lines',
+                    name=f'Added Capa',
+                    #line=line_style
+                ))
+                st.plotly_chart(fig, use_container_width=True)
+
 
             else:  # Powerplant Location Heatmap
                 if powerplants is None:
