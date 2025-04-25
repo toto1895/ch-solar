@@ -300,7 +300,7 @@ def home_page():
             
         # Get the latest date's capacity data
         latest_mastr_date = capa_df.date.max()
-        capa = capa_df.loc[capa_df.date == latest_mastr_date].drop(columns='date').reset_index(drop=True)
+        capa_df = capa_df.loc[capa_df.date == latest_mastr_date].drop(columns='date').reset_index(drop=True)
         
         # Status notification
         st.warning(f"Master data latest update {latest_mastr_date.strftime('%Y-%m-%d')}")
@@ -321,7 +321,7 @@ def home_page():
                 forecast_df = forecast_df.loc[forecast_df.index != max_idx[0]]
             
             # Merge forecast with capacity data
-            #merged_df = pd.merge(forecast_df.reset_index(), capa, on="Canton", how="left")
+            merged_df = pd.merge(forecast_df.reset_index(), capa_df, on="Canton", how="left")
             merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
             
             # Clean up to free memory
