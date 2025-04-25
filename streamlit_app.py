@@ -424,11 +424,10 @@ def home_page():
 
                 fig = go.Figure()
                 fig.add_trace(go.Bar(
-                    x=filtered_df['year_month'].unique(),
+                    x=filtered_df_.index,  # Use the index of the grouped Series
                     y=filtered_df_.values,
-                    mode='lines',
-                    name=f'Added Capa',
-                    #line=line_style
+                    name='Added Capa'
+                    # Remove the mode='lines' parameter as it's not applicable for bar charts
                 ))
                 st.plotly_chart(fig, use_container_width=True)
 
