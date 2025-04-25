@@ -299,8 +299,8 @@ def home_page():
             return
             
         # Get the latest date's capacity data
-        latest_mastr_date = capa_df.Date.max()
-        capa = capa_df.loc[capa_df.Date == latest_mastr_date].drop(columns='Date').reset_index(drop=True)
+        latest_mastr_date = capa_df.date.max()
+        capa = capa_df.loc[capa_df.date == latest_mastr_date].drop(columns='date').reset_index(drop=True)
         
         # Status notification
         st.warning(f"Master data latest update {latest_mastr_date.strftime('%Y-%m-%d')}")
@@ -321,8 +321,8 @@ def home_page():
                 forecast_df = forecast_df.loc[forecast_df.index != max_idx[0]]
             
             # Merge forecast with capacity data
-            merged_df = pd.merge(forecast_df.reset_index(), capa, on="Canton", how="left")
-            #merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
+            #merged_df = pd.merge(forecast_df.reset_index(), capa, on="Canton", how="left")
+            merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
             
             # Clean up to free memory
             del capa_df
@@ -387,23 +387,23 @@ def home_page():
             gc.collect()
             
             # Prepare the filtered dataframe for visualization
-            filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator','CumulativePower_canton', 'CumulativePower_operator']]
+            filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator','cum_canton', 'cum_operator']]
  
             st.dataframe(filtered_df)
             # Calculate installed capacity
-            capa_installed = round(filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()]
-                                .drop_duplicates('CumulativePower_operator')['CumulativePower_operator'].sum())
+            capa_installed = round(filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()
+                                                   ].goupby('datetime')['cum_operator'].sum())
             
             st.success(f"Installed capacity: {round(capa_installed/1000):,.0f} MW")
             
             # Calculate power metrics
-            filtered_df['p0.5_canton'] = filtered_df['p0.5'] * filtered_df['CumulativePower_canton'] / 1000
-            filtered_df['p0.1_canton'] = filtered_df['p0.1'] * filtered_df['CumulativePower_canton'] / 1000
-            filtered_df['p0.9_canton'] = filtered_df['p0.9'] * filtered_df['CumulativePower_canton'] / 1000
+            filtered_df['p0.5_canton'] = filtered_df['p0.5'] * filtered_df['cum_operator'] / 1000
+            filtered_df['p0.1_canton'] = filtered_df['p0.1'] * filtered_df['cum_operator'] / 1000
+            filtered_df['p0.9_canton'] = filtered_df['p0.9'] * filtered_df['cum_operator'] / 1000
             
-            filtered_df['p0.5_operator'] = filtered_df['p0.5'] * filtered_df['CumulativePower_operator'] / 1000
-            filtered_df['p0.1_operator'] = filtered_df['p0.1'] * filtered_df['CumulativePower_operator'] / 1000
-            filtered_df['p0.9_operator'] = filtered_df['p0.9'] * filtered_df['CumulativePower_operator'] / 1000
+            filtered_df['p0.5_operator'] = filtered_df['p0.5'] * filtered_df['cum_operator'] / 1000
+            filtered_df['p0.1_operator'] = filtered_df['p0.1'] * filtered_df['cum_operator'] / 1000
+            filtered_df['p0.9_operator'] = filtered_df['p0.9'] * filtered_df['cum_operator'] / 1000
             
             # Add a radio button for chart type selection
             chart_type = st.radio(
