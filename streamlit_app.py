@@ -425,7 +425,7 @@ def home_page():
                 fig = go.Figure()
                 fig.add_trace(go.Scatter(
                     x=filtered_df['year_month'].unique(),
-                    y=filtered_df_['TotalPower'],
+                    y=filtered_df_.values,
                     mode='lines',
                     name=f'Added Capa',
                     #line=line_style
