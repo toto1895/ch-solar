@@ -423,11 +423,12 @@ def home_page():
             elif chart_type =='Monthly installed capacity':
                 full_capa = full_capa.groupby('year_month')['TotalPower'].sum()
 
+                st.subheader('Monthly added capacity [MW]')
                 fig = go.Figure()
                 fig.add_trace(go.Bar(
                     x=full_capa.index,  # Use the index of the grouped Series
-                    y=full_capa.values,
-                    name='Added Capa'
+                    y=full_capa.values/1000,
+                    name='Added Cap a'
                     # Remove the mode='lines' parameter as it's not applicable for bar charts
                 ))
                 st.plotly_chart(fig, use_container_width=True)
