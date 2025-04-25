@@ -304,7 +304,7 @@ def home_page():
         
         # Status notification
         st.warning(f"Master data latest update {latest_mastr_date.strftime('%Y-%m-%d')}")
-        
+        full_capa = load_data('oracle_predictions/swiss_solar/datasets/capa_timeseries/full_dataset.parquet', 'parquet', conn)
         # Download the selected solar forecast data
         with st.spinner(f"Downloading solar forecast data from {selected_file}..."):
             forecast_df = load_data(selected_file, 'parquet', conn)
@@ -363,6 +363,7 @@ def home_page():
                     # Filter the dataframe based on selected cantons
                     if selected_cantons:
                         filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)]
+                        full_capa = full_capa[full_capa["Canton"].isin(selected_cantons)]
                     
                 elif filter_type == "Operator":
                     # Check if 'operator' column exists in merged_df
@@ -379,6 +380,7 @@ def home_page():
                         # Filter the dataframe based on selected operators
                         if selected_operators:
                             filtered_df = merged_df[merged_df["operator"].isin(selected_operators)]
+                            full_capa = full_capa[full_capa["Canton"].isin(selected_operators)]
                     else:
                         st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
             
@@ -419,13 +421,13 @@ def home_page():
                 st.plotly_chart(fig, use_container_width=True)
             
             elif chart_type =='Monthly installed capacity':
-                filtered_df_ = filtered_df.groupby('year_month')['TotalPower'].sum()
+                full_capa = full_capa.groupby('year_month')['TotalPower'].sum()
 
 
                 fig = go.Figure()
                 fig.add_trace(go.Bar(
-                    x=filtered_df_.index,  # Use the index of the grouped Series
-                    y=filtered_df_.values,
+                    x=full_capa.index,  # Use the index of the grouped Series
+                    y=full_capa.values,
                     name='Added Capa'
                     # Remove the mode='lines' parameter as it's not applicable for bar charts
                 ))
