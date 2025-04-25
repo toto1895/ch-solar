@@ -485,10 +485,6 @@ def about_page():
 def main():
     st.sidebar.title("Navigation")
     
-    # Manual cache clearing button (simplified)
-    if st.sidebar.button("Clear Memory"):
-        gc.collect()
-        st.sidebar.success("Memory cleared!")
     if st.sidebar.button("Clear Cache"):
         st.cache_resource.clear()
         st.cache_data.clear()
