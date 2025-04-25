@@ -419,12 +419,12 @@ def home_page():
                 st.plotly_chart(fig, use_container_width=True)
             
             elif chart_type =='Monthly installed capacity':
-                filtered_df = filtered_df.groupby('year_month')['TotalPower'].sum()
+                filtered_df_ = filtered_df.groupby('year_month')['TotalPower'].sum()
 
                 fig = go.Figure()
                 fig.add_trace(go.Scatter(
                     x=filtered_df['year_month'].unique(),
-                    y=filtered_df['TotalPower'],
+                    y=filtered_df_['TotalPower'],
                     mode='lines',
                     name=f'Added Capa',
                     #line=line_style
