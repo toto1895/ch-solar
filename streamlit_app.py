@@ -392,7 +392,7 @@ def home_page():
             st.dataframe(filtered_df)
             # Calculate installed capacity
             capa_installed = round(filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()
-                                                   ].goupby('datetime')['cum_operator'].sum())
+                                                   ].groupby('datetime')['cum_operator'].sum())
             
             st.success(f"Installed capacity: {round(capa_installed/1000):,.0f} MW")
             
