@@ -380,7 +380,7 @@ def home_page():
                         # Filter the dataframe based on selected operators
                         if selected_operators:
                             filtered_df = merged_df[merged_df["operator"].isin(selected_operators)]
-                            full_capa = full_capa[full_capa["Canton"].isin(selected_operators)]
+                            full_capa = full_capa[full_capa["operator"].isin(selected_operators)]
                     else:
                         st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
             
