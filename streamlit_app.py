@@ -214,7 +214,7 @@ def create_heatmap(merged_plants):
         },
         color_continuous_scale="Jet",
         radius=10,
-        zoom=6,
+        zoom=7,
         title="Solar Power Plant Density",
         center={"lat": 46.8, "lon": 8.2},  # Center of Switzerland
         opacity=0.9
@@ -397,7 +397,7 @@ def home_page():
 
             capa_installed =filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()
                                                    ].groupby('datetime')['cum_operator'].sum().values[0]
-            st.success(f"Installed capacity: {round(capa_installed/1000):,.0f} MW")
+            st.success(f"Declared installed capacity: {round(capa_installed/1000):,.0f} MW")
             
             # Calculate power metrics
             filtered_df['p0.5_canton'] = filtered_df['p0.5'] * filtered_df['cum_canton'] / 1000
