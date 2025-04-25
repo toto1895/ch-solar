@@ -423,7 +423,7 @@ def home_page():
 
 
                 fig = go.Figure()
-                fig.add_trace(go.Scatter(
+                fig.add_trace(go.Bar(
                     x=filtered_df['year_month'].unique(),
                     y=filtered_df_.values,
                     mode='lines',
