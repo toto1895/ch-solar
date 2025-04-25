@@ -388,11 +388,12 @@ def home_page():
             
             # Prepare the filtered dataframe for visualization
             filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator','cum_canton', 'cum_operator']]
- 
+            filtered_df.drop_duplicates(['datetime','Canoton','operator'], inplace=True)
+            
             st.dataframe(filtered_df)
             # Calculate installed capacity
-            capa_installed = round(filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()
-                                                   ].groupby('datetime')['cum_operator'].sum()).values[0]
+            capa_installed =filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()
+                                                   ].groupby('datetime')['cum_operator'].sum().values[0]
             st.success(f"Installed capacity: {round(capa_installed/1000):,.0f} MW")
             
             # Calculate power metrics
