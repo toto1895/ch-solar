@@ -423,7 +423,6 @@ def home_page():
             elif chart_type =='Monthly installed capacity':
                 full_capa = full_capa.groupby('year_month')['TotalPower'].sum()
 
-
                 fig = go.Figure()
                 fig.add_trace(go.Bar(
                     x=full_capa.index,  # Use the index of the grouped Series
