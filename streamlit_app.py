@@ -453,7 +453,6 @@ def home_page():
                 elif filter_type == "Operator" and selected_operators:
                     merged_plants = merged_plants[merged_plants['operator'].isin(selected_operators)]
                 
-                st.dataframe(merged_plants)
                 # Display metrics
                 col1, col2 = st.columns(2)
                 with col1:
