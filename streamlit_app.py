@@ -453,13 +453,12 @@ def home_page():
                 elif filter_type == "Operator" and selected_operators:
                     merged_plants = merged_plants[merged_plants['operator'].isin(selected_operators)]
                 
-                st.dataframe(merged_plants)
                 # Display metrics
                 col1, col2 = st.columns(2)
                 with col1:
                     st.metric("Total Plants", f"{len(merged_plants):,}")
                 with col2:
-                    st.metric("Total Capacity", f"{merged_plants['TotalPower'].sum()/1000:,.2f} MW")
+                    st.metric("Total Capacity", f"{merged_plants['TotalPower_x'].sum()/1000:,.2f} MW")
                 
                 # Create heatmap
                 fig = create_heatmap(merged_plants)
