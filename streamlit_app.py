@@ -19,7 +19,7 @@ with open('.streamlit/config.toml', 'w') as f:
 [theme]
 base = "dark"
     ''')
-    
+
 # Page configuration
 st.set_page_config(
     page_title="Swiss Solar Forecasts",
@@ -495,8 +495,8 @@ def about_page():
 def main():
     st.sidebar.title("Navigation")
 
-    col1, col2, col3 = st.columns(3)
-    with col3:
+    col1, col2, col3, col4 = st.columns(4)
+    with col4:
         st.components.v1.html("""
         <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="wamine" data-color="#FFDD00" data-emoji=""  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
         """, height=70)
