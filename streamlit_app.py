@@ -9,7 +9,17 @@ import re
 from google.oauth2 import service_account
 from st_files_connection import FilesConnection
 import gc
+import os
+if not os.path.exists('.streamlit'):
+    os.makedirs('.streamlit')
 
+# Create the config.toml file with dark theme settings
+with open('.streamlit/config.toml', 'w') as f:
+    f.write('''
+[theme]
+base = "dark"
+    ''')
+    
 # Page configuration
 st.set_page_config(
     page_title="Swiss Solar Forecasts",
