@@ -484,6 +484,10 @@ def about_page():
 
 def main():
     st.sidebar.title("Navigation")
+
+    st.components.v1.html("""
+    <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="wamine" data-color="#FFDD00" data-emoji=""  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+    """, height=40)
    
     
     if st.sidebar.button("Clear Cache"):
@@ -492,9 +496,7 @@ def main():
         st.cache_data.clear()
         st.sidebar.success("Cache cleared!")
 
-    st.sidebar.components.v1.html("""
-    <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="wamine" data-color="#FFDD00" data-emoji=""  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
-    """, height=40)
+    
     
     page_choice = st.sidebar.radio("Go to page:", ["Home", "About"])
     
