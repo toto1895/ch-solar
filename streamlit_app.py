@@ -20,7 +20,7 @@ with open('.streamlit/config.toml', 'w') as f:
 base = "dark"
     ''')
 
-import streamlit.components.v1 as components
+
 def add_google_analytics(tracking_id):
     # Google Analytics tracking code
     ga_script = f"""
@@ -35,7 +35,8 @@ def add_google_analytics(tracking_id):
     """
     
     # Inject the script using st.components.v1.html
-    components.html(ga_script)
+    st.components.v1.html(ga_script)
+
 
 # Page configuration
 st.set_page_config(
