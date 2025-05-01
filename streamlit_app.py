@@ -438,7 +438,7 @@ def home_page():
 
             dt = merged_df['datetime'].min()
             nowcast = load_and_concat_parquet_files(conn, dt.strftime("%Y%m%d"),
-                                                    # ['0445', '0500']
+                                                     ['0445', '0500']
                                                      )
     
             st.dataframe(nowcast.tail())
