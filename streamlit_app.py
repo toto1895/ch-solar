@@ -267,7 +267,9 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
     if color:
         line_style['color'] = color
         dash_style['color'] = color
+
     df['datetime']= pd.to_datetime(df['datetime'])
+
     try:
         fig.add_trace(go.Scatter(
             x=df['datetime'],
@@ -543,6 +545,7 @@ def home_page():
                                        'cum_canton', 'cum_operator','year_month','TotalPower']]
             filtered_df.drop_duplicates(['datetime','Canton','operator'], inplace=True)
             nowcast.drop_duplicates(['datetime','Canton','operator'], inplace=True)
+            nowcast['SolarProduction'] = nowcast['SolarProduction']/1000.0
             #st.dataframe(filtered_df)
 
             capa_installed =filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()
