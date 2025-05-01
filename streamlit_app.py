@@ -20,6 +20,23 @@ with open('.streamlit/config.toml', 'w') as f:
 base = "dark"
     ''')
 
+import streamlit.components.v1 as components
+def add_google_analytics(tracking_id):
+    # Google Analytics tracking code
+    ga_script = f"""
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={tracking_id}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){{dataLayer.push(arguments);}}
+        gtag('js', new Date());
+        gtag('config', '{tracking_id}');
+    </script>
+    """
+    
+    # Inject the script using st.components.v1.html
+    components.html(ga_script)
+
 # Page configuration
 st.set_page_config(
     page_title="Swiss Solar Forecasts",
@@ -493,6 +510,7 @@ def about_page():
     """)
 
 def main():
+    add_google_analytics('G-NKZVTQPKS5')
     st.sidebar.title("Navigation")
 
     col1, col2, col3, col4 = st.columns(4)
