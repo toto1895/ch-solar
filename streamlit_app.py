@@ -11,14 +11,14 @@ from st_files_connection import FilesConnection
 import gc
 import io
 import os
-#if not os.path.exists('.streamlit'):
-#    os.makedirs('.streamlit')
+if not os.path.exists('.streamlit'):
+    os.makedirs('.streamlit')
 
-#with open('.streamlit/config.toml', 'w') as f:
-#    f.write('''
-#[theme]
-#base = "dark"
-#    ''')
+with open('.streamlit/config.toml', 'w') as f:
+    f.write('''
+[theme]
+base = "dark"
+    ''')
 
 
 def add_google_analytics(tracking_id):
@@ -363,6 +363,7 @@ def home_page():
     conn = get_connection()
 
     nowcast = load_and_concat_parquet_files(conn, '20250428', ['0445', '0500'])
+    print(nowcast)
     st.dataframe(nowcast.reset_index())
 
 
