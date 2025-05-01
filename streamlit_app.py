@@ -157,7 +157,7 @@ def load_and_concat_parquet_files(conn, date_str, time_str=None):
     return concatenated_df
 
 
-def create_forecast_chart(filtered_df, filter_type, selected_cantons=None, selected_operators=None):
+def create_forecast_chart(filtered_df, nowcast, filter_type, selected_cantons=None, selected_operators=None):
     """Create a forecast chart based on filtered data"""
     fig = go.Figure()
     plot_df = filtered_df.copy()
@@ -167,12 +167,19 @@ def create_forecast_chart(filtered_df, filter_type, selected_cantons=None, selec
         for canton in selected_cantons:
             canton_df = plot_df[plot_df['Canton'] == canton]
             canton_df = canton_df.sort_values('datetime')
+
+            canton_now = nowcast[nowcast['Canton'] == canton]
+            canton_now = canton_now.sort_values('datetime')
             
             canton_df = canton_df.groupby(['datetime']).agg({
                 'p0.5_operator': 'sum',
                 'p0.1_operator': 'sum',
                 'p0.9_operator': 'sum'
             }).reset_index()
+
+            canton_now = canton_now.groupby(['datetime']).agg({
+                'SolarProduction':'sum'
+            })
             
             # Add traces for this canton
             add_forecast_traces(fig, canton_df, canton)
@@ -191,6 +198,7 @@ def create_forecast_chart(filtered_df, filter_type, selected_cantons=None, selec
             
             # Add traces for this operator
             add_forecast_traces(fig, operator_df, operator)
+
     
     # Case 3: No specific filtering
     else:
@@ -200,9 +208,14 @@ def create_forecast_chart(filtered_df, filter_type, selected_cantons=None, selec
             'p0.1_operator': 'sum',
             'p0.9_operator': 'sum'
         }).reset_index()
+
+        canton_now = canton_now.groupby(['datetime']).agg({
+                'SolarProduction':'sum'
+            })
         
         # Add traces for the total
-        add_forecast_traces(fig, operator_df, "Total", color='white')
+        add_forecast_traces(fig, operator_df, "Total", color='red')
+        add_forecast_traces(fig, canton_now, "Nowcast", color='white')
     
     # Add total line if multiple selections
     try:
@@ -223,7 +236,8 @@ def create_forecast_chart(filtered_df, filter_type, selected_cantons=None, selec
         }).reset_index()
         
         # Add traces for the total
-        add_forecast_traces(fig, total_df, "Total", line_width=3, color='white')
+        add_forecast_traces(fig, total_df, "Total", line_width=3, color='red')
+        add_forecast_traces(fig, canton_now, "Nowcast", color='white')
     
     # Update layout
     fig.update_layout(
@@ -441,8 +455,8 @@ def home_page():
             #                                         ['0445', '0500']
                                                      )
     
-            merged_df = pd.merge(merged_df, nowcast, on=["datetime","Canton",'operator'], how="left")
-            st.dataframe(merged_df.tail())
+            #merged_df = pd.merge(merged_df, nowcast, on=["datetime","Canton",'operator'], how="left")
+            #st.dataframe(merged_df.tail())
             
             # Clean up to free memory
             del capa_df
@@ -484,6 +498,7 @@ def home_page():
                     if selected_cantons:
                         filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)]
                         full_capa = full_capa[full_capa["Canton"].isin(selected_cantons)]
+                        nowcast = nowcast[nowcast["Canton"].isin(selected_cantons)]
                     
                 elif filter_type == "Operator":
                     # Check if 'operator' column exists in merged_df
@@ -500,6 +515,7 @@ def home_page():
                         # Filter the dataframe based on selected operators
                         if selected_operators:
                             filtered_df = merged_df[merged_df["operator"].isin(selected_operators)]
+                            nowcast = nowcast[nowcast["operator"].isin(selected_operators)]
                             full_capa = full_capa[full_capa["operator"].isin(selected_operators)]
                     else:
                         st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
@@ -512,7 +528,7 @@ def home_page():
             filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator',
                                        'cum_canton', 'cum_operator','year_month','TotalPower']]
             filtered_df.drop_duplicates(['datetime','Canton','operator'], inplace=True)
-            
+            nowcast.drop_duplicates(['datetime','Canton','operator'], inplace=True)
             #st.dataframe(filtered_df)
 
             capa_installed =filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()
@@ -537,7 +553,7 @@ def home_page():
             
             if chart_type == "Forecast Chart":
                 # Create forecast chart
-                fig = create_forecast_chart(filtered_df, filter_type, selected_cantons, selected_operators)
+                fig = create_forecast_chart(filtered_df,nowcast, filter_type, selected_cantons, selected_operators)
                 st.plotly_chart(fig, use_container_width=True)
             
             elif chart_type =='Monthly installed capacity':
