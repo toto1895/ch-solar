@@ -542,8 +542,11 @@ def home_page():
             filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator',
                                        'cum_canton', 'cum_operator','year_month','TotalPower']]
             filtered_df.drop_duplicates(['datetime','Canton','operator'], inplace=True)
-            nowcast.drop_duplicates(['datetime','Canton','operator'], inplace=True)
-            nowcast['SolarProduction'] = 1.1*nowcast['SolarProduction']/1000.0
+            try:
+                nowcast.drop_duplicates(['datetime','Canton','operator'], inplace=True)
+                nowcast['SolarProduction'] = 1.1*nowcast['SolarProduction']/1000.0
+            except:
+                nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
             #st.dataframe(filtered_df)
 
             capa_installed =filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()
