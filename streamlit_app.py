@@ -150,9 +150,9 @@ def load_and_concat_parquet_files(conn, date_str, time_str=None):
         return None
     
     # Concatenate all dataframes
-    concatenated_df = pd.concat(dataframes, ignore_index=True)
-    st.success(f"Successfully concatenated {len(dataframes)} files. " 
-               f"Total rows: {len(concatenated_df)}")
+    concatenated_df = pd.concat(dataframes)
+    #st.success(f"Successfully concatenated {len(dataframes)} files. " 
+    #           f"Total rows: {len(concatenated_df)}")
     
     return concatenated_df
 
