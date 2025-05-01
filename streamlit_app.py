@@ -511,7 +511,7 @@ def about_page():
     """)
 
 def main():
-    add_google_analytics('G-NKZVTQPKS5')
+    
     st.sidebar.title("Navigation")
 
     col1, col2, col3, col4 = st.columns(4)
@@ -533,4 +533,5 @@ def main():
         about_page()
 
 if __name__ == "__main__":
+    add_google_analytics('G-NKZVTQPKS5')
     main()
