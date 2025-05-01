@@ -107,7 +107,7 @@ def get_forecast_files(model, cluster, conn):
     prefix = f"oracle_predictions/swiss_solar/canton_forecasts_factor/{model}/{cluster}"
     return fetch_files(conn, prefix, r'\.parquet$'), conn
 
-def load_and_concat_parquet_files(date_str, time_str=None):
+def load_and_concat_parquet_files(date_str, time_str=None,conn):
     """
     Load and concatenate parquet files from a specific date and optional time
     
@@ -124,7 +124,7 @@ def load_and_concat_parquet_files(date_str, time_str=None):
         Concatenated dataframe from all matching parquet files
     """
     # Get connection
-    conn = get_connection()
+    #conn = get_connection()
     
     # Set up the prefix to look in
     prefix = "dwd-solar-sat/asset_level_prod/"
@@ -362,7 +362,7 @@ def home_page():
     # Initialize connection
     conn = get_connection()
 
-    nowcast = load_and_concat_parquet_files('20250428', ['0445', '0500'])
+    nowcast = load_and_concat_parquet_files('20250428', ['0445', '0500'], conn)
     st.dataframe(nowcast)
 
 
