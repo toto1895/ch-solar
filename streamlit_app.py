@@ -365,7 +365,7 @@ def home_page():
     nowcast = load_and_concat_parquet_files('20250428', ['0445', '0500'])
     st.dataframe(nowcast)
 
-    
+
     # Define available models and clusters
     available_models = ["dmi_seamless", "metno_seamless", "icon_d2", "meteofrance_seamless"]
     available_clusters = ["cluster0", "cluster1", "cluster2"]
@@ -390,7 +390,6 @@ def home_page():
     # Get available forecast files for the selected model and cluster
     forecast_files, _ = get_forecast_files(selected_model, selected_cluster, conn)
 
-    forecast_files, _ = get_asset_level_files(selected_model, selected_cluster, conn)
     
     if not forecast_files:
         st.warning(f"No forecast files found for {selected_model}/{selected_cluster}")
