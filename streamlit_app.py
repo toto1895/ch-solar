@@ -347,7 +347,7 @@ def home_page():
 
     nowcast = load_and_concat_parquet_files(conn, '20250428', ['0445', '0500'])
     
-    st.dataframe(nowcast.reset_index().head())
+    st.dataframe(nowcast.head())
 
 
     # Define available models and clusters
