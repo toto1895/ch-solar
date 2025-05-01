@@ -107,7 +107,7 @@ def get_forecast_files(model, cluster, conn):
     prefix = f"oracle_predictions/swiss_solar/canton_forecasts_factor/{model}/{cluster}"
     return fetch_files(conn, prefix, r'\.parquet$'), conn
 
-def load_and_concat_parquet_files(date_str, time_str=None,conn):
+def load_and_concat_parquet_files(conn, date_str, time_str=None):
     """
     Load and concatenate parquet files from a specific date and optional time
     
@@ -158,7 +158,7 @@ def load_and_concat_parquet_files(date_str, time_str=None,conn):
                 # Read parquet content
                 df = pd.read_parquet(io.BytesIO(f.read()))
                 dataframes.append(df)
-                st.info(f"Loaded: {file_path}")
+                #st.info(f"Loaded: {file_path}")
         except Exception as e:
             st.error(f"Error reading {file_path}: {e}")
     
@@ -362,7 +362,7 @@ def home_page():
     # Initialize connection
     conn = get_connection()
 
-    nowcast = load_and_concat_parquet_files('20250428', ['0445', '0500'], conn)
+    nowcast = load_and_concat_parquet_files(conn, '20250428', ['0445', '0500'])
     st.dataframe(nowcast)
 
 
