@@ -268,32 +268,41 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
         line_style['color'] = color
         dash_style['color'] = color
     
-    # Add median forecast line
-    fig.add_trace(go.Scatter(
-        x=df['datetime'],
-        y=df['p0.5_operator'],
-        mode='lines',
-        name=f'{name} - Median (P50)',
-        line=line_style
-    ))
-    
-    # Add lower bound
-    fig.add_trace(go.Scatter(
-        x=df['datetime'],
-        y=df['p0.1_operator'],
-        mode='lines',
-        name=f'{name} - Lower Bound (P10)',
-        line=dash_style
-    ))
-    
-    # Add upper bound
-    fig.add_trace(go.Scatter(
-        x=df['datetime'],
-        y=df['p0.9_operator'],
-        mode='lines',
-        name=f'{name} - Upper Bound (P90)',
-        line=dash_style
-    ))
+    try:
+        fig.add_trace(go.Scatter(
+            x=df['datetime'],
+            y=df['p0.5_operator'],
+            mode='lines',
+            name=f'{name} - Median (P50)',
+            line=line_style
+        ))
+        
+        # Add lower bound
+        fig.add_trace(go.Scatter(
+            x=df['datetime'],
+            y=df['p0.1_operator'],
+            mode='lines',
+            name=f'{name} - Lower Bound (P10)',
+            line=dash_style
+        ))
+        
+        # Add upper bound
+        fig.add_trace(go.Scatter(
+            x=df['datetime'],
+            y=df['p0.9_operator'],
+            mode='lines',
+            name=f'{name} - Upper Bound (P90)',
+            line=dash_style
+        ))
+    except:
+        fig.add_trace(go.Scatter(
+            x=df['datetime'],
+            y=df['SolarProduction'],
+            mode='lines',
+            name=f'{name} - Actual',
+            line=line_style
+        ))
+
 
 def create_heatmap(merged_plants):
     """Create a heatmap visualization for plant locations"""
