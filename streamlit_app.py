@@ -9,7 +9,7 @@ import re
 from google.oauth2 import service_account
 from st_files_connection import FilesConnection
 import gc
-
+import io
 import os
 if not os.path.exists('.streamlit'):
     os.makedirs('.streamlit')
