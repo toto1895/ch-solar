@@ -107,6 +107,73 @@ def get_forecast_files(model, cluster, conn):
     prefix = f"oracle_predictions/swiss_solar/canton_forecasts_factor/{model}/{cluster}"
     return fetch_files(conn, prefix, r'\.parquet$'), conn
 
+def load_and_concat_parquet_files(date_str, time_str=None):
+    """
+    Load and concatenate parquet files from a specific date and optional time
+    
+    Parameters:
+    -----------
+    date_str : str
+        Date string in format YYYYMMDD (e.g., '20250428')
+    time_str : str or list, optional
+        Time string(s) in format HHMM (e.g., '0445'), or list of time strings
+        
+    Returns:
+    --------
+    pd.DataFrame
+        Concatenated dataframe from all matching parquet files
+    """
+    # Get connection
+    conn = get_connection()
+    
+    # Set up the prefix to look in
+    prefix = "dwd-solar-sat/asset_level_prod/"
+    
+    # Create pattern based on date and optional time
+    if time_str:
+        if isinstance(time_str, list):
+            # Create a pattern for multiple specific times
+            time_patterns = '|'.join([f"{date_str}{t}" for t in time_str])
+            pattern = f"({time_patterns})\.parquet$"
+        else:
+            # Pattern for a single specific time
+            pattern = f"{date_str}{time_str}\.parquet$"
+    else:
+        # Pattern for any time on the specified date
+        pattern = f"{date_str}[0-9]{{4}}\.parquet$"
+    
+    # Fetch matching files
+    files = fetch_files(conn, prefix, pattern)
+    
+    if not files:
+        st.warning(f"No files found matching the pattern: {pattern}")
+        return None
+    
+    # Load and concatenate files
+    dataframes = []
+    for file_path in files:
+        try:
+            # Read file from GCS
+            with conn._instance.open(file_path, mode='rb') as f:
+                # Read parquet content
+                df = pd.read_parquet(io.BytesIO(f.read()))
+                dataframes.append(df)
+                st.info(f"Loaded: {file_path}")
+        except Exception as e:
+            st.error(f"Error reading {file_path}: {e}")
+    
+    if not dataframes:
+        st.error("No dataframes could be loaded successfully")
+        return None
+    
+    # Concatenate all dataframes
+    concatenated_df = pd.concat(dataframes, ignore_index=True)
+    st.success(f"Successfully concatenated {len(dataframes)} files. " 
+               f"Total rows: {len(concatenated_df)}")
+    
+    return concatenated_df
+
+
 def create_forecast_chart(filtered_df, filter_type, selected_cantons=None, selected_operators=None):
     """Create a forecast chart based on filtered data"""
     fig = go.Figure()
@@ -258,11 +325,46 @@ def create_heatmap(merged_plants):
     
     return fig
 
+def download_parquet_from_gcs(bucket_name, prefix, date_pattern):
+    """
+    Download parquet files from GCS bucket matching a specific date pattern
+    """
+    # Initialize GCS client
+    storage_client = storage.Client()
+    
+    # Get bucket
+    bucket = storage_client.get_bucket(bucket_name)
+    
+    # List files with the prefix
+    blobs = list(bucket.list_blobs(prefix=prefix))
+    
+    # Filter blobs by date pattern
+    filtered_blobs = [blob for blob in blobs if date_pattern in blob.name]
+    
+    # Print the files being downloaded
+    print(f"Downloading {len(filtered_blobs)} files:")
+    for blob in filtered_blobs:
+        print(f"- {blob.name}")
+    
+    # Download and read each file
+    dataframes = []
+    for blob in filtered_blobs:
+        file_content = blob.download_as_bytes()
+        dataframe = pd.read_parquet(io.BytesIO(file_content))
+        dataframes.append(dataframe)
+        print(f"Downloaded and read {blob.name}")
+    
+    return dataframes
+
 def home_page():
     st.title("Swiss Solar Forecasts")
     
     # Initialize connection
     conn = get_connection()
+
+    nowcast = load_and_concat_parquet_files('20250428', ['0445', '0500'])
+    st.dataframe(nowcast)
+
     
     # Define available models and clusters
     available_models = ["dmi_seamless", "metno_seamless", "icon_d2", "meteofrance_seamless"]
@@ -287,6 +389,8 @@ def home_page():
     
     # Get available forecast files for the selected model and cluster
     forecast_files, _ = get_forecast_files(selected_model, selected_cluster, conn)
+
+    forecast_files, _ = get_asset_level_files(selected_model, selected_cluster, conn)
     
     if not forecast_files:
         st.warning(f"No forecast files found for {selected_model}/{selected_cluster}")
