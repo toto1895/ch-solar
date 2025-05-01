@@ -37,7 +37,6 @@ def add_google_analytics(tracking_id):
     # Inject the script using st.components.v1.html
     st.components.v1.html(ga_script)
 
-add_google_analytics('G-NKZVTQPKS5')
 # Page configuration
 st.set_page_config(
     page_title="Swiss Solar Forecasts",
@@ -534,3 +533,4 @@ def main():
 if __name__ == "__main__":
     
     main()
+    add_google_analytics('G-NKZVTQPKS5')
