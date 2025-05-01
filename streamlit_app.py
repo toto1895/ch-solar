@@ -466,7 +466,7 @@ def home_page():
             merged_df = pd.merge(forecast_df.reset_index(), capa_df, on="Canton", how="left")
             merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
 
-            dt = merged_df['datetime'].min()
+            dt = merged_df['datetime'].min().tz_convert('CET')
             nowcast = load_and_concat_parquet_files(conn, dt.strftime("%Y%m%d"),
             #                                         ['0445', '0500']
                                                      )
@@ -545,7 +545,7 @@ def home_page():
                                        'cum_canton', 'cum_operator','year_month','TotalPower']]
             filtered_df.drop_duplicates(['datetime','Canton','operator'], inplace=True)
             nowcast.drop_duplicates(['datetime','Canton','operator'], inplace=True)
-            nowcast['SolarProduction'] = nowcast['SolarProduction']/1000.0
+            nowcast['SolarProduction'] = 1.1*nowcast['SolarProduction']/1000.0
             #st.dataframe(filtered_df)
 
             capa_installed =filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()
