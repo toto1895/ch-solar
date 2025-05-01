@@ -441,7 +441,8 @@ def home_page():
             #                                         ['0445', '0500']
                                                      )
     
-            st.dataframe(nowcast.tail())
+            merged_df = pd.merge(merged_df, nowcast, on=["datetime","Canton",'operator'], how="left")
+            st.dataframe(merged_df.tail())
             
             # Clean up to free memory
             del capa_df
