@@ -11,8 +11,8 @@ from st_files_connection import FilesConnection
 import gc
 import io
 import os
-if not os.path.exists('.streamlit'):
-    os.makedirs('.streamlit')
+#if not os.path.exists('.streamlit'):
+#    os.makedirs('.streamlit')
 
 with open('.streamlit/config.toml', 'w') as f:
     f.write('''
