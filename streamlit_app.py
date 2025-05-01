@@ -14,11 +14,11 @@ import os
 #if not os.path.exists('.streamlit'):
 #    os.makedirs('.streamlit')
 
-with open('.streamlit/config.toml', 'w') as f:
-    f.write('''
-[theme]
-base = "dark"
-    ''')
+#with open('.streamlit/config.toml', 'w') as f:
+#    f.write('''
+#[theme]
+#base = "dark"
+#    ''')
 
 
 def add_google_analytics(tracking_id):
