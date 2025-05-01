@@ -110,7 +110,7 @@ def load_and_concat_parquet_files(conn, date_str, time_str=None):
     #conn = get_connection()
     
     # Set up the prefix to look in
-    prefix = "dwd-solar-sat/asset_level_prod/"
+    prefix = "dwd-solar-sat/daily_agg_asset_level_prod/"
     
     # Create pattern based on date and optional time
     if time_str:
@@ -437,11 +437,11 @@ def home_page():
             merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
 
             dt = merged_df['datetime'].min()
-            #nowcast = load_and_concat_parquet_files(conn, dt.strftime("%Y%m%d"),
+            nowcast = load_and_concat_parquet_files(conn, dt.strftime("%Y%m%d"),
             #                                         ['0445', '0500']
-            #                                         )
+                                                     )
     
-            #st.dataframe(nowcast.tail())
+            st.dataframe(nowcast.tail())
             
             # Clean up to free memory
             del capa_df
