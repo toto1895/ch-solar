@@ -526,7 +526,6 @@ def main():
         st.sidebar.success("Cache cleared!")
 
     page_choice = st.sidebar.radio("Go to page:", ["Home", "About"])
-    
     if page_choice == "Home":
         home_page()
     elif page_choice == "About":
