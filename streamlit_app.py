@@ -11,6 +11,7 @@ from st_files_connection import FilesConnection
 import gc
 import io
 import os
+
 if not os.path.exists('.streamlit'):
     os.makedirs('.streamlit')
 
@@ -209,7 +210,7 @@ def create_forecast_chart(filtered_df, nowcast, filter_type, selected_cantons=No
             'p0.9_operator': 'sum'
         }).reset_index()
 
-        canton_now = canton_now.groupby(['datetime']).agg({
+        canton_now = nowcast.groupby(['datetime']).agg({
                 'SolarProduction':'sum'
             })
         
@@ -235,7 +236,7 @@ def create_forecast_chart(filtered_df, nowcast, filter_type, selected_cantons=No
             'p0.9_operator': 'sum'
         }).reset_index()
 
-        canton_now = canton_now.groupby(['datetime']).agg({
+        canton_now = nowcast.groupby(['datetime']).agg({
                 'SolarProduction':'sum'
             })
         
