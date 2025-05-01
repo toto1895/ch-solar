@@ -513,11 +513,11 @@ def main():
     
     st.sidebar.title("Navigation")
 
-    col1, col2, col3, col4 = st.columns(4)
-    with col4:
-        st.components.v1.html("""
-        <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="wamine" data-color="#FFDD00" data-emoji=""  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
-        """, height=70)
+    # col1, col2, col3, col4 = st.columns(4)
+    # with col4:
+    #    st.components.v1.html("""
+    #    <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="wamine" data-color="#FFDD00" data-emoji=""  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+    #    """, height=70)
    
     if st.sidebar.button("Clear Cache"):  
         st.cache_resource.clear()
@@ -533,5 +533,5 @@ def main():
 if __name__ == "__main__":
     
     main()
-    
+
     #add_google_analytics('G-NKZVTQPKS5')
