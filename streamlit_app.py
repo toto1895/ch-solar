@@ -437,11 +437,11 @@ def home_page():
             merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
 
             dt = merged_df['datetime'].min()
-            nowcast = load_and_concat_parquet_files(conn, dt.strftime("%Y%m%d"),
-                                                     ['0445', '0500']
-                                                     )
+            #nowcast = load_and_concat_parquet_files(conn, dt.strftime("%Y%m%d"),
+            #                                         ['0445', '0500']
+            #                                         )
     
-            st.dataframe(nowcast.tail())
+            #st.dataframe(nowcast.tail())
             
             # Clean up to free memory
             del capa_df
