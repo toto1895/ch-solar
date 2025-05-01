@@ -346,8 +346,8 @@ def home_page():
     conn = get_connection()
 
     nowcast = load_and_concat_parquet_files(conn, '20250428', ['0445', '0500'])
-    print(nowcast)
-    st.dataframe(nowcast.reset_index())
+    #print(nowcast)
+    #st.dataframe(nowcast.reset_index())
 
 
     # Define available models and clusters
@@ -612,6 +612,7 @@ def main():
         st.sidebar.success("Cache cleared!")
 
     page_choice = st.sidebar.radio("Go to page:", ["Home", "About"])
+
     if page_choice == "Home":
         home_page()
     elif page_choice == "About":
