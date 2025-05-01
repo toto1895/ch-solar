@@ -375,9 +375,6 @@ def home_page():
     # Initialize connection
     conn = get_connection()
 
-    
-
-
     # Define available models and clusters
     available_models = ["dmi_seamless", "metno_seamless", "icon_d2", "meteofrance_seamless"]
     available_clusters = ["cluster0", "cluster1", "cluster2"]
@@ -401,7 +398,6 @@ def home_page():
     
     # Get available forecast files for the selected model and cluster
     forecast_files, _ = get_forecast_files(selected_model, selected_cluster, conn)
-
     
     if not forecast_files:
         st.warning(f"No forecast files found for {selected_model}/{selected_cluster}")
@@ -467,13 +463,15 @@ def home_page():
             merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
 
             dt = merged_df['datetime'].min().tz_convert('CET')
-            nowcast = load_and_concat_parquet_files(conn, dt.strftime("%Y%m%d"),
-            #                                         ['0445', '0500']
-                                                     )
-    
+            try:
+                nowcast = load_and_concat_parquet_files(conn, dt.strftime("%Y%m%d"),
+                #                                         ['0445', '0500']
+                                                        )
+            except:
+                nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
             #merged_df = pd.merge(merged_df, nowcast, on=["datetime","Canton",'operator'], how="left")
             #st.dataframe(merged_df.tail())
-            
+
             # Clean up to free memory
             del capa_df
             del forecast_df
