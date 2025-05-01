@@ -345,9 +345,7 @@ def home_page():
     # Initialize connection
     conn = get_connection()
 
-    nowcast = load_and_concat_parquet_files(conn, '20250428', ['0445', '0500'])
     
-    st.dataframe(nowcast.head())
 
 
     # Define available models and clusters
@@ -437,6 +435,10 @@ def home_page():
             # Merge forecast with capacity data
             merged_df = pd.merge(forecast_df.reset_index(), capa_df, on="Canton", how="left")
             merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
+
+            nowcast = load_and_concat_parquet_files(conn, '20250428', ['0445', '0500'])
+    
+            st.dataframe(merged_df.head())
             
             # Clean up to free memory
             del capa_df
