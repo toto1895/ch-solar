@@ -123,7 +123,7 @@ def load_and_concat_parquet_files(conn, date_str, time_str=None):
             pattern = f"{date_str}{time_str}\.parquet$"
     else:
         # Pattern for any time on the specified date
-        pattern = f"{date_str}[0-9]{{4}}\.parquet$"
+        pattern = f"{date_str}\.parquet$"
     
     # Fetch matching files
     files = fetch_files(conn, prefix, pattern)
