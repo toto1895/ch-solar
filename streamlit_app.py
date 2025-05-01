@@ -234,6 +234,10 @@ def create_forecast_chart(filtered_df, nowcast, filter_type, selected_cantons=No
             'p0.1_operator': 'sum',
             'p0.9_operator': 'sum'
         }).reset_index()
+
+        canton_now = canton_now.groupby(['datetime']).agg({
+                'SolarProduction':'sum'
+            })
         
         # Add traces for the total
         add_forecast_traces(fig, total_df, "Total", line_width=3, color='red')
