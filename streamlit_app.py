@@ -683,7 +683,8 @@ def main():
     
     st.sidebar.title("Navigation")
     
-    buy_me_coffee_button(username="wamine")
+    with st.sidebar:
+        buy_me_coffee_button(username="wamine")
     # col1, col2, col3, col4 = st.columns(4)
     # with col4:
     #    st.components.v1.html("""
