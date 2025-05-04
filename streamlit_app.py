@@ -660,6 +660,7 @@ def main():
                                                    "Forecast technical (DWD-ICON-d2)",
                                                     "About"])
     
+    
     with st.sidebar:
         col1, col2, col3 = st.columns(3)
         with col1:
