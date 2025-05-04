@@ -643,10 +643,47 @@ def sat_anim():
     st.plotly_chart(fig_anim, use_container_width=True)
 
 
+import streamlit.components.v1 as components
+def buy_me_coffee_button(username="wamine", text="Buy me a coffee", outline_color="000000", 
+                        font_color="000000", coffee_color="ffffff", button_color="FFDD00", 
+                        font_family="Cookie"):
+    """
+    Adds a "Buy Me A Coffee" button to your Streamlit app.
+    
+    Parameters:
+    -----------
+    username : str
+        Your Buy Me A Coffee username
+    text : str
+        Text to display on the button
+    outline_color : str
+        Hex color code for the button outline (without #)
+    font_color : str
+        Hex color code for the button text (without #)
+    coffee_color : str
+        Hex color code for the coffee icon (without #)
+    button_color : str
+        Hex color code for the button background (without #)
+    font_family : str
+        Font family for the button text
+        
+    Returns:
+    --------
+    None
+    """
+    button_code = f"""
+    <a href="https://www.buymeacoffee.com/{username}">
+        <img src="https://img.buymeacoffee.com/button-api/?text={text}&emoji=&slug={username}&button_colour={button_color}&font_colour={font_color}&font_family={font_family}&outline_colour={outline_color}&coffee_colour={coffee_color}" />
+    </a>
+    """
+    components.html(button_code, height=70)
+
+
 def main():
     
     st.sidebar.title("Navigation")
-
+    
+    st.sidebar.components.v1(buy_me_coffee_button(username="wamine"))
     # col1, col2, col3, col4 = st.columns(4)
     # with col4:
     #    st.components.v1.html("""
