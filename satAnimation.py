@@ -111,7 +111,6 @@ def create_boundary_traces(geojson_data):
     
     return traces
 
-
 import xarray as xr
 import numpy as np
 import plotly.graph_objects as go
@@ -231,7 +230,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
         
         # Create contour plot
         frame_data = [
-            go.Contourf(  # Using Contourf instead of Contour for filled contours
+            go.Contour(  # Using Contour with coloring='fill' for filled contours
                 z=data_slice,
                 x=lons,
                 y=lats,
@@ -266,7 +265,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     
     # Initial data for the figure - use last frame instead of first
     initial_data = [
-        go.Contourf(  # Using Contourf instead of Contour
+        go.Contour(  # Using Contour with coloring='fill'
             z=xr_dataset[var_name].isel(time=last_t_idx).values,
             x=lons,
             y=lats,
@@ -403,8 +402,6 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                 ]
             }
         ],
-
-        
         height=800,
         width=800,
         template="plotly_dark"  # Dark theme for better visualization
@@ -412,7 +409,6 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     
     fig.frames = frames
     return fig
-
 
 def get_latest_nc_files(conn, prefix, count=12):
     """
