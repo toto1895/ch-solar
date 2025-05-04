@@ -221,7 +221,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                     title='W/m²',
                     title_side='right',
                     orientation='h',     # Horizontal colorbar
-                    y=-0.15,             # Position below the plot
+                    y=-0.2,             # Position below the plot
                     len=0.6,             # Length of the colorbar (60% of plot width)
                     thickness=20,        # Thickness of the colorbar
                     tickmode='auto',     # Automatic tick marks
@@ -235,7 +235,8 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             data=frame_data,
             name=f'frame{t_idx}',
             layout=go.Layout(
-                title_text=f"Solar Radiation at {time_str} CET"
+                title_text=f"Solar Radiation at {time_str} CET",
+                y=0.2,
             )
         )
         frames.append(frame)
@@ -261,7 +262,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                 title='W/m²',
                 title_side='right',
                 orientation='h',     # Horizontal colorbar
-                y=-0.15,             # Position below the plot
+                y=-0.2,             # Position below the plot
                 len=0.6,             # Length of the colorbar (60% of plot width)
                 thickness=20,        # Thickness of the colorbar
                 tickmode='auto',     # Automatic tick marks
