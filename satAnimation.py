@@ -393,7 +393,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
 
 def get_latest_nc_files(conn, prefix, count=12):
     """
-    Get the latest count nc files from the specified bucket and prefix.
+    Get the latest count nc files from the specified prefix.
     
     Parameters:
     -----------
@@ -446,24 +446,33 @@ def download_and_open_nc_files(conn, file_paths):
     """
     datasets = []
     
+    # Create a temporary directory to store the downloaded files
+    temp_dir = tempfile.mkdtemp()
+    
     for file_path in file_paths:
         try:
-            # Open the file directly with xarray using the connection
-            with conn._instance.open(file_path, "rb") as f:
-                ds = xr.open_dataset(f)
+            # Extract filename from path
+            file_name = os.path.basename(file_path)
+            temp_file_path = os.path.join(temp_dir, file_name)
+            
+            # Download the file to the temporary location
+            conn._instance.get(file_path, temp_file_path)
+            
+            # Now open the local file with xarray
+            ds = xr.open_dataset(temp_file_path)
             
             # Extract the timestamp from the filename
-            timestamp_str = os.path.basename(file_path).split('.')[0]
+            timestamp_str = file_name.split('.')[0]
             timestamp = datetime.strptime(timestamp_str, '%Y%m%d%H%M')
             
             # Set the time coordinate
             ds = ds.assign_coords(time=[timestamp])
             datasets.append(ds)
+            
         except Exception as e:
-            print(f"Error opening file {file_path}: {e}")
+            print(f"Error processing file {file_path}: {e}")
     
     return datasets
-
 def get_connection():
     """Get the GCS connection instance"""
     return st.connection('gcs', type=FilesConnection)
