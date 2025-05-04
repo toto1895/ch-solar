@@ -668,6 +668,7 @@ def main():
         sat_anim()
     elif page_choice == 'Forecast technical (DWD-ICON-d2)':
         print('processing')
+        pass
     elif page_choice == "About":
         about_page()
 
