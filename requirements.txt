@@ -9,3 +9,4 @@ fastparquet
 fsspec
 gcsfs
 xarray
+netcdf4
