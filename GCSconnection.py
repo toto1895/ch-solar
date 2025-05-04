@@ -4,7 +4,7 @@ import re
 import tempfile
 from datetime import datetime
 import xarray as xr
-from streamlit.connections import FilesConnection
+from st_files_connection import FilesConnection
 from google.cloud import storage
 
 class GCSConnection(FilesConnection):
