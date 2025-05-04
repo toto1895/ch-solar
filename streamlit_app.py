@@ -706,6 +706,12 @@ def main():
 
     # Use expander to take minimal space (optional)
     #with st.sidebar:
+    
+
+if __name__ == "__main__":
+    
+    main()
+
     st.markdown("---")
     st.markdown("")
     st.markdown("")
@@ -719,9 +725,5 @@ def main():
     <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="wamine" data-description="Support me on Buy me a coffee!" data-message="" data-color="#FF813F" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
     """
     components.html(b_code, height=200)
-
-if __name__ == "__main__":
-    
-    main()
 
     #add_google_analytics('G-NKZVTQPKS5')
