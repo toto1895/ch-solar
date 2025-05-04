@@ -382,7 +382,6 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
         template="plotly_dark"  # Use dark theme for better visualization of solar data
     )
     
-    # Add frames to the figure
     fig.frames = frames
     
     return fig
