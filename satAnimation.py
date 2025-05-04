@@ -297,13 +297,20 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
         # Global coloraxis definition with custom colorscale for black 0-100
         coloraxis=dict(
             colorscale=[
-                [0, 'rgb(0,0,0)'],           # Black for 0
-                [100/max_value, 'rgb(0,0,0)'], # Black up to 100
-                [100.1/max_value, 'rgb(53,9,69)'], # Start turbo colors after 100
-                [0.25, 'rgb(99,19,124)'],    # Dark purple
-                [0.5, 'rgb(182,54,121)'],    # Pink
-                [0.75, 'rgb(246,140,98)'],   # Orange
-                [1, 'rgb(252,253,191)']      # Light yellow
+                [0, 'rgb(0,0,0)'],                # Black for 0
+                [100/max_value, 'rgb(0,0,0)'],    # Black up to 100
+                
+                # Turbo colors after threshold
+                [100.1/max_value, 'rgb(48,18,59)'],   # Dark purple (start of turbo)
+                [0.2, 'rgb(86,15,105)'],              # Purple
+                [0.3, 'rgb(127,11,126)'],             # Magenta
+                [0.4, 'rgb(166,27,120)'],             # Pink
+                [0.5, 'rgb(200,47,96)'],              # Dark pink/red
+                [0.6, 'rgb(229,84,68)'],              # Red-orange
+                [0.7, 'rgb(248,130,48)'],             # Orange
+                [0.8, 'rgb(253,184,46)'],             # Yellow-orange
+                [0.9, 'rgb(235,229,52)'],             # Yellow
+                [1.0, 'rgb(252,255,191)']             # Light yellow/white
             ],
             cmin=min_value,
             cmax=max_value,
