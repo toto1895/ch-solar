@@ -195,7 +195,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                 z=data_slice,
                 x=lons,
                 y=lats,
-                colorscale='magma',
+                colorscale='inferno',
                 zmin=min_value,
                 zmax=max_value,
                 # Modified colorbar to appear on top
@@ -236,7 +236,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             z=xr_dataset[var_name].isel(time=0).values,
             x=lons,
             y=lats,
-            colorscale='magma',
+            colorscale='inferno',
             zmin=min_value,
             zmax=max_value,
             # Modified colorbar to appear on top (same as in frame_data)
