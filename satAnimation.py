@@ -478,13 +478,15 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
 
 
 from GCSconnection import GCSConnection
-@st.cache_resource
+
+
 def get_connection(bucket_name):
     """Get the GCS connection instance"""
     return GCSConnection(
         "gcs",
         bucket_name=bucket_name  # Replace with your actual bucket name
     )
+
 def generate_sat_rad_anim():
     # Set the bucket name and prefix
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "bucket.json"
