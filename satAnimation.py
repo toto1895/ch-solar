@@ -292,7 +292,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             scaleratio=1,
         ),
         # Adjusted margin to accommodate top colorbar
-        margin=dict(l=50, r=50, t=120, b=50),  # Increased top margin
+        #margin=dict(l=50, r=50, t=120, b=50),  # Increased top margin
         margin=dict(l=0, r=0, t=50, b=0),  # Increased top margin
         # Global coloraxis definition with custom colorscale for black 0-100
         coloraxis=dict(
