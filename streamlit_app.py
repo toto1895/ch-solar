@@ -682,14 +682,7 @@ def buy_me_coffee_button(username="wamine", text="Buy me a coffee", outline_colo
 def main():
     
     st.sidebar.title("Navigation")
-    
-    with st.sidebar:
-        buy_me_coffee_button(username="wamine")
-    # col1, col2, col3, col4 = st.columns(4)
-    # with col4:
-    #    st.components.v1.html("""
-    #    <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="wamine" data-color="#FFDD00" data-emoji=""  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
-    #    """, height=70)
+
    
     if st.sidebar.button("Clear Cache"):  
         st.cache_resource.clear()
@@ -709,6 +702,25 @@ def main():
         pass
     elif page_choice == "About":
         about_page()
+
+    
+    st.markdown("##")  # Extra space
+    
+    # Create a container for the bottom section
+    bottom_container = st.container()
+    
+    # Use expander to take minimal space (optional)
+    with bottom_container:
+        st.markdown("---")
+        st.markdown("### Support My Work")
+        
+        # Buy Me a Coffee button
+        button_code = """
+        <a href="https://www.buymeacoffee.com/wamine">
+            <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=wamine&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" />
+        </a>
+        """
+        components.html(button_code, height=70)
 
 if __name__ == "__main__":
     
