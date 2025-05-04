@@ -644,39 +644,6 @@ def sat_anim():
 
 
 import streamlit.components.v1 as components
-def buy_me_coffee_button(username="wamine", text="Buy me a coffee", outline_color="000000", 
-                        font_color="000000", coffee_color="ffffff", button_color="FFDD00", 
-                        font_family="Cookie"):
-    """
-    Adds a "Buy Me A Coffee" button to your Streamlit app.
-    
-    Parameters:
-    -----------
-    username : str
-        Your Buy Me A Coffee username
-    text : str
-        Text to display on the button
-    outline_color : str
-        Hex color code for the button outline (without #)
-    font_color : str
-        Hex color code for the button text (without #)
-    coffee_color : str
-        Hex color code for the coffee icon (without #)
-    button_color : str
-        Hex color code for the button background (without #)
-    font_family : str
-        Font family for the button text
-        
-    Returns:
-    --------
-    None
-    """
-    button_code = f"""
-    <a href="https://www.buymeacoffee.com/{username}">
-        <img src="https://img.buymeacoffee.com/button-api/?text={text}&emoji=&slug={username}&button_colour={button_color}&font_colour={font_color}&font_family={font_family}&outline_colour={outline_color}&coffee_colour={coffee_color}" />
-    </a>
-    """
-    components.html(button_code, height=70)
 
 
 def main():
@@ -694,10 +661,12 @@ def main():
                                                     "About"])
     
     with st.sidebar:
-        b_code="""
-        <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="wamine" data-description="Support me on Buy me a coffee!" data-message="" data-color="#FF813F" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
-        """
-        components.html(b_code, height=500)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            b_code="""
+            <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="wamine" data-description="Support me on Buy me a coffee!" data-message="" data-color="#FF813F" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
+            """
+            components.html(b_code, height=500)
 
     if page_choice == "Home":
         home_page()
