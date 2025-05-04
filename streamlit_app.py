@@ -676,7 +676,7 @@ def buy_me_coffee_button(username="wamine", text="Buy me a coffee", outline_colo
         <img src="https://img.buymeacoffee.com/button-api/?text={text}&emoji=&slug={username}&button_colour={button_color}&font_colour={font_color}&font_family={font_family}&outline_colour={outline_color}&coffee_colour={coffee_color}" />
     </a>
     """
-    components.html(button_code, height=70)
+    st.sidebar.components.html(button_code, height=70)
 
 
 def main():
