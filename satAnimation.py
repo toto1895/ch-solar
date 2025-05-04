@@ -219,7 +219,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     # Initial data for the figure - first frame
     initial_data = [
         go.Contour(
-            z=xr_dataset[var_name].isel(time=-1).values,
+            z=xr_dataset[var_name].isel(time=len(xr_dataset.time)-1).values,
             x=lons,
             y=lats,
             coloraxis='coloraxis',    # Use the global coloraxis
@@ -288,7 +288,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     
     # Update layout
     fig.update_layout(
-        title_text=f"Solar Radiation at {pd.to_datetime(xr_dataset.time[-1].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')} CET",
+        title_text=f"Solar Radiation at {pd.to_datetime(xr_dataset.time[len(xr_dataset.time)-1].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')} CET",
         xaxis=dict(
             title='Longitude',
             range=[lon_min - lon_buffer, lon_max + lon_buffer],
