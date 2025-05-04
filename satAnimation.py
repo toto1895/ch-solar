@@ -137,7 +137,6 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     # Create figure
     fig = go.Figure()
     
-    # Create frames for animation
     frames = []
     
     # Get the coordinates properly
