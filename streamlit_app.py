@@ -660,14 +660,14 @@ def main():
                                                    "Forecast technical (DWD-ICON-d2)",
                                                     "About"])
     
-    
+
     with st.sidebar:
         col1, col2, col3 = st.columns(3)
         with col1:
             b_code="""
             <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="wamine" data-description="Support me on Buy me a coffee!" data-message="" data-color="#FF813F" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
             """
-            components.html(b_code, height=500)
+            components.html(b_code, height=450)
 
     if page_choice == "Home":
         home_page()
