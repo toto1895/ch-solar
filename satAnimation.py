@@ -476,76 +476,97 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     
     return fig
 
+import streamlit as st
+from st_files_connection import FilesConnection
 
-from GCSconnection import GCSConnection
-
-
-def get_connection(bucket_name):
+def get_connection():
     """Get the GCS connection instance"""
-    return GCSConnection(
-        "gcs",
-        bucket_name=bucket_name  # Replace with your actual bucket name
-    )
+    return st.connection('gcs', type=FilesConnection)
+
+def get_latest_nc_files(connection, prefix, count=12):
+    """
+    Get the latest count nc files from the specified bucket and prefix using FilesConnection.
+    
+    Parameters:
+    -----------
+    connection : FilesConnection
+        The connection to GCS
+    prefix : str
+        Prefix for the objects to list
+    count : int, optional
+        Number of latest files to return
+        
+    Returns:
+    --------
+    list
+        List of file paths sorted by date (newest first)
+    """
+    # List all files with the specified prefix
+    files = connection.fs.glob(f"{prefix}*.nc")
+    
+    # Sort by name (which should be by date if they follow the format in the example)
+    files.sort(reverse=True)
+    
+    # Return the latest count
+    return files[:count]
+
+def download_and_open_nc_files(connection, file_paths):
+    """
+    Download nc files from GCS and open them with xarray using FilesConnection.
+    
+    Parameters:
+    -----------
+    connection : FilesConnection
+        The connection to GCS
+    file_paths : list
+        List of file paths to download
+        
+    Returns:
+    --------
+    list
+        List of xarray datasets
+    """
+    datasets = []
+    
+    for file_path in file_paths:
+        # Open the file directly with xarray
+        with connection.fs.open(file_path, "rb") as f:
+            ds = xr.open_dataset(f)
+        
+        # Extract the timestamp from the filename
+        timestamp_str = os.path.basename(file_path).split('.')[0]
+        timestamp = datetime.strptime(timestamp_str, '%Y%m%d%H%M')
+        
+        # Set the time coordinate
+        ds = ds.assign_coords(time=[timestamp])
+        datasets.append(ds)
+    
+    return datasets
 
 def generate_sat_rad_anim():
-    # Set the bucket name and prefix
-    
-    bucket_name = "dwd-solar-sat"  # Replace with your actual bucket name
+    # Set the prefix
     prefix = "radiation_sid/"
     
+    # Get the connection using FilesConnection
+    conn = get_connection()
     
-    conn = get_connection(bucket_name)
-    files = conn.get_latest_nc_files(prefix, count=3*4)
-    datasets = conn.download_and_open_nc_files(files)
-   
-    # Get the latest 12 nc files
-    #blob_names = get_latest_nc_files(bucket_name, prefix, 3*6)
+    # Get the latest nc files
+    files = get_latest_nc_files(conn, prefix, count=12)
     
     # Download and open the files
-    #datasets = download_and_open_nc_files(bucket_name, blob_names)
+    datasets = download_and_open_nc_files(conn, files)
     
     # Concatenate the datasets
     combined_dataset = concat_datasets(datasets)
-    # In main(), remove these lines:
+    
+    # Convert time zones
     time_index = pd.DatetimeIndex(combined_dataset.time.values).tz_localize('UTC')
     combined_dataset = combined_dataset.assign_coords(time=time_index.tz_convert('CET'))
         
     # Path to the Swiss cantonal boundaries GeoJSON
     geojson_path = 'swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.geojson'
     
-    # First create a test plot to verify GeoJSON data
-    with open(geojson_path, 'r') as f:
-        geojson_data = json.load(f)
-        
-    # Extract coordinates from the GeoJSON
-    border_coords = []
-    
-    # Handle different GeoJSON structures
-    if geojson_data['type'] == 'FeatureCollection':
-        features = geojson_data['features']
-        for feature in features:
-            geometry = feature['geometry']
-            if geometry['type'] == 'Polygon':
-                border_coords.append(geometry['coordinates'][0])
-            elif geometry['type'] == 'MultiPolygon':
-                for polygon in geometry['coordinates']:
-                    border_coords.append(polygon[0])
-    elif geojson_data['type'] == 'Feature':
-        geometry = geojson_data['geometry']
-        if geometry['type'] == 'Polygon':
-            border_coords.append(geometry['coordinates'][0])
-        elif geometry['type'] == 'MultiPolygon':
-            for polygon in geometry['coordinates']:
-                border_coords.append(polygon[0])
-
-    
-    
     # Create the animation
-    fig = plot_solar_radiation_animation(combined_dataset, geojson_path,max_value=900)
+    fig = plot_solar_radiation_animation(combined_dataset, geojson_path, max_value=900)
     
-    # Save the animation to an HTML file
-    output_file = "solar_radiation_animation.html"
-    #fig.write_html(output_file)
-    
-    #print(f"Animation saved to {output_file}")
     return fig
