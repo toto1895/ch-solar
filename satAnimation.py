@@ -14,7 +14,8 @@ import tempfile
 from datetime import datetime, timedelta
 import pandas as pd
 import json
-
+import streamlit as st
+from st_files_connection import FilesConnection
 
 def concat_datasets(datasets):
     # Sort datasets by time
@@ -389,20 +390,14 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     
     return fig
 
-import streamlit as st
-from st_files_connection import FilesConnection
 
-def get_connection():
-    """Get the GCS connection instance"""
-    return st.connection('gcs', type=FilesConnection)
-
-def get_latest_nc_files(connection, prefix, count=12):
+def get_latest_nc_files(conn, prefix, count=12):
     """
-    Get the latest count nc files from the specified bucket and prefix using FilesConnection.
+    Get the latest count nc files from the specified bucket and prefix.
     
     Parameters:
     -----------
-    connection : FilesConnection
+    conn : FilesConnection
         The connection to GCS
     prefix : str
         Prefix for the objects to list
@@ -414,22 +409,32 @@ def get_latest_nc_files(connection, prefix, count=12):
     list
         List of file paths sorted by date (newest first)
     """
-    # List all files with the specified prefix
-    files = connection.fs.glob(f"{prefix}*.nc")
-    
-    # Sort by name (which should be by date if they follow the format in the example)
-    files.sort(reverse=True)
-    
-    # Return the latest count
-    return files[:count]
+    try:
+        # Invalidate the cache to refresh the bucket listing
+        conn._instance.invalidate_cache(prefix)
+        
+        # List all files in the prefix
+        files = conn._instance.ls(prefix, max_results=100)
+        
+        # Filter for .nc files
+        nc_files = [f for f in files if f.endswith('.nc')]
+        
+        # Sort files by name (which should contain date information)
+        nc_files.sort(reverse=True)
+        
+        # Return the latest count
+        return nc_files[:count]
+    except Exception as e:
+        print(f"Error listing files: {e}")
+        return []
 
-def download_and_open_nc_files(connection, file_paths):
+def download_and_open_nc_files(conn, file_paths):
     """
-    Download nc files from GCS and open them with xarray using FilesConnection.
+    Download nc files from GCS and open them with xarray.
     
     Parameters:
     -----------
-    connection : FilesConnection
+    conn : FilesConnection
         The connection to GCS
     file_paths : list
         List of file paths to download
@@ -442,19 +447,27 @@ def download_and_open_nc_files(connection, file_paths):
     datasets = []
     
     for file_path in file_paths:
-        # Open the file directly with xarray
-        with connection.fs.open(file_path, "rb") as f:
-            ds = xr.open_dataset(f)
-        
-        # Extract the timestamp from the filename
-        timestamp_str = os.path.basename(file_path).split('.')[0]
-        timestamp = datetime.strptime(timestamp_str, '%Y%m%d%H%M')
-        
-        # Set the time coordinate
-        ds = ds.assign_coords(time=[timestamp])
-        datasets.append(ds)
+        try:
+            # Open the file directly with xarray using the connection
+            with conn._instance.open(file_path, "rb") as f:
+                ds = xr.open_dataset(f)
+            
+            # Extract the timestamp from the filename
+            timestamp_str = os.path.basename(file_path).split('.')[0]
+            timestamp = datetime.strptime(timestamp_str, '%Y%m%d%H%M')
+            
+            # Set the time coordinate
+            ds = ds.assign_coords(time=[timestamp])
+            datasets.append(ds)
+        except Exception as e:
+            print(f"Error opening file {file_path}: {e}")
     
     return datasets
+
+def get_connection():
+    """Get the GCS connection instance"""
+    return st.connection('gcs', type=FilesConnection)
+
 
 def generate_sat_rad_anim():
     # Set the prefix
