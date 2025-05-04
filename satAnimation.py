@@ -131,6 +131,11 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     --------
     plotly.graph_objects.Figure
     """
+    import plotly.graph_objects as go
+    import pandas as pd
+    import json
+    import numpy as np
+    
     # Get the variable name for solar radiation (assuming it's SID)
     var_name = 'SID' if 'SID' in xr_dataset.variables else list(xr_dataset.data_vars)[0]
     
@@ -186,18 +191,39 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     # Get the last time index
     last_t_idx = len(xr_dataset.time) - 1
     
+    # Define our custom turbo colorscale
+    # This is what was missing - we need to ensure it's properly declared
+    custom_turbo = [
+        [0, 'rgb(0,0,0)'],                # Black for 0
+        [100/max_value, 'rgb(0,0,0)'],    # Black up to 100
+        # Turbo colors after threshold - with proper spacing
+        [100.1/max_value, 'rgb(48,18,59)'],   # Dark purple (start of turbo)
+        [(100.1/max_value) + 0.1, 'rgb(86,15,105)'],    # Purple
+        [(100.1/max_value) + 0.2, 'rgb(127,11,126)'],   # Magenta
+        [(100.1/max_value) + 0.3, 'rgb(166,27,120)'],   # Pink
+        [(100.1/max_value) + 0.4, 'rgb(200,47,96)'],    # Dark pink/red
+        [(100.1/max_value) + 0.5, 'rgb(229,84,68)'],    # Red-orange
+        [(100.1/max_value) + 0.6, 'rgb(248,130,48)'],   # Orange
+        [(100.1/max_value) + 0.7, 'rgb(253,184,46)'],   # Yellow-orange
+        [(100.1/max_value) + 0.8, 'rgb(235,229,52)'],   # Yellow
+        [1.0, 'rgb(252,255,191)']         # Light yellow/white
+    ]
+    
     for t_idx in range(len(xr_dataset.time)):
         # Get data for this time
         data_slice = xr_dataset[var_name].isel(time=t_idx).values
         time_str = pd.to_datetime(xr_dataset.time[t_idx].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')
         
         # Create heatmap instead of image
+        # CRITICAL: We need to explicitly specify the colorscale for each contour plot
         frame_data = [
             go.Contour(
                 z=data_slice,
                 x=lons,
                 y=lats,
-                coloraxis='coloraxis',  # Use the coloraxis defined in layout
+                colorscale=custom_turbo,   # Direct application of custom colorscale
+                zmin=min_value,            # Explicitly set color range
+                zmax=max_value,
                 contours=dict(
                     coloring='fill',
                     showlabels=False,
@@ -224,7 +250,9 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             z=xr_dataset[var_name].isel(time=last_t_idx).values,
             x=lons,
             y=lats,
-            coloraxis='coloraxis',    # Use the global coloraxis
+            colorscale=custom_turbo,    # Direct application of custom colorscale
+            zmin=min_value,             # Explicitly set color range
+            zmax=max_value,
             contours=dict(
                 coloring='fill',
                 showlabels=False,
@@ -278,6 +306,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     last_time_str = pd.to_datetime(xr_dataset.time[last_t_idx].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')
     
     # Update layout with title showing the last time
+    # IMPORTANT: Remove the coloraxis settings since we're applying colorscale directly
     fig.update_layout(
         title_text=f"Solar Radiation at {last_time_str} CET",
         xaxis=dict(
@@ -292,39 +321,8 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             scaleratio=1,
         ),
         # Adjusted margin to accommodate top colorbar
-        margin=dict(l=0, r=0, t=0, b=0),  # Increased top margin
-        #margin=dict(l=0, r=0, t=50, b=0),  # Increased top margin
-        # Global coloraxis definition with custom colorscale for black 0-100
-        coloraxis=dict(
-            colorscale=[
-                [0, 'rgb(0,0,0)'],                # Black for 0
-                [100/max_value, 'rgb(0,0,0)'],    # Black up to 100
-                # Turbo colors after threshold
-                [100.1/max_value, 'rgb(48,18,59)'],   # Dark purple (start of turbo)
-                [0.2, 'rgb(86,15,105)'],              # Purple
-                [0.3, 'rgb(127,11,126)'],             # Magenta
-                [0.4, 'rgb(166,27,120)'],             # Pink
-                [0.5, 'rgb(200,47,96)'],              # Dark pink/red
-                [0.6, 'rgb(229,84,68)'],              # Red-orange
-                [0.7, 'rgb(248,130,48)'],             # Orange
-                [0.8, 'rgb(253,184,46)'],             # Yellow-orange
-                [0.9, 'rgb(235,229,52)'],             # Yellow
-                [1.0, 'rgb(252,255,191)']             # Light yellow/white
-            ],
-            cmin=min_value,
-            cmax=max_value,
-            colorbar=dict(
-                title='W/m²',
-                orientation='h',
-                y=1.1,
-                yanchor='bottom',
-                len=0.6,
-                thickness=20,
-                title_side='top',
-                x=0.5,
-                xanchor='center'
-            )
-        ),
+        margin=dict(l=0, r=0, t=50, b=0),  # Increased top margin
+        # Using a colorbar that's independent from coloraxis
         updatemenus=[
             {
                 "type": "buttons",
@@ -383,8 +381,8 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                 ]
             }
         ],
-        height=900,
-        width=900,
+        height=800,
+        width=800,
         template="plotly_dark"  # Use dark theme for better visualization of solar data
     )
     
