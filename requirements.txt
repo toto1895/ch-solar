@@ -8,3 +8,4 @@ st-files-connection
 fastparquet
 fsspec
 gcsfs
+xarray
