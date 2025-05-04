@@ -324,7 +324,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             autorange=True
         ),
         # Adjusted margins to accommodate top slider and bottom colorbar
-        margin=dict(l=0, r=0, t=90, b=80),  # Increased top margin for slider
+        margin=dict(l=0, r=0, t=130, b=80),  # Increased top margin for slider
         updatemenus=[
             {
                 "type": "buttons",
