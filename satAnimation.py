@@ -479,6 +479,7 @@ def generate_sat_rad_anim():
     # Get the latest nc files
     files = get_latest_nc_files(conn, prefix, count=12)
 
+    st.write(files)
     # Download and open the files
     datasets = download_and_open_nc_files(conn, files)
     
