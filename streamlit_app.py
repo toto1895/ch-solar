@@ -658,12 +658,16 @@ def main():
         st.cache_data.clear()
         st.sidebar.success("Cache cleared!")
 
-    page_choice = st.sidebar.radio("Go to page:", ["Home","Sat view", "About"])
+    page_choice = st.sidebar.radio("Go to page:", ["Home","Near-Realtime (MeteoSat 5km)",
+                                                   "Forecast technical (DWD-ICON-d2)",
+                                                    "About"])
 
     if page_choice == "Home":
         home_page()
-    elif page_choice=='Sat view':
+    elif page_choice=='Near-Realtime (MeteoSat 5km)':
         sat_anim()
+    elif page_choice == 'Forecast technical (DWD-ICON-d2)':
+        print('processing')
     elif page_choice == "About":
         about_page()
 
