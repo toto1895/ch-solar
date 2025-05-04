@@ -368,7 +368,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
         template="plotly_dark"  # Use dark theme for better visualization of solar data
     )
     fig.frames = frames
-    
+
     return fig
 
 
@@ -469,7 +469,7 @@ def generate_sat_rad_anim():
     conn = get_connection()
     
     # Get the latest nc files
-    files = get_latest_nc_files(conn, prefix, count=12)
+    files = get_latest_nc_files(conn, prefix, count=24)
 
     # Download and open the files
     datasets = download_and_open_nc_files(conn, files)
