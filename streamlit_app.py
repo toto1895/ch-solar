@@ -703,14 +703,9 @@ def main():
     elif page_choice == "About":
         about_page()
 
-    
-    st.markdown("##")  # Extra space
-    
-    # Create a container for the bottom section
-    bottom_container = st.sidebar()
-    
+
     # Use expander to take minimal space (optional)
-    with bottom_container:
+    with st.sidebar:
         st.markdown("---")
         st.markdown("### Support My Work")
         
