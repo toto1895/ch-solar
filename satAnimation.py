@@ -483,8 +483,7 @@ def generate_sat_rad_anim():
     # Download and open the files
     datasets = download_and_open_nc_files(conn, files)
     
-    if datasets is None:
-        st.write('nc files none')
+    print(datasets)
     # Concatenate the datasets
     combined_dataset = concat_datasets(datasets)
     
