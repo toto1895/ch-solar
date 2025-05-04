@@ -191,7 +191,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     # Get the last time index
     last_t_idx = len(xr_dataset.time) - 1
     
-    # Using the default 'turbo' colorscale with 50 steps
+    # Using the default 'turbo' colorscale with 50 steps but keeping min/max values
     import plotly.colors
     colorscale = plotly.colors.sample_colorscale('turbo', 50)
     
@@ -207,8 +207,8 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                 x=lons,
                 y=lats,
                 colorscale=colorscale,  # Use turbo colorscale with 50 steps
-                # Enable auto-colorscale range by removing zmin/zmax
-                # This will scale based on data range
+                zmin=min_value,         # Keep fixed min value
+                zmax=max_value,         # Keep fixed max value
                 contours=dict(
                     coloring='fill',
                     showlabels=False,
@@ -237,8 +237,8 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             x=lons,
             y=lats,
             colorscale=colorscale,  # Use turbo colorscale with 50 steps
-            # Enable auto-colorscale range by removing zmin/zmax
-            # This will scale based on data range
+            zmin=min_value,         # Keep fixed min value
+            zmax=max_value,         # Keep fixed max value
             contours=dict(
                 coloring='fill',
                 showlabels=False,
@@ -370,6 +370,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     )
     fig.frames = frames
     return fig
+
 
 
 def get_latest_nc_files(conn, prefix, count=12):
