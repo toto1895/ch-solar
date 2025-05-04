@@ -29,17 +29,17 @@ st.set_page_config(
 )
 
 # Set dark theme for the app
-st.markdown(
-    """
-    <style>
-    body {
-        color: #fff;
-        background-color: #1e1e1e;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+#st.markdown(
+#    """
+#    <style>
+#    body {
+#        color: #fff;
+#        background-color: #1e1e1e;
+#    }
+#    </style>
+#    """,
+#    unsafe_allow_html=True,
+#)
 
 # Create a connection instance once
 def get_connection():

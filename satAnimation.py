@@ -198,7 +198,18 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                 colorscale='magma',
                 zmin=min_value,
                 zmax=max_value,
-                colorbar=dict(title='W/m²'),
+                # Modified colorbar to appear on top
+                colorbar=dict(
+                    title='W/m²',
+                    orientation='h',      # Horizontal orientation
+                    y=1.1,                # Position above the plot
+                    yanchor='bottom',     # Anchor to bottom of colorbar
+                    len=0.6,              # Length as fraction of plot width
+                    thickness=20,         # Thickness in pixels
+                    title_side='top',     # Title position
+                    x=0.5,                # Center the colorbar
+                    xanchor='center'      # Anchor to center of colorbar
+                ),
                 contours=dict(
                     coloring='fill',
                     showlabels=False,
@@ -208,21 +219,6 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                 hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>'
             )
         ]
-        
-        # Add boundary traces
-        # for coords in border_coords:
-        #     lons_boundary = [point[0] for point in coords]
-        #     lats_boundary = [point[1] for point in coords]
-        #     frame_data.append(
-        #         go.Scatter(
-        #             x=lons_boundary,
-        #             y=lats_boundary,
-        #             mode='lines',
-        #             line=dict(color='white', width=1.5),
-        #             hoverinfo='skip',
-        #             showlegend=False
-        #         )
-        #     )
         
         # Create frame
         frame = go.Frame(
@@ -243,7 +239,18 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             colorscale='magma',
             zmin=min_value,
             zmax=max_value,
-            colorbar=dict(title='W/m²'),
+            # Modified colorbar to appear on top (same as in frame_data)
+            colorbar=dict(
+                title='W/m²',
+                orientation='h',      # Horizontal orientation
+                y=1.1,                # Position above the plot
+                yanchor='bottom',     # Anchor to bottom of colorbar
+                len=0.6,              # Length as fraction of plot width
+                thickness=20,         # Thickness in pixels
+                title_side='top',     # Title position
+                x=0.5,                # Center the colorbar
+                xanchor='center'      # Anchor to center of colorbar
+            ),
             contours=dict(
                 coloring='fill',
                 showlabels=False,
@@ -321,6 +328,8 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             scaleanchor='x',
             scaleratio=1,
         ),
+        # Adjusted margin to accommodate top colorbar
+        margin=dict(l=50, r=50, t=120, b=50),  # Increased top margin
         updatemenus=[
             {
                 "type": "buttons",
@@ -381,7 +390,6 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
         ],
         height=900,
         width=900,
-        margin=dict(l=50, r=50, t=80, b=50),
         template="plotly_dark"  # Use dark theme for better visualization of solar data
     )
     
@@ -389,7 +397,6 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     fig.frames = frames
     
     return fig
-
 
 def get_latest_nc_files(conn, prefix, count=12):
     """
