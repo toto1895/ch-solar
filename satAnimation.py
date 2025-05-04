@@ -183,6 +183,9 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             import traceback
             traceback.print_exc()
     
+    # Get the last time index
+    last_t_idx = len(xr_dataset.time) - 1
+    
     for t_idx in range(len(xr_dataset.time)):
         # Get data for this time
         data_slice = xr_dataset[var_name].isel(time=t_idx).values
@@ -215,10 +218,10 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
         )
         frames.append(frame)
     
-    # Initial data for the figure - first frame
+    # Initial data for the figure - use last frame instead of first
     initial_data = [
         go.Contour(
-            z=xr_dataset[var_name].isel(time=len(xr_dataset.time)-1).values,
+            z=xr_dataset[var_name].isel(time=last_t_idx).values,
             x=lons,
             y=lats,
             coloraxis='coloraxis',    # Use the global coloraxis
@@ -271,23 +274,12 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     lon_buffer = (lon_max - lon_min) * 0.05
     lat_buffer = (lat_max - lat_min) * 0.05
     
-    for coords in border_coords:
-        lons_boundary = [point[0] for point in coords]
-        lats_boundary = [point[1] for point in coords]
-        
-        fig.add_trace(go.Scatter(
-                x=lons_boundary,
-                y=lats_boundary,
-                mode='lines',
-                line=dict(color='white', width=1.5),
-                hoverinfo='skip',
-                showlegend=False
-            )
-        )
+    # Compute the time string for the last time index
+    last_time_str = pd.to_datetime(xr_dataset.time[last_t_idx].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')
     
-    # Update layout
+    # Update layout with title showing the last time
     fig.update_layout(
-        title_text=f"Solar Radiation at {pd.to_datetime(xr_dataset.time[len(xr_dataset.time)-1].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')} CET",
+        title_text=f"Solar Radiation at {last_time_str} CET",
         xaxis=dict(
             title='Longitude',
             range=[lon_min - lon_buffer, lon_max + lon_buffer],
@@ -353,7 +345,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
         ],
         sliders=[
             {
-                "active": 0,
+                "active": last_t_idx,  # Set the active slider position to the last time index
                 "yanchor": "top",
                 "xanchor": "left",
                 "currentvalue": {
@@ -393,6 +385,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     fig.frames = frames
     
     return fig
+
 
 def get_latest_nc_files(conn, prefix, count=12):
     """
