@@ -707,8 +707,8 @@ def main():
     # Use expander to take minimal space (optional)
     with st.sidebar:
         st.markdown("---")
-        st.markdown("### Support My Work")
-        
+        st.markdown("")
+        st.markdown("")
         # Buy Me a Coffee button
         button_code = """
         <a href="https://www.buymeacoffee.com/wamine">
