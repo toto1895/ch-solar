@@ -195,21 +195,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                 z=data_slice,
                 x=lons,
                 y=lats,
-                colorscale='inferno',
-                zmin=min_value,
-                zmax=max_value,
-                # Modified colorbar to appear on top
-                colorbar=dict(
-                    title='W/m²',
-                    orientation='h',      # Horizontal orientation
-                    y=1.1,                # Position above the plot
-                    yanchor='bottom',     # Anchor to bottom of colorbar
-                    len=0.6,              # Length as fraction of plot width
-                    thickness=20,         # Thickness in pixels
-                    title_side='top',     # Title position
-                    x=0.5,                # Center the colorbar
-                    xanchor='center'      # Anchor to center of colorbar
-                ),
+                coloraxis='coloraxis',  # Use the coloraxis defined in layout
                 contours=dict(
                     coloring='fill',
                     showlabels=False,
@@ -236,21 +222,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             z=xr_dataset[var_name].isel(time=0).values,
             x=lons,
             y=lats,
-            colorscale='inferno',
-            zmin=min_value,
-            zmax=max_value,
-            # Modified colorbar to appear on top (same as in frame_data)
-            colorbar=dict(
-                title='W/m²',
-                orientation='h',      # Horizontal orientation
-                y=1.1,                # Position above the plot
-                yanchor='bottom',     # Anchor to bottom of colorbar
-                len=0.6,              # Length as fraction of plot width
-                thickness=20,         # Thickness in pixels
-                title_side='top',     # Title position
-                x=0.5,                # Center the colorbar
-                xanchor='center'      # Anchor to center of colorbar
-            ),
+            coloraxis='coloraxis',    # Use the global coloraxis
             contours=dict(
                 coloring='fill',
                 showlabels=False,
@@ -330,6 +302,31 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
         ),
         # Adjusted margin to accommodate top colorbar
         margin=dict(l=50, r=50, t=120, b=50),  # Increased top margin
+        # Global coloraxis definition with custom colorscale for black 0-100
+        coloraxis=dict(
+            colorscale=[
+                [0, 'rgb(0,0,0)'],           # Black for 0
+                [100/max_value, 'rgb(0,0,0)'], # Black up to 100
+                [100.1/max_value, 'rgb(53,9,69)'], # Start magma colors after 100
+                [0.25, 'rgb(99,19,124)'],    # Dark purple
+                [0.5, 'rgb(182,54,121)'],    # Pink
+                [0.75, 'rgb(246,140,98)'],   # Orange
+                [1, 'rgb(252,253,191)']      # Light yellow
+            ],
+            cmin=min_value,
+            cmax=max_value,
+            colorbar=dict(
+                title='W/m²',
+                orientation='h',
+                y=1.1,
+                yanchor='bottom',
+                len=0.6,
+                thickness=20,
+                title_side='top',
+                x=0.5,
+                xanchor='center'
+            )
+        ),
         updatemenus=[
             {
                 "type": "buttons",
