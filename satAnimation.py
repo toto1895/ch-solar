@@ -271,8 +271,8 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             lat_max = max(lat_max, max(all_boundary_lats))
     
     # Add a small buffer for visibility
-    lon_buffer = (lon_max - lon_min) * 0.05
-    lat_buffer = (lat_max - lat_min) * 0.05
+    lon_buffer = (lon_max - lon_min) * 0.0
+    lat_buffer = (lat_max - lat_min) * 0.0
     
     # Compute the time string for the last time index
     last_time_str = pd.to_datetime(xr_dataset.time[last_t_idx].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')
@@ -292,8 +292,8 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             scaleratio=1,
         ),
         # Adjusted margin to accommodate top colorbar
-        #margin=dict(l=50, r=50, t=120, b=50),  # Increased top margin
-        margin=dict(l=0, r=0, t=50, b=0),  # Increased top margin
+        margin=dict(l=50, r=50, t=120, b=50),  # Increased top margin
+        #margin=dict(l=0, r=0, t=50, b=0),  # Increased top margin
         # Global coloraxis definition with custom colorscale for black 0-100
         coloraxis=dict(
             colorscale=[
