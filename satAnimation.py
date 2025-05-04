@@ -477,7 +477,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     return fig
 
 
-from GCSConnection import GCSConnection
+from GCSconnection import GCSConnection
 @st.cache_resource
 def get_connection(bucket_name):
     """Get the GCS connection instance"""
