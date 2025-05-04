@@ -111,14 +111,8 @@ def create_boundary_traces(geojson_data):
     
     return traces
 
-import xarray as xr
-import numpy as np
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import pandas as pd
-import json
 
-def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, max_value=900):
+def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, max_value=700):
     """
     Create an animation of solar radiation data from an xarray dataset with Swiss boundaries.
     
@@ -137,6 +131,11 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     --------
     plotly.graph_objects.Figure
     """
+    import plotly.graph_objects as go
+    import pandas as pd
+    import json
+    import numpy as np
+    
     # Get the variable name for solar radiation (assuming it's SID)
     var_name = 'SID' if 'SID' in xr_dataset.variables else list(xr_dataset.data_vars)[0]
     
@@ -182,6 +181,8 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                 elif geometry['type'] == 'MultiPolygon':
                     for polygon in geometry['coordinates']:
                         border_coords.append(polygon[0])
+                        
+            print(f"Loaded {len(border_coords)} boundary segments from GeoJSON")
         except Exception as e:
             print(f"Error loading GeoJSON: {e}")
             import traceback
@@ -190,65 +191,29 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     # Get the last time index
     last_t_idx = len(xr_dataset.time) - 1
     
-    # Define proper turbo colorscale
-    # This is an implementation of Google's Turbo colormap
-    # Reference: https://ai.googleblog.com/2019/08/turbo-improved-rainbow-colormap-for.html
-    turbo_colorscale = [
-        [0.0, 'rgb(48,18,59)'],      # Dark purple
-        [0.1, 'rgb(86,15,105)'],     # Purple
-        [0.2, 'rgb(127,11,126)'],    # Magenta
-        [0.3, 'rgb(166,27,120)'],    # Pink
-        [0.4, 'rgb(200,47,96)'],     # Dark pink/red
-        [0.5, 'rgb(229,84,68)'],     # Red-orange
-        [0.6, 'rgb(248,130,48)'],    # Orange
-        [0.7, 'rgb(253,184,46)'],    # Yellow-orange
-        [0.8, 'rgb(235,229,52)'],    # Yellow
-        [0.9, 'rgb(190,245,99)'],    # Light green
-        [1.0, 'rgb(252,255,191)']    # Light yellow/white
-    ]
-    
-    # Custom colorscale with black for values below threshold
-    threshold = 100
-    threshold_ratio = threshold / max_value
-    
-    custom_turbo = [
-        [0, 'rgb(0,0,0)'],             # Black for 0
-        [threshold_ratio, 'rgb(0,0,0)']  # Black up to threshold
-    ]
-    
-    # Add the turbo colors above the threshold
-    for i, [pos, color] in enumerate(turbo_colorscale):
-        if i > 0:  # Skip the first color to avoid duplicating the threshold color
-            # Scale the position to be between threshold_ratio and 1.0
-            scaled_pos = threshold_ratio + (1 - threshold_ratio) * pos
-            custom_turbo.append([scaled_pos, color])
+    # Using the default 'turbo' colorscale instead of custom
+    colorscale = 'turbo'
     
     for t_idx in range(len(xr_dataset.time)):
         # Get data for this time
         data_slice = xr_dataset[var_name].isel(time=t_idx).values
-        time_str = pd.to_datetime(xr_dataset.time[t_idx].values).strftime('%Y-%m-%d %H:%M')
+        time_str = pd.to_datetime(xr_dataset.time[t_idx].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')
         
-        # Create contour plot
+        # Create heatmap instead of image
         frame_data = [
-            go.Contour(  # Using Contour with coloring='fill' for filled contours
+            go.Contour(
                 z=data_slice,
                 x=lons,
                 y=lats,
-                colorscale=custom_turbo,
+                colorscale=colorscale,  # Use the default turbo colorscale
                 zmin=min_value,
                 zmax=max_value,
-                colorbar=dict(
-                    title="Solar Radiation (W/m²)",
-                    titleside="right",
-                    tickvals=[0, threshold, max_value*0.25, max_value*0.5, max_value*0.75, max_value],
-                    ticktext=["0", str(threshold), str(int(max_value*0.25)), str(int(max_value*0.5)), 
-                             str(int(max_value*0.75)), str(int(max_value))],
-                    ticks="outside"
-                ),
                 contours=dict(
-                    showlabels=False,
                     coloring='fill',
+                    showlabels=False,
                 ),
+                line=dict(width=0),
+                connectgaps=True,
                 hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>'
             )
         ]
@@ -265,25 +230,19 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     
     # Initial data for the figure - use last frame instead of first
     initial_data = [
-        go.Contour(  # Using Contour with coloring='fill'
+        go.Contour(
             z=xr_dataset[var_name].isel(time=last_t_idx).values,
             x=lons,
             y=lats,
-            colorscale=custom_turbo,
+            colorscale=colorscale,  # Use the default turbo colorscale
             zmin=min_value,
             zmax=max_value,
-            colorbar=dict(
-                title="Solar Radiation (W/m²)",
-                titleside="right",
-                tickvals=[0, threshold, max_value*0.25, max_value*0.5, max_value*0.75, max_value],
-                ticktext=["0", str(threshold), str(int(max_value*0.25)), str(int(max_value*0.5)), 
-                         str(int(max_value*0.75)), str(int(max_value))],
-                ticks="outside"
-            ),
             contours=dict(
-                showlabels=False,
                 coloring='fill',
+                showlabels=False,
             ),
+            line=dict(width=0),
+            connectgaps=True,
             hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>'
         )
     ]
@@ -308,6 +267,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
         fig.add_trace(trace)
     
     # Calculate appropriate axis ranges
+    # Use the bounds of the data plus a small buffer
     lon_min, lon_max = min(lons), max(lons)
     lat_min, lat_max = min(lats), max(lats)
     
@@ -327,9 +287,9 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     lat_buffer = (lat_max - lat_min) * 0.0
     
     # Compute the time string for the last time index
-    last_time_str = pd.to_datetime(xr_dataset.time[last_t_idx].values).strftime('%Y-%m-%d %H:%M')
+    last_time_str = pd.to_datetime(xr_dataset.time[last_t_idx].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')
     
-    # Update layout
+    # Update layout with title showing the last time
     fig.update_layout(
         title_text=f"Solar Radiation at {last_time_str} CET",
         xaxis=dict(
@@ -343,7 +303,8 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             scaleanchor='x',
             scaleratio=1,
         ),
-        margin=dict(l=0, r=0, t=50, b=0),
+        # Adjusted margin to accommodate top colorbar
+        margin=dict(l=0, r=0, t=50, b=0),  # Increased top margin
         updatemenus=[
             {
                 "type": "buttons",
@@ -371,7 +332,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
         ],
         sliders=[
             {
-                "active": last_t_idx,
+                "active": last_t_idx,  # Set the active slider position to the last time index
                 "yanchor": "top",
                 "xanchor": "left",
                 "currentvalue": {
@@ -395,7 +356,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                                 "transition": {"duration": 300}
                             }
                         ],
-                        "label": pd.to_datetime(xr_dataset.time[k].values).strftime('%H:%M CET'),
+                        "label": pd.to_datetime(xr_dataset.time[k].values).tz_localize('UTC').tz_convert('CET').strftime('%H:%M CET'),
                         "method": "animate"
                     }
                     for k in range(len(xr_dataset.time))
@@ -404,11 +365,11 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
         ],
         height=800,
         width=800,
-        template="plotly_dark"  # Dark theme for better visualization
+        template="plotly_dark"  # Use dark theme for better visualization of solar data
     )
-    
     fig.frames = frames
     return fig
+
 
 def get_latest_nc_files(conn, prefix, count=12):
     """
