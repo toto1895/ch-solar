@@ -12,8 +12,8 @@ import gc
 import io
 import os
 
-#if not os.path.exists('.streamlit'):
-#    os.makedirs('.streamlit')
+if not os.path.exists('.streamlit'):
+    os.makedirs('.streamlit')
 
 with open('.streamlit/config.toml', 'w') as f:
     f.write('''
@@ -636,6 +636,14 @@ def about_page():
     For more information or support, please contact the development team.
     """)
 
+from satAnimation import generate_sat_rad_anim
+def sat_anim():
+
+    fig_anim = generate_sat_rad_anim()
+
+    st.plotly_chart(fig_anim)
+
+
 def main():
     
     st.sidebar.title("Navigation")
@@ -651,10 +659,13 @@ def main():
         st.cache_data.clear()
         st.sidebar.success("Cache cleared!")
 
-    page_choice = st.sidebar.radio("Go to page:", ["Home", "About"])
+    page_choice = st.sidebar.radio("Go to page:", ["Home","Sat view", "About"])
 
     if page_choice == "Home":
         home_page()
+    elif page_choice=='Sat view':
+
+
     elif page_choice == "About":
         about_page()
 
