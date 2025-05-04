@@ -638,7 +638,6 @@ def about_page():
 
 from satAnimation import generate_sat_rad_anim
 def sat_anim():
-
     fig_anim = generate_sat_rad_anim()
 
     st.plotly_chart(fig_anim)

@@ -489,7 +489,7 @@ def get_connection(bucket_name):
 
 def generate_sat_rad_anim():
     # Set the bucket name and prefix
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "bucket.json"
+    
     bucket_name = "dwd-solar-sat"  # Replace with your actual bucket name
     prefix = "radiation_sid/"
     
