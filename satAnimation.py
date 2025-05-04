@@ -299,7 +299,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             colorscale=[
                 [0, 'rgb(0,0,0)'],           # Black for 0
                 [100/max_value, 'rgb(0,0,0)'], # Black up to 100
-                [100.1/max_value, 'rgb(53,9,69)'], # Start magma colors after 100
+                [100.1/max_value, 'rgb(53,9,69)'], # Start turbo colors after 100
                 [0.25, 'rgb(99,19,124)'],    # Dark purple
                 [0.5, 'rgb(182,54,121)'],    # Pink
                 [0.75, 'rgb(246,140,98)'],   # Orange
