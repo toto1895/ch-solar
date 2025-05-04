@@ -664,8 +664,7 @@ def main():
     if page_choice == "Home":
         home_page()
     elif page_choice=='Sat view':
-
-
+        sat_anim()
     elif page_choice == "About":
         about_page()
 
