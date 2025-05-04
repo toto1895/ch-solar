@@ -692,6 +692,11 @@ def main():
     page_choice = st.sidebar.radio("Go to page:", ["Home","Near-Realtime (MeteoSat 5km)",
                                                    "Forecast technical (DWD-ICON-d2)",
                                                     "About"])
+    
+    b_code="""
+    <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="wamine" data-description="Support me on Buy me a coffee!" data-message="" data-color="#FF813F" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
+    """
+    components.html(b_code, height=200)
 
     if page_choice == "Home":
         home_page()
@@ -712,18 +717,7 @@ if __name__ == "__main__":
     
     main()
 
-    st.markdown("---")
-    st.markdown("")
-    st.markdown("")
-    # Buy Me a Coffee button
-    button_code = """
-    <a href="https://www.buymeacoffee.com/wamine">
-        <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=wamine&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" />
-    </a>
-    """
-    b_code="""
-    <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="wamine" data-description="Support me on Buy me a coffee!" data-message="" data-color="#FF813F" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
-    """
-    components.html(b_code, height=200)
+    
+    
 
     #add_google_analytics('G-NKZVTQPKS5')
