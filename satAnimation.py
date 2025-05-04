@@ -308,24 +308,23 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     # Compute the time string for the last time index
     last_time_str = pd.to_datetime(xr_dataset.time[last_t_idx].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')
     
-    # Update layout with title showing the last time and add more space at bottom for colorbar
+    # Update layout with title showing the last time
+    # Add space at top for slider and at bottom for colorbar
     fig.update_layout(
         title_text=f"Solar Radiation at {last_time_str} CET",
         xaxis=dict(
             title='Longitude',
-            # Remove fixed range to enable autoscaling
             constrain='domain',
             autorange=True
         ),
         yaxis=dict(
             title='Latitude',
-            # Remove fixed range to enable autoscaling
             scaleanchor='x',
             scaleratio=1,
             autorange=True
         ),
-        # Adjusted margin to accommodate bottom colorbar
-        margin=dict(l=0, r=0, t=50, b=80),  # Increased bottom margin for colorbar
+        # Adjusted margins to accommodate top slider and bottom colorbar
+        margin=dict(l=0, r=0, t=90, b=80),  # Increased top margin for slider
         updatemenus=[
             {
                 "type": "buttons",
@@ -347,14 +346,14 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                 "type": "buttons",
                 "x": 0.1,
                 "xanchor": "right",
-                "y": 0,
-                "yanchor": "top"
+                "y": 1.05,  # Move buttons to top to be near the slider
+                "yanchor": "bottom"
             }
         ],
         sliders=[
             {
                 "active": last_t_idx,  # Set the active slider position to the last time index
-                "yanchor": "top",
+                "yanchor": "bottom",   # Anchor to bottom (will be at top of chart)
                 "xanchor": "left",
                 "currentvalue": {
                     "font": {"size": 16},
@@ -363,10 +362,10 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                     "xanchor": "right"
                 },
                 "transition": {"duration": 300, "easing": "cubic-in-out"},
-                "pad": {"b": 10, "t": 50},
+                "pad": {"b": 10, "t": 10},  # Reduced top padding
                 "len": 0.9,
                 "x": 0.1,
-                "y": 0,
+                "y": 1.05,  # Position above the plot (>1.0 means above the plot area)
                 "steps": [
                     {
                         "args": [
