@@ -99,6 +99,10 @@ def download_and_open_nc_files(bucket_name, blob_names):
         datasets[-1] = ds
     
     return datasets
+
+
+
+
 def concat_datasets(datasets):
     # Sort datasets by time
     datasets.sort(key=lambda ds: ds.time.values[0])
@@ -119,6 +123,8 @@ def concat_datasets(datasets):
     combined_dataset = combined_dataset.assign_coords(time=time_index)
     
     return combined_dataset
+
+
 def load_geojson(file_path):
     """
     Load a GeoJSON file.
@@ -190,7 +196,6 @@ def create_boundary_traces(geojson_data):
                 )
     
     return traces
-
 
 
 def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, max_value=700):
@@ -472,18 +477,30 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     return fig
 
 
-
+from GCSConnection import GCSConnection
+@st.cache_resource
+def get_connection(bucket_name):
+    """Get the GCS connection instance"""
+    return GCSConnection(
+        "gcs",
+        bucket_name=bucket_name  # Replace with your actual bucket name
+    )
 def generate_sat_rad_anim():
     # Set the bucket name and prefix
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "bucket.json"
     bucket_name = "dwd-solar-sat"  # Replace with your actual bucket name
     prefix = "radiation_sid/"
     
+    
+    conn = get_connection(bucket_name)
+    files = conn.get_latest_nc_files(prefix, count=3*4)
+    datasets = conn.download_and_open_nc_files(files)
+   
     # Get the latest 12 nc files
-    blob_names = get_latest_nc_files(bucket_name, prefix, 3*6)
+    #blob_names = get_latest_nc_files(bucket_name, prefix, 3*6)
     
     # Download and open the files
-    datasets = download_and_open_nc_files(bucket_name, blob_names)
+    #datasets = download_and_open_nc_files(bucket_name, blob_names)
     
     # Concatenate the datasets
     combined_dataset = concat_datasets(datasets)
