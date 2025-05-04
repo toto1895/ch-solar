@@ -403,6 +403,8 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                 ]
             }
         ],
+
+        
         height=800,
         width=800,
         template="plotly_dark"  # Dark theme for better visualization
