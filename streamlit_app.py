@@ -707,7 +707,7 @@ def main():
     st.markdown("##")  # Extra space
     
     # Create a container for the bottom section
-    bottom_container = st.container()
+    bottom_container = st.sidebar()
     
     # Use expander to take minimal space (optional)
     with bottom_container:
