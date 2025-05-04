@@ -216,7 +216,17 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                 ncontours=50,  # Set number of contour levels to 50
                 line=dict(width=0),
                 connectgaps=True,
-                hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>'
+                hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>',
+                colorbar=dict(
+                    title='W/m²',
+                    title_side='right',
+                    orientation='h',     # Horizontal colorbar
+                    y=-0.15,             # Position below the plot
+                    len=0.6,             # Length of the colorbar (60% of plot width)
+                    thickness=20,        # Thickness of the colorbar
+                    tickmode='auto',     # Automatic tick marks
+                    nticks=10            # Number of tick marks
+                )
             )
         ]
         
@@ -246,7 +256,17 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             ncontours=50,  # Set number of contour levels to 50
             line=dict(width=0),
             connectgaps=True,
-            hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>'
+            hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>',
+            colorbar=dict(
+                title='W/m²',
+                title_side='right',
+                orientation='h',     # Horizontal colorbar
+                y=-0.15,             # Position below the plot
+                len=0.6,             # Length of the colorbar (60% of plot width)
+                thickness=20,        # Thickness of the colorbar
+                tickmode='auto',     # Automatic tick marks
+                nticks=10            # Number of tick marks
+            )
         )
     ]
     
@@ -288,7 +308,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     # Compute the time string for the last time index
     last_time_str = pd.to_datetime(xr_dataset.time[last_t_idx].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')
     
-    # Update layout with title showing the last time and enable autoscaling
+    # Update layout with title showing the last time and add more space at bottom for colorbar
     fig.update_layout(
         title_text=f"Solar Radiation at {last_time_str} CET",
         xaxis=dict(
@@ -304,8 +324,8 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             scaleratio=1,
             autorange=True
         ),
-        # Adjusted margin to accommodate top colorbar
-        margin=dict(l=0, r=0, t=50, b=0),  # Increased top margin
+        # Adjusted margin to accommodate bottom colorbar
+        margin=dict(l=0, r=0, t=50, b=80),  # Increased bottom margin for colorbar
         updatemenus=[
             {
                 "type": "buttons",
@@ -370,7 +390,6 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     )
     fig.frames = frames
     return fig
-
 
 
 def get_latest_nc_files(conn, prefix, count=12):
