@@ -191,8 +191,9 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     # Get the last time index
     last_t_idx = len(xr_dataset.time) - 1
     
-    # Using the default 'turbo' colorscale instead of custom
-    colorscale = 'turbo'
+    # Using the default 'turbo' colorscale with 50 steps
+    import plotly.colors
+    colorscale = plotly.colors.sample_colorscale('turbo', 50)
     
     for t_idx in range(len(xr_dataset.time)):
         # Get data for this time
@@ -205,13 +206,14 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                 z=data_slice,
                 x=lons,
                 y=lats,
-                colorscale=colorscale,  # Use the default turbo colorscale
-                zmin=min_value,
-                zmax=max_value,
+                colorscale=colorscale,  # Use turbo colorscale with 50 steps
+                # Enable auto-colorscale range by removing zmin/zmax
+                # This will scale based on data range
                 contours=dict(
                     coloring='fill',
                     showlabels=False,
                 ),
+                ncontours=50,  # Set number of contour levels to 50
                 line=dict(width=0),
                 connectgaps=True,
                 hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>'
@@ -234,13 +236,14 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             z=xr_dataset[var_name].isel(time=last_t_idx).values,
             x=lons,
             y=lats,
-            colorscale=colorscale,  # Use the default turbo colorscale
-            zmin=min_value,
-            zmax=max_value,
+            colorscale=colorscale,  # Use turbo colorscale with 50 steps
+            # Enable auto-colorscale range by removing zmin/zmax
+            # This will scale based on data range
             contours=dict(
                 coloring='fill',
                 showlabels=False,
             ),
+            ncontours=50,  # Set number of contour levels to 50
             line=dict(width=0),
             connectgaps=True,
             hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>'
@@ -266,12 +269,12 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     for trace in initial_data:
         fig.add_trace(trace)
     
-    # Calculate appropriate axis ranges
-    # Use the bounds of the data plus a small buffer
+    # Let the plot autoscale for axis ranges - remove manual range setting
+    # We'll still calculate the bounds for reference
     lon_min, lon_max = min(lons), max(lons)
     lat_min, lat_max = min(lats), max(lats)
     
-    # If we have boundary data, adjust the plot bounds to include all boundaries
+    # If we have boundary data, include those bounds as well
     if border_coords:
         all_boundary_lons = [point[0] for coords in border_coords for point in coords]
         all_boundary_lats = [point[1] for coords in border_coords for point in coords]
@@ -282,26 +285,24 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             lat_min = min(lat_min, min(all_boundary_lats))
             lat_max = max(lat_max, max(all_boundary_lats))
     
-    # Add a small buffer for visibility
-    lon_buffer = (lon_max - lon_min) * 0.0
-    lat_buffer = (lat_max - lat_min) * 0.0
-    
     # Compute the time string for the last time index
     last_time_str = pd.to_datetime(xr_dataset.time[last_t_idx].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')
     
-    # Update layout with title showing the last time
+    # Update layout with title showing the last time and enable autoscaling
     fig.update_layout(
         title_text=f"Solar Radiation at {last_time_str} CET",
         xaxis=dict(
             title='Longitude',
-            range=[lon_min - lon_buffer, lon_max + lon_buffer],
-            constrain='domain'
+            # Remove fixed range to enable autoscaling
+            constrain='domain',
+            autorange=True
         ),
         yaxis=dict(
             title='Latitude',
-            range=[lat_min - lat_buffer, lat_max + lat_buffer],
+            # Remove fixed range to enable autoscaling
             scaleanchor='x',
             scaleratio=1,
+            autorange=True
         ),
         # Adjusted margin to accommodate top colorbar
         margin=dict(l=0, r=0, t=50, b=0),  # Increased top margin
@@ -368,7 +369,6 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
         template="plotly_dark"  # Use dark theme for better visualization of solar data
     )
     fig.frames = frames
-
     return fig
 
 
