@@ -299,7 +299,6 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             colorscale=[
                 [0, 'rgb(0,0,0)'],                # Black for 0
                 [100/max_value, 'rgb(0,0,0)'],    # Black up to 100
-                
                 # Turbo colors after threshold
                 [100.1/max_value, 'rgb(48,18,59)'],   # Dark purple (start of turbo)
                 [0.2, 'rgb(86,15,105)'],              # Purple
