@@ -238,7 +238,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                 title=dict(
                     text=f"Solar Radiation at {time_str} CET",
                     x=0.01,  # Position at left
-                    y=0.9, # Position near top
+                    y=0.87, # Position near top
                     xanchor='left',
                     yanchor='top'
                 )
