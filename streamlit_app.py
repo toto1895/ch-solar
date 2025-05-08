@@ -673,14 +673,19 @@ def main():
 
     if page_choice == "Home":
         home_page()
+
     elif page_choice=='Near-Realtime (MeteoSat 5km)':
         sat_anim()
+
     elif page_choice == "Forecast (ICON-CH1 1km)":
         sat_anim_ch1()
+
     elif page_choice == "Forecast (ICON-CH2 2.1km)":
         print('processing')
+
     elif page_choice == 'Forecast (DWD-ICON-D2 2.1km)':
         print('processing')
+        
     elif page_choice == "About":
         about_page()
     
