@@ -510,9 +510,9 @@ def generate_sat_rad_anim_ch1():
     # Concatenate the datasets
     combined_dataset = concat_datasets(datasets)
 
-    ds_renamed_var = combined_dataset.rename({'GLOBAL_SW': 'SID'})
-    ds_renamed_axis = ds_renamed_var.rename_dims({'valid_time': 'time'})
-    combined_dataset = ds_renamed_axis
+    ds_renamed_var = combined_dataset.rename({'GLOBAL_SW': 'SID','valid_time': 'time'})
+    #ds_renamed_axis = ds_renamed_var.rename_dims({'valid_time': 'time'})
+    combined_dataset = ds_renamed_var
     # Convert time zones
     time_index = pd.DatetimeIndex(combined_dataset.time.values).tz_localize('UTC')
     combined_dataset = combined_dataset.assign_coords(time=time_index.tz_convert('CET'))
