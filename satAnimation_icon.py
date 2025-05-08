@@ -515,7 +515,7 @@ def generate_sat_rad_anim_ch1():
     time_index = pd.DatetimeIndex(ds_renamed_var.valid_time.values).tz_localize('UTC')
     ds_renamed_var = ds_renamed_var.assign_coords(valid_time=time_index.tz_convert('CET'))
     
-    st.write(ds_renamed_var)
+    st.write(ds_renamed_var.drop_vars('time'))
     # Path to the Swiss cantonal boundaries GeoJSON
     geojson_path = 'swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.geojson'
     
