@@ -510,6 +510,7 @@ def generate_sat_rad_anim_ch1():
     # Concatenate the datasets
     combined_dataset = concat_datasets(datasets)
 
+
     st.write(combined_dataset)
 
     ds_renamed_var = combined_dataset.rename({'GLOBAL_SW': 'SID'})
