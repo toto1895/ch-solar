@@ -502,13 +502,14 @@ def generate_sat_rad_anim_ch1():
     
     # Get the latest nc files
     files = get_latest_nc_files(conn, prefix, count=1)
-
+    print(files)
     # Download and open the files
     datasets = download_and_open_nc_files(conn, files)
     
 
     # Concatenate the datasets
     combined_dataset = concat_datasets(datasets)
+    print(combined_dataset)
 
     ds_renamed_var = combined_dataset.rename({'GLOBAL_SW': 'SID'})
     # Convert time zones
