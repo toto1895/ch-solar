@@ -189,16 +189,16 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             traceback.print_exc()
     
     # Get the last time index
-    last_t_idx = len(xr_dataset.time) - 1
+    last_t_idx = len(xr_dataset.valid_time) - 1
     
     # Using the default 'turbo' colorscale with 50 steps but keeping min/max values
     import plotly.colors
     colorscale = plotly.colors.sample_colorscale('turbo', 50)
     
-    for t_idx in range(len(xr_dataset.time)):
+    for t_idx in range(len(xr_dataset.valid_time)):
         # Get data for this time
-        data_slice = xr_dataset[var_name].isel(time=t_idx).values
-        time_str = pd.to_datetime(xr_dataset.time[t_idx].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')
+        data_slice = xr_dataset[var_name].isel(valid_time=t_idx).values
+        time_str = pd.to_datetime(xr_dataset.valid_time[t_idx].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')
         
         # Create heatmap instead of image
         frame_data = [
@@ -249,7 +249,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     # Initial data for the figure - use last frame instead of first
     initial_data = [
         go.Contour(
-            z=xr_dataset[var_name].isel(time=last_t_idx).values,
+            z=xr_dataset[var_name].isel(valid_time=last_t_idx).values,
             x=lons,
             y=lats,
             colorscale=colorscale,  # Use turbo colorscale with 50 steps
@@ -312,7 +312,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             lat_max = max(lat_max, max(all_boundary_lats))
     
     # Compute the time string for the last time index
-    last_time_str = pd.to_datetime(xr_dataset.time[last_t_idx].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')
+    last_time_str = pd.to_datetime(xr_dataset.valid_time[last_t_idx].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')
     
     # Update layout with title at top left and add space for slider and colorbar
     fig.update_layout(
@@ -387,10 +387,10 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                                 "transition": {"duration": 300}
                             }
                         ],
-                        "label": pd.to_datetime(xr_dataset.time[k].values).tz_localize('UTC').tz_convert('CET').strftime('%H:%M CET'),
+                        "label": pd.to_datetime(xr_dataset.valid_time[k].values).tz_localize('UTC').tz_convert('CET').strftime('%H:%M CET'),
                         "method": "animate"
                     }
-                    for k in range(len(xr_dataset.time))
+                    for k in range(len(xr_dataset.valid_time))
                 ]
             }
         ],
@@ -511,16 +511,14 @@ def generate_sat_rad_anim_ch1():
     combined_dataset = concat_datasets(datasets)
 
     ds_renamed_var = combined_dataset.rename({'GLOBAL_SW': 'SID'})
-    ds_renamed_var['time'] = combined_dataset['valid_time'].values
-    combined_dataset = ds_renamed_var
     # Convert time zones
-    time_index = pd.DatetimeIndex(combined_dataset.time.values).tz_localize('UTC')
-    combined_dataset = combined_dataset.assign_coords(time=time_index.tz_convert('CET'))
+    time_index = pd.DatetimeIndex(ds_renamed_var.valid_time.values).tz_localize('UTC')
+    combined_dataset = ds_renamed_var.assign_coords(valid_time=time_index.tz_convert('CET'))
         
     # Path to the Swiss cantonal boundaries GeoJSON
     geojson_path = 'swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.geojson'
     
     # Create the animation
-    fig = plot_solar_radiation_animation(combined_dataset, geojson_path, min_value=0,max_value=900)
+    fig = plot_solar_radiation_animation(ds_renamed_var, geojson_path, min_value=0,max_value=900)
     
     return fig
