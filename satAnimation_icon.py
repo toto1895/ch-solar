@@ -277,19 +277,11 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     ]
     
     # Add boundary traces to initial data
-    for coords in border_coords:
-        lons_boundary = [point[0] for point in coords]
-        lats_boundary = [point[1] for point in coords]
-        initial_data.append(
-            go.Scatter(
-                x=lons_boundary,
-                y=lats_boundary,
-                mode='lines',
-                line=dict(color='white', width=1.5),
-                hoverinfo='skip',
-                showlegend=False
-            )
-        )
+    
+
+
+
+    
     
     # Add traces to figure
     for trace in initial_data:
@@ -515,11 +507,11 @@ def generate_sat_rad_anim_ch1():
     time_index = pd.DatetimeIndex(ds_renamed_var.valid_time.values).tz_localize('UTC')
     ds_renamed_var = ds_renamed_var.assign_coords(valid_time=time_index.tz_convert('CET'))
     
-    st.write(ds_renamed_var.drop_vars('time'))
+    st.write(ds_renamed_var)
     # Path to the Swiss cantonal boundaries GeoJSON
     geojson_path = 'swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.geojson'
     
     # Create the animation
-    fig = plot_solar_radiation_animation(ds_renamed_var, geojson_path, min_value=0,max_value=900)
+    fig = plot_solar_radiation_animation(ds_renamed_var, geojson_path, min_value=0, max_value=900)
     
     return fig
