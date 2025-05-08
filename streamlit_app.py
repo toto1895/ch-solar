@@ -12,14 +12,6 @@ import gc
 import io
 import os
 
-#if not os.path.exists('.streamlit'):
-#    os.makedirs('.streamlit')
-
-#with open('.streamlit/config.toml', 'w') as f:
-#    f.write('''
-#[theme]
-#base = "dark"
-#    ''')
 
 # Page configuration
 st.set_page_config(
@@ -29,17 +21,17 @@ st.set_page_config(
 )
 
 # Set dark theme for the app
-#st.markdown(
-#    """
-#    <style>
-#    body {
-#        color: #fff;
-#        background-color: #1e1e1e;
-#    }
-#    </style>
-#    """,
-#    unsafe_allow_html=True,
-#)
+st.markdown(
+    """
+    <style>
+    body {
+        color: #fff;
+        background-color: #1e1e1e;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 # Create a connection instance once
 def get_connection():
@@ -184,12 +176,20 @@ def create_forecast_chart(filtered_df, nowcast, filter_type, selected_cantons=No
             
             # Add traces for this canton
             add_forecast_traces(fig, canton_df, canton)
+            add_forecast_traces(fig, canton_now, "Nowcast", color='white')
             
     # Case 2: Operator filtering
     elif filter_type == "Operator" and 'operator' in filtered_df.columns and selected_operators:
         for operator in selected_operators:
             operator_df = plot_df[plot_df['operator'] == operator]
             operator_df = operator_df.sort_values('datetime')
+
+            canton_now = nowcast[nowcast['operator'] == operator]
+            canton_now = canton_now.sort_values('datetime')
+
+            canton_now = canton_now.groupby(['datetime']).agg({
+                'SolarProduction':'sum'
+            }).reset_index()
             
             operator_df = operator_df.groupby(['datetime']).agg({
                 'p0.5_operator': 'sum',
@@ -199,6 +199,7 @@ def create_forecast_chart(filtered_df, nowcast, filter_type, selected_cantons=No
             
             # Add traces for this operator
             add_forecast_traces(fig, operator_df, operator)
+            add_forecast_traces(fig, canton_now, "Nowcast", color='white')
 
     
     # Case 3: No specific filtering
@@ -320,7 +321,7 @@ def create_heatmap(merged_plants):
             "TotalPower_x": True,
         },
         color_continuous_scale="Jet",
-        radius=10,
+        radius=9,
         zoom=7,
         title="Solar Power Plant Density",
         center={"lat": 46.8, "lon": 8.2},  # Center of Switzerland
@@ -636,57 +637,65 @@ def about_page():
     For more information or support, please contact the development team.
     """)
 
+
 from satAnimation import generate_sat_rad_anim
 def sat_anim():
     fig_anim = generate_sat_rad_anim()
 
-    st.plotly_chart(fig_anim, use_container_width=True)
-
+    st.plotly_chart(fig_anim, use_container_width=True, theme=None)
 
 import streamlit.components.v1 as components
-
 
 def main():
     
     st.sidebar.title("Navigation")
-
    
     if st.sidebar.button("Clear Cache"):  
         st.cache_resource.clear()
         st.cache_data.clear()
         st.sidebar.success("Cache cleared!")
 
-    page_choice = st.sidebar.radio("Go to page:", ["Home","Near-Realtime (MeteoSat 5km)",
-                                                   "Forecast technical (DWD-ICON-d2)",
-                                                    "About"])
-    
-
-    with st.sidebar:
-        b_code="""
-        <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="wamine" data-description="Support me on Buy me a coffee!" data-message="" data-color="#FF813F" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
-        """
-        components.html(b_code, height=450)
+    page_choice = st.sidebar.radio("Go to page:", [
+                    "Home",
+                    "Near-Realtime (MeteoSat 5km)",
+                    "Forecast (ICON-CH1 1km)",
+                    "Forecast (ICON-CH2 2.1km)",
+                    "Forecast (DWD-ICON-d2 2.1km)",
+                    "About"
+                                            ]
+    )
 
     if page_choice == "Home":
         home_page()
     elif page_choice=='Near-Realtime (MeteoSat 5km)':
         sat_anim()
-    elif page_choice == 'Forecast technical (DWD-ICON-d2)':
+    elif page_choice == "Forecast (ICON-CH1 1km)":
         print('processing')
-        pass
+    elif page_choice == "Forecast (ICON-CH2 2.1km)":
+        print('processing')
+    elif page_choice == 'Forecast (DWD-ICON-D2 2.1km)':
+        print('processing')
     elif page_choice == "About":
         about_page()
-
-
-    # Use expander to take minimal space (optional)
-    #with st.sidebar:
     
+
+    st.markdown("##")  # Extra space
+    
+    # Create a container for the bottom section
+    bottom_container = st.container()
+    
+    # Use expander to take minimal space (optional)
+    with st.sidebar:
+        st.markdown("---")
+        b_code="""
+        <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="wamine" data-description="Support me on Buy me a coffee!" data-message="" data-color="#FF813F" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
+        """
+        components.html(b_code, height=500)
+        
+
 
 if __name__ == "__main__":
     
     main()
-
-    
-    
 
     #add_google_analytics('G-NKZVTQPKS5')
