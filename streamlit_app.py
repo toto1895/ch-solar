@@ -644,6 +644,12 @@ def sat_anim():
 
     st.plotly_chart(fig_anim, use_container_width=True, theme=None)
 
+from satAnimation_icon import generate_sat_rad_anim_ch1
+def sat_anim_ch1():
+    fig_anim = generate_sat_rad_anim_ch1()
+
+    st.plotly_chart(fig_anim, use_container_width=True, theme=None)
+
 import streamlit.components.v1 as components
 
 def main():
@@ -670,7 +676,7 @@ def main():
     elif page_choice=='Near-Realtime (MeteoSat 5km)':
         sat_anim()
     elif page_choice == "Forecast (ICON-CH1 1km)":
-        print('processing')
+        sat_anim_ch1()
     elif page_choice == "Forecast (ICON-CH2 2.1km)":
         print('processing')
     elif page_choice == 'Forecast (DWD-ICON-D2 2.1km)':
