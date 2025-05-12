@@ -12,3 +12,4 @@ netcdf4
 h5netcdf
 xarray
 matplotlib
+cartopy
