@@ -417,6 +417,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                     zmin=min_value,
                     zmax=max_value,
                     ncontours=50,  # Set number of contour levels to 50
+                    hoverinfo='none',
                     contours=dict(
                         start=min_value,
                         end=max_value,
@@ -511,6 +512,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                 zmax=max_value,
                 ncontours=50,  # Set number of contour levels to 50
                 #connectgaps=True,
+                hoverinfo='none',
                 contours=dict(
                     start=min_value,
                     end=max_value,
@@ -622,7 +624,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                                 "transition": {"duration": 300}
                             }
                         ],
-                        "label": time_labels[i][-5:],  # Use time as the label instead of frame number
+                        "label": f'{time_labels[i][-5:]} UTC',  # Use time as the label instead of frame number
                         "method": "animate"
                     }
                     for i in range(len(frames))
