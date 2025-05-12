@@ -1,9 +1,275 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sat May  3 12:07:54 2025
+import xarray as xr
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+from matplotlib.colors import TwoSlopeNorm
+import pandas as pd
+import json
+import os
+import tempfile
+from datetime import datetime
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+from cartopy.io.shapereader import Reader
+from cartopy.feature import ShapelyFeature
+from matplotlib.gridspec import GridSpec
+import matplotlib.animation as animation
+import io
+from matplotlib.figure import Figure
+import streamlit as st
 
-@author: weibe
-"""
+def concat_datasets(datasets):
+    """Concatenate datasets along the time dimension."""
+    # Sort datasets by time
+    datasets.sort(key=lambda ds: ds.time.values[0])
+    
+    # Concatenate along the time dimension
+    combined_dataset = xr.concat(datasets, dim='time')
+    
+    # Ensure time values are datetime objects
+    if not np.issubdtype(combined_dataset.time.dtype, np.datetime64):
+        combined_dataset = combined_dataset.assign_coords(
+            time=pd.to_datetime(combined_dataset.time.values)
+        )
+    
+    # Convert time coordinate to pandas DatetimeIndex with UTC timezone
+    time_index = pd.DatetimeIndex(combined_dataset.time.values).tz_localize('UTC')
+    
+    # Replace the time coordinate
+    combined_dataset = combined_dataset.assign_coords(time=time_index)
+    
+    return combined_dataset
+
+def load_geojson(file_path):
+    """Load a GeoJSON file."""
+    with open(file_path, 'r') as f:
+        geojson_data = json.load(f)
+    
+    return geojson_data
+
+def plot_solar_radiation_subplots(xr_dataset, geojson_path=None, min_value=0, max_value=700, 
+                                 downsample_factor=1, time_indices=None, num_cols=119, figsize=(16, 10)):
+    """
+    Create multiple solar radiation plots using Matplotlib with a shared colorbar.
+    
+    Parameters:
+    -----------
+    xr_dataset : xarray.Dataset
+        The dataset containing the solar radiation data
+    geojson_path : str, optional
+        Path to the GeoJSON file for boundaries
+    min_value : float, optional
+        Minimum value for the color scale
+    max_value : float, optional
+        Maximum value for the color scale
+    downsample_factor : int, optional
+        Factor to downsample the spatial resolution
+    time_indices : list, optional
+        List of time indices to plot. If None, plots first 9 time steps
+    num_cols : int, optional
+        Number of columns in the subplot grid
+    figsize : tuple, optional
+        Figure size (width, height) in inches
+        
+    Returns:
+    --------
+    matplotlib.figure.Figure
+        The figure containing the contour plots
+    """
+    # Get the variable name for solar radiation
+    var_name = 'SID' if 'SID' in xr_dataset.variables else list(xr_dataset.data_vars)[0]
+    
+    # Get the coordinates properly - handle different naming conventions
+    if 'lat' in xr_dataset.dims:
+        lats = xr_dataset.lat.values
+        lons = xr_dataset.lon.values
+    elif 'latitude' in xr_dataset.dims:
+        lats = xr_dataset.latitude.values
+        lons = xr_dataset.longitude.values
+    elif 'rlat' in xr_dataset.dims and 'rlon' in xr_dataset.dims:
+        # For rotated lat/lon grids
+        lats = xr_dataset.rlat.values
+        lons = xr_dataset.rlon.values
+    else:
+        # If we can't find dimension names, try looking for coordinate variables
+        possible_lat_names = ['lat', 'latitude', 'rlat', 'y']
+        possible_lon_names = ['lon', 'longitude', 'rlon', 'x']
+        
+        for lat_name in possible_lat_names:
+            if lat_name in xr_dataset.coords:
+                lats = xr_dataset[lat_name].values
+                break
+        else:
+            raise ValueError("Could not find latitude coordinate")
+            
+        for lon_name in possible_lon_names:
+            if lon_name in xr_dataset.coords:
+                lons = xr_dataset[lon_name].values
+                break
+        else:
+            raise ValueError("Could not find longitude coordinate")
+    
+    # Downsample spatial resolution for better performance
+    downsample_factor = min(downsample_factor, max(1, len(lats)//20))
+    lats_downsampled = lats[::downsample_factor]
+    lons_downsampled = lons[::downsample_factor]
+    
+    # Get the time values - handle the case where valid_time might not be the name
+    time_dim = 'valid_time' if 'valid_time' in xr_dataset.dims else 'time'
+    time_values = xr_dataset[time_dim].values
+    
+    # Default to first 9 time steps if not specified
+    if time_indices is None:
+        time_indices = list(range(min(9, len(time_values))))
+    
+    # Calculate grid dimensions
+    num_plots = len(time_indices)
+    num_rows = (num_plots + num_cols - 1) // num_cols  # Ceiling division
+    
+    # Create a figure with GridSpec to control layout
+    fig = plt.figure(figsize=figsize)
+    gs = GridSpec(num_rows + 1, num_cols, height_ratios=[0.08] + [1] * num_rows)
+    
+    # Create a meshgrid for the contour plot
+    lon_mesh, lat_mesh = np.meshgrid(lons_downsampled, lats_downsampled)
+    
+    # Define levels for contours
+    levels = np.linspace(min_value, max_value, 20)
+    
+    # Prepare a list to store contour objects for the colorbar
+    contour_filled_list = []
+    
+    # Create all the individual subplots
+    for i, time_idx in enumerate(time_indices):
+        # Calculate row and column in the grid
+        row = i // num_cols + 1  # +1 because first row is for colorbar
+        col = i % num_cols
+        
+        # Create subplot with Cartopy projection
+        ax = fig.add_subplot(gs[row, col], projection=ccrs.PlateCarree())
+        
+        # Get time string for the title
+        if hasattr(xr_dataset[time_dim][time_idx], 'dt'):
+            # If it's a pandas/numpy datetime
+            ts = xr_dataset[time_dim][time_idx].dt.strftime('%Y-%m-%d %H:%M').values
+            time_str = str(ts)
+        else:
+            # Try to convert from numpy datetime64
+            try:
+                time_str = pd.to_datetime(xr_dataset[time_dim][time_idx].values).strftime('%Y-%m-%d %H:%M')
+            except:
+                time_str = f"Frame {time_idx+1}"
+        
+        # Get data for this time and downsample
+        if time_dim == 'valid_time':
+            data_slice = xr_dataset[var_name].isel(valid_time=time_idx).values
+        else:
+            data_slice = xr_dataset[var_name].isel(time=time_idx).values
+        
+        # For 3D arrays, we might need to select a specific level
+        if data_slice.ndim > 2:
+            # Take first level if there are multiple levels
+            data_slice = data_slice[0]
+        
+        # Downsample the data with proper dimension handling
+        if data_slice.shape[0] == len(lats) and data_slice.shape[1] == len(lons):
+            # Regular grid
+            data_downsampled = data_slice[::downsample_factor, ::downsample_factor]
+        else:
+            # Reshape data if dimensions don't match
+            print(f"Warning: Data shape {data_slice.shape} doesn't match coordinates: lats {len(lats)}, lons {len(lons)}")
+            import scipy.ndimage
+            zoom_factors = (len(lats_downsampled)/data_slice.shape[0], len(lons_downsampled)/data_slice.shape[1])
+            data_downsampled = scipy.ndimage.zoom(data_slice, zoom_factors, order=1)
+        
+        # Add borders and coastlines for context
+        ax.coastlines(resolution='10m', linewidth=1)
+        ax.add_feature(cfeature.BORDERS, linewidth=0.7)
+        
+        # Create contour plot
+        contour_filled = ax.contourf(lon_mesh, lat_mesh, data_downsampled, 
+                                   levels=levels, 
+                                   cmap='turbo', 
+                                   extend='both',
+                                   transform=ccrs.PlateCarree())
+        
+        # Store for colorbar (only need one)
+        if i == 0:
+            contour_filled_list.append(contour_filled)
+        
+        # Add contour lines with labels (fewer labels for subplots)
+        contour_lines = ax.contour(lon_mesh, lat_mesh, data_downsampled, 
+                                  levels=levels[::5],  # Fewer levels for contour lines
+                                  colors='white', 
+                                  linewidths=0.5,
+                                  transform=ccrs.PlateCarree())
+        
+        # Only add contour labels to some plots to avoid clutter
+        if num_plots <= 6 or i % 3 == 0:
+            plt.clabel(contour_lines, inline=True, fontsize=7, fmt='%1.0f')
+        
+        # Add GeoJSON boundaries if provided
+        if geojson_path and os.path.exists(geojson_path):
+            try:
+                geojson_data = load_geojson(geojson_path)
+                
+                # Extract features
+                if 'features' in geojson_data:
+                    features = geojson_data['features']
+                    
+                    for feature in features:
+                        geometry = feature.get('geometry', {})
+                        
+                        # Process polygon geometries
+                        if geometry['type'] == 'Polygon':
+                            for ring in geometry['coordinates']:
+                                lons_poly, lats_poly = zip(*ring)
+                                ax.plot(lons_poly, lats_poly, '-', color='white', 
+                                       linewidth=1.5, transform=ccrs.PlateCarree())
+                        
+                        # Process multipolygon geometries
+                        elif geometry['type'] == 'MultiPolygon':
+                            for polygon in geometry['coordinates']:
+                                for ring in polygon:
+                                    lons_poly, lats_poly = zip(*ring)
+                                    ax.plot(lons_poly, lats_poly, '-', color='white', 
+                                           linewidth=1.5, transform=ccrs.PlateCarree())
+            except Exception as e:
+                print(f"Error loading GeoJSON: {e}")
+        
+        # Set extent to focus on the area of interest
+        ax.set_extent([min(lons), max(lons), min(lats), max(lats)], crs=ccrs.PlateCarree())
+        
+        # Add gridlines (simplified for subplots)
+        gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
+                         linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
+        gl.top_labels = False
+        gl.right_labels = False
+        
+        # Only show y labels on the leftmost column
+        if col != 0:
+            gl.left_labels = False
+        
+        # Only show x labels on the bottom row
+        if row != num_rows:
+            gl.bottom_labels = False
+        
+        # Add title
+        ax.set_title(f'{time_str} CET', fontsize=10)
+    
+    # Add shared colorbar at the top
+    cbar_ax = fig.add_subplot(gs[0, :])
+    cbar = plt.colorbar(contour_filled_list[0], cax=cbar_ax, orientation='horizontal', pad=0.05)
+    cbar.set_label('Solar Radiation (W/m²)', fontsize=12)
+    
+    # Add main title
+    fig.suptitle('Solar Radiation Forecast', fontsize=16, y=0.98)
+    
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.9)
+    
+    return fig
+
 import xarray as xr
 import numpy as np
 import plotly.graph_objects as go
@@ -200,454 +466,30 @@ def get_connection():
     return st.connection('gcs', type=FilesConnection)
 
 
-def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_value=0, max_value=700, 
-                                 downsample_factor=1, max_frames=48):
-    
-    import plotly.graph_objects as go
-    import pandas as pd
-    import json
-    import numpy as np
-    
-    # Debug: Print dataset structure to understand its format
-    print(f"Dataset dimensions: {xr_dataset.dims}")
-    print(f"Dataset variables: {list(xr_dataset.variables)}")
-    print(f"Dataset coordinates: {list(xr_dataset.coords)}")
-    
-    # Get the variable name for solar radiation
-    var_name = 'SID' if 'SID' in xr_dataset.variables else list(xr_dataset.data_vars)[0]
-    print(f"Using variable: {var_name}")
-    
-    # Create figure
-    fig = go.Figure()
-    
-    # Get the coordinates properly - handle different naming conventions
-    if 'lat' in xr_dataset.dims:
-        lats = xr_dataset.lat.values
-        lons = xr_dataset.lon.values
-    elif 'latitude' in xr_dataset.dims:
-        lats = xr_dataset.latitude.values
-        lons = xr_dataset.longitude.values
-    elif 'rlat' in xr_dataset.dims and 'rlon' in xr_dataset.dims:
-        # For rotated lat/lon grids
-        lats = xr_dataset.rlat.values
-        lons = xr_dataset.rlon.values
-    else:
-        # If we can't find dimension names, try looking for coordinate variables
-        possible_lat_names = ['lat', 'latitude', 'rlat', 'y']
-        possible_lon_names = ['lon', 'longitude', 'rlon', 'x']
-        
-        for lat_name in possible_lat_names:
-            if lat_name in xr_dataset.coords:
-                lats = xr_dataset[lat_name].values
-                break
-        else:
-            raise ValueError("Could not find latitude coordinate")
-            
-        for lon_name in possible_lon_names:
-            if lon_name in xr_dataset.coords:
-                lons = xr_dataset[lon_name].values
-                break
-        else:
-            raise ValueError("Could not find longitude coordinate")
-    
-    # Print the shape of the coordinate arrays
-    print(f"Latitude shape: {lats.shape}")
-    print(f"Longitude shape: {lons.shape}")
-    
-    # Downsample spatial resolution for better performance
-    # Ensure we don't downsample too much for small arrays
-    downsample_factor = min(downsample_factor, max(1, len(lats)//20))
-    lats_downsampled = lats[::downsample_factor]
-    lons_downsampled = lons[::downsample_factor]
-    
-    # Load the boundary data more efficiently
-    boundary_traces = []
-    if geojson_path:
-        try:
-            # Check if the geojson file exists
-            import os
-            if not os.path.exists(geojson_path):
-                print(f"Warning: GeoJSON file not found: {geojson_path}")
-            else:
-                # Load the boundary data once and create traces
-                with open(geojson_path, 'r') as f:
-                    geojson_data = json.load(f)
-                
-                # Create simplified boundary trace
-                # We'll create a single trace with Nones between features for efficiency
-                all_lons = []
-                all_lats = []
-                
-                # Extract coordinates based on GeoJSON type
-                if geojson_data['type'] == 'FeatureCollection':
-                    features = geojson_data['features']
-                elif geojson_data['type'] == 'Feature':
-                    features = [geojson_data]
-                else:
-                    # If it's a direct geometry
-                    geometry = geojson_data
-                    features = [{'geometry': geometry}]
-                
-                for feature in features:
-                    geometry = feature.get('geometry', {})
-                    if not geometry:
-                        continue
-                        
-                    # Process different geometry types
-                    if geometry['type'] == 'Polygon':
-                        rings = geometry['coordinates']
-                        # Add the outer ring of the polygon
-                        if all_lons and all_lons[-1] is not None:
-                            all_lons.append(None)
-                            all_lats.append(None)
-                        coords = rings[0][::3]  # Downsample coordinates
-                        lons_poly, lats_poly = zip(*coords)
-                        all_lons.extend(lons_poly)
-                        all_lats.extend(lats_poly)
-                    
-                    elif geometry['type'] == 'MultiPolygon':
-                        for polygon in geometry['coordinates']:
-                            if all_lons and all_lons[-1] is not None:
-                                all_lons.append(None)
-                                all_lats.append(None)
-                            coords = polygon[0][::3]  # Outer ring, downsampled
-                            lons_poly, lats_poly = zip(*coords)
-                            all_lons.extend(lons_poly)
-                            all_lats.extend(lats_poly)
-                
-                # Create single boundary trace if we have coordinates
-                if all_lons:
-                    boundary_traces.append(
-                        go.Scatter(
-                            x=all_lons,
-                            y=all_lats,
-                            mode='lines',
-                            line=dict(color='white', width=2.5),
-                            hoverinfo='skip',
-                            showlegend=False
-                        )
-                    )
-        except Exception as e:
-            print(f"Error loading GeoJSON: {e}")
-            import traceback
-            traceback.print_exc()
-    
-    # Get the time values - handle the case where valid_time might not be the name
-    time_dim = 'valid_time' if 'valid_time' in xr_dataset.dims else 'time'
-    time_values = xr_dataset[time_dim].values
-    print(f"Number of time steps: {len(time_values)}")
-    
-    # Limit the number of frames
-    if len(time_values) > max_frames:
-        # Select frames at regular intervals
-        step = max(1, len(time_values) // max_frames)
-        time_indices = list(range(0, len(time_values), step))
-        # Always include the last frame
-        if len(time_values) - 1 not in time_indices:
-            time_indices.append(len(time_values) - 1)
-    else:
-        time_indices = list(range(len(time_values)))
-    
-    # Sort time indices to ensure they're in order
-    time_indices.sort()
-    
-    # Get the last time index (always included)
-    last_t_idx = time_indices[-1]
-    
-    # Create time labels for each frame for slider
-    time_labels = []
-    for t_idx in time_indices:
-        if hasattr(xr_dataset[time_dim][t_idx], 'dt'):
-            # If it's a pandas/numpy datetime
-            ts = xr_dataset[time_dim][t_idx].dt.strftime('%Y-%m-%d %H:%M').values
-            time_str = str(ts)
-        else:
-            # Try to convert from numpy datetime64
-            try:
-                time_str = pd.to_datetime(xr_dataset[time_dim][t_idx].values).strftime('%Y-%m-%d %H:%M')
-            except:
-                time_str = f"Frame {t_idx+1}"
-        time_labels.append(time_str)
-    
-    # Create the animation frames
-    frames = []
-    for i, t_idx in enumerate(time_indices):
-        try:
-            # Get data for this time and downsample, handling different dimension names
-            if time_dim == 'valid_time':
-                data_slice = xr_dataset[var_name].isel(valid_time=t_idx).values
-            else:
-                data_slice = xr_dataset[var_name].isel(time=t_idx).values
-            
-            # For 3D arrays, we might need to select a specific level
-            if data_slice.ndim > 2:
-                # Take first level if there are multiple levels
-                data_slice = data_slice[0]
-            
-            # Downsample the data with proper dimension handling
-            if data_slice.shape[0] == len(lats) and data_slice.shape[1] == len(lons):
-                # Regular grid
-                data_downsampled = data_slice[::downsample_factor, ::downsample_factor]
-            else:
-                # Irregular grid or other shape - reshape data
-                print(f"Warning: Data shape {data_slice.shape} doesn't match coordinates: lats {len(lats)}, lons {len(lons)}")
-                import scipy.ndimage
-                zoom_factors = (len(lats_downsampled)/data_slice.shape[0], len(lons_downsampled)/data_slice.shape[1])
-                data_downsampled = scipy.ndimage.zoom(data_slice, zoom_factors, order=1)
-            
-            # Format time string
-            time_str = time_labels[i]
-            
-            # Debug: check data values
-            print(f"Frame {i} data min: {np.nanmin(data_downsampled)}, max: {np.nanmax(data_downsampled)}")
-            
-            # Replace NaN values with a default value if necessary
-            data_downsampled = np.nan_to_num(data_downsampled, nan=-999)
-            
-            # Calculate contour levels
-            contour_levels = np.linspace(min_value, max_value, 20)
-            
-            # Create frame with contour plot instead of heatmap
-            frame_data = [
-                go.Contour(
-                    z=data_downsampled,
-                    x=lons_downsampled,
-                    y=lats_downsampled,
-                    colorscale='turbo',
-                    zmin=min_value,
-                    zmax=max_value,
-                    ncontours=50,  # Set number of contour levels to 50
-                    hoverinfo='none',
-                    contours=dict(
-                        start=min_value,
-                        end=max_value,
-                        size=(max_value-min_value)/20,
-                        showlabels=True,
-                        labelfont=dict(
-                            size=8,
-                            color='white',
-                        ),
-                    ),
-                    line=dict(width=0.),
-                    colorbar=dict(
-                        title='W/m²',
-                        title_side='right',
-                        orientation='h',
-                        y=-0.15,
-                        len=0.6,
-                        thickness=20,
-                        tickmode='auto',
-                        nticks=15
-                    ),
-                    #hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>',
-                )
-            ]
-            
-            # Create frame - boundary traces go after contour so they're visible on top
-            frame = go.Frame(
-                data=frame_data + boundary_traces,
-                name=f'frame{i}',
-                layout=go.Layout(
-                    title=dict(
-                        text=f"Solar Radiation at {time_str}",
-                        x=0.4,
-                        y=0.95,
-                        xanchor='left',
-                        yanchor='top'
-                    )
-                )
-            )
-            frames.append(frame)
-        except Exception as e:
-            print(f"Error creating frame {i}: {e}")
-            import traceback
-            traceback.print_exc()
-    
-    # If we couldn't create any frames, show a message
-    if not frames:
-        fig.add_annotation(
-            text="Error: Could not create animation frames from the dataset",
-            xref="paper", yref="paper",
-            x=0.5, y=0.5,
-            showarrow=False,
-            font=dict(size=14, color="white")
-        )
-        return fig
-    
-    # Initial data for the figure - use first frame as fallback if last frame fails
-    try:
-        # Get data for the initial display (last time index)
-        if time_dim == 'valid_time':
-            initial_data_slice = xr_dataset[var_name].isel(valid_time=last_t_idx).values
-        else:
-            initial_data_slice = xr_dataset[var_name].isel(time=last_t_idx).values
-        
-        # For 3D arrays, we might need to select a specific level
-        if initial_data_slice.ndim > 2:
-            initial_data_slice = initial_data_slice[0]
-        
-        # Downsample the data
-        if initial_data_slice.shape[0] == len(lats) and initial_data_slice.shape[1] == len(lons):
-            initial_data_downsampled = initial_data_slice[::downsample_factor, ::downsample_factor]
-        else:
-            import scipy.ndimage
-            zoom_factors = (len(lats_downsampled)/initial_data_slice.shape[0], 
-                           len(lons_downsampled)/initial_data_slice.shape[1])
-            initial_data_downsampled = scipy.ndimage.zoom(initial_data_slice, zoom_factors, order=1)
-        
-        # Replace NaN values with a default value if necessary
-        initial_data_downsampled = np.nan_to_num(initial_data_downsampled, nan=-999)
-        
-        # Calculate contour levels
-        contour_levels = np.linspace(min_value, max_value, 20)
-        
-        # Create contour plot instead of heatmap
-        initial_data = [
-            go.Contour(
-                z=initial_data_downsampled,
-                x=lons_downsampled,
-                y=lats_downsampled,
-                colorscale='turbo',
-                zmin=min_value,
-                zmax=max_value,
-                ncontours=50,  # Set number of contour levels to 50
-                #connectgaps=True,
-                hoverinfo='none',
-                contours=dict(
-                    start=min_value,
-                    end=max_value,
-                    size=(max_value-min_value)/20,
-                    showlabels=True,
-                    labelfont=dict(
-                        size=8,
-                        color='white',
-                    ),
-                ),
-                line=dict(width=0.),
-                colorbar=dict(
-                    title='W/m²',
-                    title_side='right',
-                    orientation='h',
-                    y=-0.15,
-                    len=0.6,
-                    thickness=20,
-                    tickmode='auto',
-                    nticks=15
-                ),
-                #hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>',
-            )
-        ]
-    except Exception as e:
-        print(f"Error creating initial frame: {e}")
-        # Use first frame data as fallback
-        initial_data = frames[0].data[:1]  # Just use the contour from the first frame
-    
-    # Add boundary traces to initial data
-    initial_data.extend(boundary_traces)
-    
-    # Add traces to figure
-    for trace in initial_data:
-        fig.add_trace(trace)
-    
-    # Get the time string for the last time index
-    last_time_str = time_labels[0]
-    
-    # Update layout with optimized settings
-    fig.update_layout(
-        title=dict(
-            text=f"Solar Radiation at {last_time_str} CET",
-            x=0.0,
-            y=0.95,
-            xanchor='left',
-            yanchor='top'
-        ),
-        xaxis=dict(
-            title='Longitude',
-            constrain='domain',
-            autorange=True
-        ),
-        yaxis=dict(
-            title='Latitude',
-            scaleanchor='x',
-            scaleratio=1,
-            autorange=True
-        ),
-        margin=dict(l=0, r=0, t=90, b=80),
-        updatemenus=[
-            {
-                "type": "buttons",
-                "buttons": [
-                    {
-                        "args": [None, {"frame": {"duration": 300, "redraw": True}, "fromcurrent": True}],
-                        "label": "Play",
-                        "method": "animate"
-                    },
-                    {
-                        "args": [[None], {"frame": {"duration": 0, "redraw": True}, "mode": "immediate"}],
-                        "label": "Pause",
-                        "method": "animate"
-                    }
-                ],
-                "direction": "left",
-                "pad": {"r": 10, "t": 10},
-                "showactive": False,
-                "type": "buttons",
-                "x": 0.1,
-                "xanchor": "right",
-                "y": 1.05,
-                "yanchor": "bottom"
-            }
-        ],
-        sliders=[
-            {
-                "active": len(frames) - 1,  # Set to last frame
-                "yanchor": "bottom",
-                "xanchor": "left",
-                "currentvalue": {
-                    "font": {"size": 16},
-                    "prefix": "Time: ",
-                    "visible": True,
-                    "xanchor": "right"
-                },
-                "transition": {"duration": 300, "easing": "cubic-in-out"},
-                "pad": {"b": 10, "t": 10},
-                "len": 0.9,
-                "x": 0.1,
-                "y": 1.05,
-                "steps": [
-                    {
-                        "args": [
-                            [f"frame{i}"],
-                            {
-                                "frame": {"duration": 300, "redraw": True},
-                                "mode": "immediate",
-                                "transition": {"duration": 300}
-                            }
-                        ],
-                        "label": f'{time_labels[i][-5:]} CET',  # Use time as the label instead of frame number
-                        "method": "animate"
-                    }
-                    for i in range(len(frames))
-                ]
-            }
-        ],
-        height=700,
-        width=700,
-        template="plotly_dark",
-    )
-    
-    fig.frames = frames
-    return fig
 
-
-def generate_sat_rad_anim_ch1_optimized_ch2():
+def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=32):
     """
-    Optimized version of the original function to generate the solar radiation animation.
+    Generate multiple solar radiation plots using sample data or provided data.
+    
+    Parameters:
+    -----------
+    data_path : str, optional
+        Path to the netCDF file containing solar radiation data
+    geojson_path : str, optional
+        Path to the GeoJSON file for boundaries
+    num_plots : int, optional
+        Number of plots to generate
+        
+    Returns:
+    --------
+    matplotlib.figure.Figure
+        The figure containing the contour plots
     """
-    # Set the prefix
+    # Load data - for demonstration using a sample dataset
+        # If actual data is provided
     prefix = "icon-ch/ch2/radiation/"
-    
-    # Get the connection using FilesConnection
+
+# Get the connection using FilesConnection
     conn = get_connection()
     
     # Get the latest nc files - reduced from original count
@@ -657,36 +499,36 @@ def generate_sat_rad_anim_ch1_optimized_ch2():
     datasets = download_and_open_nc_files(conn, files)
     
     # Concatenate the datasets
-    combined_dataset = concat_datasets(datasets)
+    ds = concat_datasets(datasets)
 
-    min_lon, max_lon = 5.8, 10.5
-    min_lat, max_lat = 45.8, 48
+    ds_renamed_var = ds.rename({'GLOBAL_SW': 'SID'})[['SID']]
 
-    combined_dataset = combined_dataset.where((combined_dataset['lon'] >= min_lon) & 
-                      (combined_dataset['lon'] <= max_lon) & 
-                      (combined_dataset['lat'] >= min_lat) & 
-                      (combined_dataset['lat'] <= max_lat), 
-                      drop=True)
-
-    # Rename variables
-    ds_renamed_var = combined_dataset.rename({'GLOBAL_SW': 'SID'})[['SID']]
-    
     # Convert time zones
     time_index = pd.DatetimeIndex(ds_renamed_var.valid_time.values).tz_localize('UTC')
-    ds_renamed_var = ds_renamed_var.assign_coords(valid_time=time_index.tz_convert('CET'))
+    ds = ds_renamed_var.assign_coords(valid_time=time_index.tz_convert('CET'))
+
+    # Define plot parameters
+    min_value = 0
+    max_value = 1100
     
-    # Path to the Swiss cantonal boundaries GeoJSON
-    geojson_path = 'swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.geojson'
+    # Get appropriate time indices
+    time_dim = 'valid_time' if 'valid_time' in ds.dims else 'time'
+    available_times = len(ds[time_dim])
+    time_indices = list(range(min(num_plots, available_times)))
     
-    # Create the animation with optimized settings
-    # Use downsampling and limit frames for better performance
-    fig = plot_solar_radiation_animation_optimized(
-        ds_renamed_var, 
-        geojson_path, 
-        min_value=0, 
-        max_value=1100,
-        downsample_factor=1,  # Downsample spatial resolution
-        max_frames=96          # Limit number of frames
+    # Create plot
+    fig = plot_solar_radiation_subplots(
+        ds, 
+        geojson_path=geojson_path, 
+        min_value=min_value, 
+        max_value=max_value,
+        downsample_factor=1,
+        time_indices=time_indices,
+        num_cols=3,
+        figsize=(16, 40)
     )
     
     return fig
+
+
+ 

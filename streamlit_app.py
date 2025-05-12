@@ -652,11 +652,11 @@ def sat_anim_ch1():
 
 
 
-from satAnimation_icon_ch2 import generate_sat_rad_anim_ch1_optimized_ch2
+from satAnimation_icon_ch2 import generate_solar_radiation_plots
 def sat_anim_ch2():
-    fig_anim = generate_sat_rad_anim_ch1_optimized_ch2()
+    fig_anim = generate_solar_radiation_plots(119)
 
-    st.plotly_chart(fig_anim, use_container_width=True, theme=None)
+    st.pyplot(fig_anim)
 
 
 import streamlit.components.v1 as components

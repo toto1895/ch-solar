@@ -487,7 +487,7 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
     """
     # Load data - for demonstration using a sample dataset
         # If actual data is provided
-    prefix = "icon-ch/ch2/radiation/"
+    prefix = "icon-ch/ch1/radiation/"
 
 # Get the connection using FilesConnection
     conn = get_connection()
@@ -525,7 +525,7 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
         downsample_factor=1,
         time_indices=time_indices,
         num_cols=3,
-        figsize=(16, 45)
+        figsize=(16, 40)
     )
     
     return fig
