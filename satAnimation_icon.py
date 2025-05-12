@@ -112,9 +112,10 @@ def create_boundary_traces(geojson_data):
     return traces
 
 
-def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, max_value=700):
+def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_value=0, max_value=700, 
+                                 downsample_factor=2, max_frames=12):
     """
-    Create an animation of solar radiation data from an xarray dataset with Swiss boundaries.
+    Create an optimized animation of solar radiation data from an xarray dataset with Swiss boundaries.
     
     Parameters:
     -----------
@@ -126,6 +127,10 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
         Minimum value for the color scale
     max_value : float, optional
         Maximum value for the color scale
+    downsample_factor : int, optional
+        Factor by which to downsample the spatial resolution
+    max_frames : int, optional
+        Maximum number of frames to include in the animation
         
     Returns:
     --------
@@ -142,8 +147,6 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     # Create figure
     fig = go.Figure()
     
-    frames = []
-    
     # Get the coordinates properly
     if 'lat' in xr_dataset.dims:
         lats = xr_dataset.lat.values
@@ -154,91 +157,117 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     else:
         raise ValueError("Could not find latitude/longitude dimensions in the dataset")
     
-    # Load the GeoJSON file
-    border_coords = []
+    # Downsample spatial resolution for better performance
+    lats_downsampled = lats[::downsample_factor]
+    lons_downsampled = lons[::downsample_factor]
+    
+    # Load the boundary data more efficiently
+    boundary_traces = []
     if geojson_path:
         try:
+            # Load the boundary data once and create traces
             with open(geojson_path, 'r') as f:
                 geojson_data = json.load(f)
-                
-            # Extract coordinates from the GeoJSON
-            # Handle different GeoJSON structures
+            
+            # Extract simplified boundary coordinates
+            # We'll just create a single trace for better performance
             if geojson_data['type'] == 'FeatureCollection':
-                features = geojson_data['features']
-                for feature in features:
+                all_lons = []
+                all_lats = []
+                for feature in geojson_data['features']:
                     geometry = feature['geometry']
                     if geometry['type'] == 'Polygon':
-                        # Get the outer ring of the polygon
-                        border_coords.append(geometry['coordinates'][0])
+                        for ring in geometry['coordinates']:
+                            # Add None to create discontinuity between polygons
+                            if all_lons:  # Not the first polygon
+                                all_lons.append(None)
+                                all_lats.append(None)
+                            # Downsample the coordinates for better performance
+                            coords = ring[::3]  # Take every 3rd coordinate
+                            lons_poly, lats_poly = zip(*coords)
+                            all_lons.extend(lons_poly)
+                            all_lats.extend(lats_poly)
                     elif geometry['type'] == 'MultiPolygon':
-                        # Get all polygons
                         for polygon in geometry['coordinates']:
-                            border_coords.append(polygon[0])  # Outer ring of each polygon
-            elif geojson_data['type'] == 'Feature':
-                geometry = geojson_data['geometry']
-                if geometry['type'] == 'Polygon':
-                    border_coords.append(geometry['coordinates'][0])
-                elif geometry['type'] == 'MultiPolygon':
-                    for polygon in geometry['coordinates']:
-                        border_coords.append(polygon[0])
-                        
-            print(f"Loaded {len(border_coords)} boundary segments from GeoJSON")
+                            for ring in polygon:
+                                if all_lons:  # Not the first polygon
+                                    all_lons.append(None)
+                                    all_lats.append(None)
+                                coords = ring[::3]  # Take every 3rd coordinate
+                                lons_poly, lats_poly = zip(*coords)
+                                all_lons.extend(lons_poly)
+                                all_lats.extend(lats_poly)
+                
+                # Create single boundary trace
+                if all_lons:
+                    boundary_traces.append(
+                        go.Scatter(
+                            x=all_lons,
+                            y=all_lats,
+                            mode='lines',
+                            line=dict(color='white', width=1),
+                            hoverinfo='skip',
+                            showlegend=False
+                        )
+                    )
         except Exception as e:
             print(f"Error loading GeoJSON: {e}")
-            import traceback
-            traceback.print_exc()
     
-    # Get the last time index
-    last_t_idx = len(xr_dataset.valid_time) - 1
+    # Limit the number of frames
+    time_values = xr_dataset.valid_time.values
+    if len(time_values) > max_frames:
+        # Select frames at regular intervals
+        step = len(time_values) // max_frames
+        time_indices = list(range(0, len(time_values), step))
+        # Always include the last frame
+        if len(time_values) - 1 not in time_indices:
+            time_indices.append(len(time_values) - 1)
+    else:
+        time_indices = list(range(len(time_values)))
     
-    # Using the default 'turbo' colorscale with 50 steps but keeping min/max values
-    import plotly.colors
-    colorscale = plotly.colors.sample_colorscale('turbo', 50)
+    # Get the last time index (always included)
+    last_t_idx = time_indices[-1]
     
-    for t_idx in range(len(xr_dataset.valid_time)):
-        # Get data for this time
-        data_slice = xr_dataset[var_name].isel(valid_time=t_idx).values
+    # Create the animation frames
+    frames = []
+    for i, t_idx in enumerate(time_indices):
+        # Get data for this time and downsample
+        data_slice = xr_dataset[var_name].isel(valid_time=t_idx).values[::downsample_factor, ::downsample_factor]
         time_str = pd.to_datetime(xr_dataset.valid_time[t_idx].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')
         
-        # Create heatmap instead of image
+        # Create optimized heatmap 
+        # Using heatmap instead of contour for better performance
         frame_data = [
-            go.Contour(
+            go.Heatmap(
                 z=data_slice,
-                x=lons,
-                y=lats,
-                colorscale=colorscale,  # Use turbo colorscale with 50 steps
-                zmin=min_value,         # Keep fixed min value
-                zmax=max_value,         # Keep fixed max value
-                contours=dict(
-                    coloring='fill',
-                    showlabels=False,
-                ),
-                ncontours=50,  # Set number of contour levels to 50
-                line=dict(width=0),
-                connectgaps=True,
-                hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>',
+                x=lons_downsampled,
+                y=lats_downsampled,
+                colorscale='turbo',
+                zmin=min_value,
+                zmax=max_value,
                 colorbar=dict(
                     title='W/m²',
                     title_side='right',
-                    orientation='h',     # Horizontal colorbar
-                    y=-0.15,             # Position below the plot
-                    len=0.6,             # Length of the colorbar (60% of plot width)
-                    thickness=20,        # Thickness of the colorbar
-                    tickmode='auto',     # Automatic tick marks
-                    nticks=10            # Number of tick marks
-                )
+                    orientation='h',     
+                    y=-0.15,             
+                    len=0.6,             
+                    thickness=20,        
+                    tickmode='auto',     
+                    nticks=8            
+                ),
+                hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>'
             )
         ]
         
         # Create frame
         frame = go.Frame(
-            data=frame_data,
-            name=f'frame{t_idx}',
+            data=frame_data + boundary_traces,  # Add boundary traces to each frame
+            name=f'frame{i}',
             layout=go.Layout(
                 title=dict(
                     text=f"Solar Radiation at {time_str} CET",
-                    x=0.4,  # Position at left
-                    y=0.865, # Position near top
+                    x=0.4,
+                    y=0.865,
                     xanchor='left',
                     yanchor='top'
                 )
@@ -246,80 +275,46 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
         )
         frames.append(frame)
     
-    # Initial data for the figure - use last frame instead of first
+    # Initial data for the figure - use last frame
     initial_data = [
-        go.Contour(
-            z=xr_dataset[var_name].isel(valid_time=last_t_idx).values,
-            x=lons,
-            y=lats,
-            colorscale=colorscale,  # Use turbo colorscale with 50 steps
-            zmin=min_value,         # Keep fixed min value
-            zmax=max_value,         # Keep fixed max value
-            contours=dict(
-                coloring='fill',
-                showlabels=False,
-            ),
-            ncontours=50,  # Set number of contour levels to 50
-            line=dict(width=0),
-            connectgaps=True,
-            hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>',
+        go.Heatmap(
+            z=xr_dataset[var_name].isel(valid_time=last_t_idx).values[::downsample_factor, ::downsample_factor],
+            x=lons_downsampled,
+            y=lats_downsampled,
+            colorscale='turbo',
+            zmin=min_value,
+            zmax=max_value,
             colorbar=dict(
                 title='W/m²',
                 title_side='right',
-                orientation='h',     # Horizontal colorbar
-                y=-0.15,             # Position below the plot
-                len=0.6,             # Length of the colorbar (60% of plot width)
-                thickness=20,        # Thickness of the colorbar
-                tickmode='auto',     # Automatic tick marks
-                nticks=10            # Number of tick marks
-            )
+                orientation='h',
+                y=-0.15,
+                len=0.6,
+                thickness=20,
+                tickmode='auto',
+                nticks=8
+            ),
+            hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>'
         )
     ]
     
     # Add boundary traces to initial data
-    #for coords in border_coords:
-    #    lons_boundary = [point[0] for point in coords]
-    #    lats_boundary = [point[1] for point in coords]
-    #    initial_data.append(
-    #        go.Scatter(
-    #            x=lons_boundary,
-    #            y=lats_boundary,
-    #            mode='lines',
-    #            line=dict(color='white', width=1.5),
-    #            hoverinfo='skip',
-    #            showlegend=False
-    #        )
-    #    )
+    for trace in boundary_traces:
+        initial_data.append(trace)
     
     # Add traces to figure
     for trace in initial_data:
         fig.add_trace(trace)
     
-    # Let the plot autoscale for axis ranges - remove manual range setting
-    # We'll still calculate the bounds for reference
-    lon_min, lon_max = min(lons), max(lons)
-    lat_min, lat_max = min(lats), max(lats)
-    
-    # If we have boundary data, include those bounds as well
-    if border_coords:
-        all_boundary_lons = [point[0] for coords in border_coords for point in coords]
-        all_boundary_lats = [point[1] for coords in border_coords for point in coords]
-        
-        if all_boundary_lons and all_boundary_lats:
-            lon_min = min(lon_min, min(all_boundary_lons))
-            lon_max = max(lon_max, max(all_boundary_lons))
-            lat_min = min(lat_min, min(all_boundary_lats))
-            lat_max = max(lat_max, max(all_boundary_lats))
-    
     # Compute the time string for the last time index
     last_time_str = pd.to_datetime(xr_dataset.valid_time[last_t_idx].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')
     
-    # Update layout with title at top left and add space for slider and colorbar
+    # Update layout with optimized settings
     fig.update_layout(
         title=dict(
             text=f"Solar Radiation at {last_time_str} CET",
-            x=0.0,  # Position at left
-            y=0.95, # Position near top
+            x=0.0,
+            y=0.95,
             xanchor='left',
             yanchor='top'
         ),
@@ -334,8 +329,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
             scaleratio=1,
             autorange=True
         ),
-        # Adjusted margins to accommodate top slider and bottom colorbar
-        margin=dict(l=0, r=0, t=90, b=80),  # Increased top margin for slider
+        margin=dict(l=0, r=0, t=90, b=80),
         updatemenus=[
             {
                 "type": "buttons",
@@ -357,14 +351,14 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                 "type": "buttons",
                 "x": 0.1,
                 "xanchor": "right",
-                "y": 1.05,  # Move buttons to top to be near the slider
+                "y": 1.05,
                 "yanchor": "bottom"
             }
         ],
         sliders=[
             {
-                "active": last_t_idx,  # Set the active slider position to the last time index
-                "yanchor": "bottom",   # Anchor to bottom (will be at top of chart)
+                "active": len(frames) - 1,  # Set to last frame
+                "yanchor": "bottom",
                 "xanchor": "left",
                 "currentvalue": {
                     "font": {"size": 16},
@@ -373,34 +367,77 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
                     "xanchor": "right"
                 },
                 "transition": {"duration": 300, "easing": "cubic-in-out"},
-                "pad": {"b": 10, "t": 10},  # Reduced top padding
+                "pad": {"b": 10, "t": 10},
                 "len": 0.9,
                 "x": 0.1,
-                "y": 1.05,  # Position above the plot (>1.0 means above the plot area)
+                "y": 1.05,
                 "steps": [
                     {
                         "args": [
-                            [f"frame{k}"],
+                            [f"frame{i}"],
                             {
                                 "frame": {"duration": 300, "redraw": True},
                                 "mode": "immediate",
                                 "transition": {"duration": 300}
                             }
                         ],
-                        "label": pd.to_datetime(xr_dataset.valid_time[k].values).tz_localize('UTC').tz_convert('CET').strftime('%H:%M CET'),
+                        "label": pd.to_datetime(xr_dataset.valid_time[time_indices[i]].values).tz_localize('UTC').tz_convert('CET').strftime('%H:%M CET'),
                         "method": "animate"
                     }
-                    for k in range(len(xr_dataset.valid_time))
+                    for i in range(len(frames))
                 ]
             }
         ],
-        height=800,
-        width=800,
-        template="plotly_dark"  # Use dark theme for better visualization of solar data
+        height=700,  # Reduced height for better performance
+        width=700,   # Reduced width for better performance
+        template="plotly_dark",
     )
+    
     fig.frames = frames
     return fig
 
+
+def generate_sat_rad_anim_ch1_optimized():
+    """
+    Optimized version of the original function to generate the solar radiation animation.
+    """
+    # Set the prefix
+    prefix = "icon-ch/ch1/radiation/"
+    
+    # Get the connection using FilesConnection
+    conn = get_connection()
+    
+    # Get the latest nc files - reduced from original count
+    files = get_latest_nc_files(conn, prefix, count=1)
+    
+    # Download and open the files
+    datasets = download_and_open_nc_files(conn, files)
+    
+    # Concatenate the datasets
+    combined_dataset = concat_datasets(datasets)
+
+    # Rename variables
+    ds_renamed_var = combined_dataset.rename({'GLOBAL_SW': 'SID'})['SID']
+    
+    # Convert time zones
+    time_index = pd.DatetimeIndex(ds_renamed_var.valid_time.values).tz_localize('UTC')
+    ds_renamed_var = ds_renamed_var.assign_coords(valid_time=time_index.tz_convert('CET'))
+    
+    # Path to the Swiss cantonal boundaries GeoJSON
+    geojson_path = 'swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.geojson'
+    
+    # Create the animation with optimized settings
+    # Use downsampling and limit frames for better performance
+    fig = plot_solar_radiation_animation_optimized(
+        ds_renamed_var, 
+        geojson_path, 
+        min_value=0, 
+        max_value=900,
+        downsample_factor=3,  # Downsample spatial resolution
+        max_frames=8          # Limit number of frames
+    )
+    
+    return fig
 
 
 
