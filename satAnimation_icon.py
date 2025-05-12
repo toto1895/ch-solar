@@ -48,7 +48,7 @@ def load_geojson(file_path):
     return geojson_data
 
 def plot_solar_radiation_subplots(xr_dataset, geojson_path=None, min_value=0, max_value=700, 
-                                 downsample_factor=1, time_indices=None, num_cols=3, figsize=(16, 10)):
+                                 downsample_factor=1, time_indices=None, num_cols=32, figsize=(16, 10)):
     """
     Create multiple solar radiation plots using Matplotlib with a shared colorbar.
     
@@ -332,7 +332,7 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
             np.random.seed(42 + i)  # Different seed for each time step
             
             # Add some random clouds (areas of lower radiation)
-            num_clouds = 3
+            num_clouds = 50
             for _ in range(num_clouds):
                 cloud_x = np.random.uniform(lons.min(), lons.max())
                 cloud_y = np.random.uniform(lats.min(), lats.max())
@@ -382,7 +382,7 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
         max_value=max_value,
         downsample_factor=1,
         time_indices=time_indices,
-        num_cols=3,
+        num_cols=32,
         figsize=(16, 12)
     )
     
