@@ -437,7 +437,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                         len=0.6,
                         thickness=20,
                         tickmode='auto',
-                        nticks=8
+                        nticks=15
                     ),
                     #hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>',
                 )
@@ -532,7 +532,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                     len=0.6,
                     thickness=20,
                     tickmode='auto',
-                    nticks=8
+                    nticks=15
                 ),
                 #hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>',
             )
