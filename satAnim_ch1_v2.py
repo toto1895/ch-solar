@@ -472,7 +472,7 @@ def generate_image_based_animation():
     frames, time_labels = generate_frames_with_caching(ds_renamed_var, cache_key)
         
         # Create the slider-based animation
-        create_image_slider_animation(frames, time_labels)
+    create_image_slider_animation(frames, time_labels)
     
     return "Animation completed"
 
