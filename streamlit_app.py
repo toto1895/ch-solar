@@ -650,6 +650,7 @@ def sat_anim_ch1():
 
     st.plotly_chart(fig_anim, use_container_width=True, theme=None)
 
+
 import streamlit.components.v1 as components
 
 def main():
