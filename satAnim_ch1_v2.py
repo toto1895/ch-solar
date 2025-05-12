@@ -103,11 +103,10 @@ def get_connection():
     return st.connection('gcs', type=FilesConnection)
 
 # New functions for generating pre-rendered images
-
 def generate_single_frame_image(xr_dataset, t_idx, time_dim, var_name, lats, lons, 
                                lats_downsampled, lons_downsampled, downsample_factor,
                                min_value, max_value, geojson_path=None,
-                               width=700, height=700, dpi=150):
+                               width=800, height=550, dpi=200):
     """
     Generate a single frame as a matplotlib image and return it as a PIL Image.
     """
@@ -147,6 +146,7 @@ def generate_single_frame_image(xr_dataset, t_idx, time_dim, var_name, lats, lon
         # Add colorbar
         cbar = fig.colorbar(contour, ax=ax, orientation='horizontal', 
                            label='W/m²', pad=0.1)
+        cbar.ax.tick_params(labelsize=8)  # Reduce colorbar tick font size
         
         # Add boundaries if geojson is provided
         if geojson_path and os.path.exists(geojson_path):
@@ -195,10 +195,13 @@ def generate_single_frame_image(xr_dataset, t_idx, time_dim, var_name, lats, lon
             except:
                 time_str = f"Frame {t_idx+1}"
         
-        # Set title and labels
-        ax.set_title(f"Solar Radiation at {time_str} CET")
-        ax.set_xlabel('Longitude')
-        ax.set_ylabel('Latitude')
+        # Set title and labels with smaller font sizes
+        ax.set_title(f"Solar Radiation at {time_str} CET", fontsize=10)
+        ax.set_xlabel('Longitude', fontsize=8)
+        ax.set_ylabel('Latitude', fontsize=8)
+        
+        # Reduce tick label size
+        ax.tick_params(axis='both', which='major', labelsize=7)
         
         # Set background color to match dark theme
         fig.patch.set_facecolor('#111111')
@@ -211,6 +214,7 @@ def generate_single_frame_image(xr_dataset, t_idx, time_dim, var_name, lats, lon
         ax.tick_params(axis='x', colors='white')
         ax.tick_params(axis='y', colors='white')
         cbar.ax.xaxis.label.set_color('white')
+        cbar.ax.xaxis.label.set_fontsize(8)  # Reduce colorbar label font size
         cbar.ax.tick_params(axis='x', colors='white')
         
         # Adjust layout
@@ -234,6 +238,73 @@ def generate_single_frame_image(xr_dataset, t_idx, time_dim, var_name, lats, lon
         if 'fig' in locals():
             plt.close(fig)
         return None, None
+
+def create_image_slider_animation(frames, time_labels):
+    """
+    Create a Streamlit animation using pre-rendered images with a slider control.
+    """
+    # Initialize session state for frame index if it doesn't exist
+    if 'frame_index' not in st.session_state:
+        st.session_state.frame_index = len(frames) - 1
+    
+    # Create shortened time labels for the slider
+    slider_labels = [label[-5:] + " CET" if len(label) >= 5 else label for label in time_labels]
+    
+    # Create a container for the title
+    title_container = st.empty()
+    
+    # Update title with the current frame's time
+    title_container.markdown(f"## Solar Radiation at {time_labels[st.session_state.frame_index]} CET")
+    
+    # Create slider controls BEFORE the animation container
+    frame_index = st.slider(
+        "Time", 
+        min_value=0, 
+        max_value=len(frames)-1, 
+        value=st.session_state.frame_index,
+        key="time_slider"
+    )
+    
+    # Show the time below the slider
+    st.caption(f"Time: {slider_labels[frame_index]}")
+    
+    # Add play button in columns to keep the layout clean
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        play_button = st.button("Play Animation")
+    
+    # Create a container for the animation AFTER the controls
+    animation_container = st.empty()
+    
+    if play_button:
+        # Show animation frames
+        for i in range(len(frames)):
+            # Update the frame index
+            st.session_state.frame_index = i
+            
+            # Update title
+            title_container.markdown(f"## Solar Radiation at {time_labels[i]} CET")
+            
+            # Display the current frame
+            animation_container.image(frames[i], use_container_width=True)
+            
+            # Small delay between frames
+            time.sleep(1)
+            
+        # Reset to last frame after animation finishes
+        st.session_state.frame_index = len(frames) - 1
+    
+    # Store the current index
+    st.session_state.frame_index = frame_index
+    
+    # Update title for the selected frame
+    title_container.markdown(f"## Solar Radiation at {time_labels[frame_index]} CET")
+    
+    # Display the selected frame
+    animation_container.image(frames[frame_index], use_container_width=True)
+
+
+
 
 def generate_all_frame_images(xr_dataset, time_dim, var_name, max_frames=48, downsample_factor=1,
                              min_value=0, max_value=700, geojson_path=None):
