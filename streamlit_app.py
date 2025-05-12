@@ -644,18 +644,13 @@ def sat_anim():
 
     st.plotly_chart(fig_anim, use_container_width=True, theme=None)
 
-from satAnimation_icon import generate_sat_rad_anim_ch1_optimized
+from satAnimation_icon import generate_sat_rad_multi_plots
 def sat_anim_ch1():
-    fig_anim = generate_sat_rad_anim_ch1_optimized()
+    fig_anim = generate_sat_rad_multi_plots()
 
     st.plotly_chart(fig_anim, use_container_width=True, theme=None)
 
-from satAnim_ch1_v2 import main_render
-def sat_anim_ch1_v2():
-    #fig_anim = generate_sat_rad_anim_ch1_optimized()
 
-    #st.plotly_chart(fig_anim, use_container_width=True, theme=None)
-    main_render()
 
 from satAnimation_icon_ch2 import generate_sat_rad_anim_ch1_optimized_ch2
 def sat_anim_ch2():

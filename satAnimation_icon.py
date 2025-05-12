@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sat May  3 12:07:54 2025
-
-@author: weibe
-"""
 import xarray as xr
 import numpy as np
 import plotly.graph_objects as go
@@ -200,10 +194,34 @@ def get_connection():
     return st.connection('gcs', type=FilesConnection)
 
 
-def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_value=0, max_value=700, 
-                                 downsample_factor=1, max_frames=48):
+def plot_multiple_solar_radiation_plots(xr_dataset, geojson_path=None, min_value=0, max_value=700, 
+                                      downsample_factor=1, num_plots=4):
+    """
+    Create multiple solar radiation plots arranged vertically instead of using a slider.
+    
+    Parameters:
+    -----------
+    xr_dataset : xarray.Dataset
+        The dataset containing the solar radiation data
+    geojson_path : str, optional
+        Path to the GeoJSON file for boundaries
+    min_value : float, optional
+        Minimum value for the color scale
+    max_value : float, optional
+        Maximum value for the color scale
+    downsample_factor : int, optional
+        Factor to downsample the spatial resolution
+    num_plots : int, optional
+        Number of plots to create
+        
+    Returns:
+    --------
+    plotly.graph_objects.Figure
+        The figure containing multiple plots
+    """
     
     import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
     import pandas as pd
     import json
     import numpy as np
@@ -216,9 +234,6 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
     # Get the variable name for solar radiation
     var_name = 'SID' if 'SID' in xr_dataset.variables else list(xr_dataset.data_vars)[0]
     print(f"Using variable: {var_name}")
-    
-    # Create figure
-    fig = go.Figure()
     
     # Get the coordinates properly - handle different naming conventions
     if 'lat' in xr_dataset.dims:
@@ -273,11 +288,6 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                 with open(geojson_path, 'r') as f:
                     geojson_data = json.load(f)
                 
-                # Create simplified boundary trace
-                # We'll create a single trace with Nones between features for efficiency
-                all_lons = []
-                all_lats = []
-                
                 # Extract coordinates based on GeoJSON type
                 if geojson_data['type'] == 'FeatureCollection':
                     features = geojson_data['features']
@@ -297,36 +307,32 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                     if geometry['type'] == 'Polygon':
                         rings = geometry['coordinates']
                         # Add the outer ring of the polygon
-                        if all_lons and all_lons[-1] is not None:
-                            all_lons.append(None)
-                            all_lats.append(None)
-                        coords = rings[0][::3]  # Downsample coordinates
-                        lons_poly, lats_poly = zip(*coords)
-                        all_lons.extend(lons_poly)
-                        all_lats.extend(lats_poly)
-                    
+                        for ring in rings:
+                            lons_poly, lats_poly = zip(*ring)
+                            boundary_traces.append(
+                                go.Scatter(
+                                    x=lons_poly,
+                                    y=lats_poly,
+                                    mode='lines',
+                                    line=dict(color='white', width=2.5),
+                                    hoverinfo='skip',
+                                    showlegend=False
+                                )
+                            )
                     elif geometry['type'] == 'MultiPolygon':
                         for polygon in geometry['coordinates']:
-                            if all_lons and all_lons[-1] is not None:
-                                all_lons.append(None)
-                                all_lats.append(None)
-                            coords = polygon[0][::3]  # Outer ring, downsampled
-                            lons_poly, lats_poly = zip(*coords)
-                            all_lons.extend(lons_poly)
-                            all_lats.extend(lats_poly)
-                
-                # Create single boundary trace if we have coordinates
-                if all_lons:
-                    boundary_traces.append(
-                        go.Scatter(
-                            x=all_lons,
-                            y=all_lats,
-                            mode='lines',
-                            line=dict(color='white', width=2.5),
-                            hoverinfo='skip',
-                            showlegend=False
-                        )
-                    )
+                            for ring in polygon:
+                                lons_poly, lats_poly = zip(*ring)
+                                boundary_traces.append(
+                                    go.Scatter(
+                                        x=lons_poly,
+                                        y=lats_poly,
+                                        mode='lines',
+                                        line=dict(color='white', width=2.5),
+                                        hoverinfo='skip',
+                                        showlegend=False
+                                    )
+                                )
         except Exception as e:
             print(f"Error loading GeoJSON: {e}")
             import traceback
@@ -337,24 +343,22 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
     time_values = xr_dataset[time_dim].values
     print(f"Number of time steps: {len(time_values)}")
     
-    # Limit the number of frames
-    if len(time_values) > max_frames:
+    # Select time indices at regular intervals
+    if len(time_values) <= num_plots:
+        time_indices = list(range(len(time_values)))
+    else:
         # Select frames at regular intervals
-        step = max(1, len(time_values) // max_frames)
+        step = max(1, len(time_values) // num_plots)
         time_indices = list(range(0, len(time_values), step))
         # Always include the last frame
         if len(time_values) - 1 not in time_indices:
             time_indices.append(len(time_values) - 1)
-    else:
-        time_indices = list(range(len(time_values)))
     
     # Sort time indices to ensure they're in order
     time_indices.sort()
+    time_indices = time_indices[:num_plots]  # Limit to requested number of plots
     
-    # Get the last time index (always included)
-    last_t_idx = time_indices[-1]
-    
-    # Create time labels for each frame for slider
+    # Create time labels for each frame
     time_labels = []
     for t_idx in time_indices:
         if hasattr(xr_dataset[time_dim][t_idx], 'dt'):
@@ -369,9 +373,16 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                 time_str = f"Frame {t_idx+1}"
         time_labels.append(time_str)
     
-    # Create the animation frames
-    frames = []
-    for i, t_idx in enumerate(time_indices):
+    # Create a subplot with multiple rows, one for each time step
+    fig = make_subplots(
+        rows=num_plots, 
+        cols=1,
+        subplot_titles=[f"Solar Radiation at {time_str} CET" for time_str in time_labels],
+        vertical_spacing=0.05
+    )
+    
+    # Create plot for each selected time
+    for i, (t_idx, time_str) in enumerate(zip(time_indices, time_labels)):
         try:
             # Get data for this time and downsample, handling different dimension names
             if time_dim == 'valid_time':
@@ -395,124 +406,21 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                 zoom_factors = (len(lats_downsampled)/data_slice.shape[0], len(lons_downsampled)/data_slice.shape[1])
                 data_downsampled = scipy.ndimage.zoom(data_slice, zoom_factors, order=1)
             
-            # Format time string
-            time_str = time_labels[i]
-            
             # Debug: check data values
-            print(f"Frame {i} data min: {np.nanmin(data_downsampled)}, max: {np.nanmax(data_downsampled)}")
+            print(f"Plot {i} data min: {np.nanmin(data_downsampled)}, max: {np.nanmax(data_downsampled)}")
             
             # Replace NaN values with a default value if necessary
             data_downsampled = np.nan_to_num(data_downsampled, nan=-999)
             
-            # Calculate contour levels
-            contour_levels = np.linspace(min_value, max_value, 20)
-            
-            # Create frame with contour plot instead of heatmap
-            frame_data = [
-                go.Contour(
-                    z=data_downsampled,
-                    x=lons_downsampled,
-                    y=lats_downsampled,
-                    colorscale='turbo',
-                    zmin=min_value,
-                    zmax=max_value,
-                    ncontours=50,  # Set number of contour levels to 50
-                    hoverinfo='none',
-                    contours=dict(
-                        start=min_value,
-                        end=max_value,
-                        size=(max_value-min_value)/20,
-                        showlabels=True,
-                        labelfont=dict(
-                            size=8,
-                            color='white',
-                        ),
-                    ),
-                    line=dict(width=0.),
-                    colorbar=dict(
-                        title='W/m²',
-                        title_side='right',
-                        orientation='h',
-                        y=-0.15,
-                        len=0.6,
-                        thickness=20,
-                        tickmode='auto',
-                        nticks=15
-                    ),
-                    #hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>',
-                )
-            ]
-            
-            # Create frame - boundary traces go after contour so they're visible on top
-            frame = go.Frame(
-                data=frame_data + boundary_traces,
-                name=f'frame{i}',
-                layout=go.Layout(
-                    title=dict(
-                        text=f"Solar Radiation at {time_str}",
-                        x=0.4,
-                        y=0.95,
-                        xanchor='left',
-                        yanchor='top'
-                    )
-                )
-            )
-            frames.append(frame)
-        except Exception as e:
-            print(f"Error creating frame {i}: {e}")
-            import traceback
-            traceback.print_exc()
-    
-    # If we couldn't create any frames, show a message
-    if not frames:
-        fig.add_annotation(
-            text="Error: Could not create animation frames from the dataset",
-            xref="paper", yref="paper",
-            x=0.5, y=0.5,
-            showarrow=False,
-            font=dict(size=14, color="white")
-        )
-        return fig
-    
-    # Initial data for the figure - use first frame as fallback if last frame fails
-    try:
-        # Get data for the initial display (last time index)
-        if time_dim == 'valid_time':
-            initial_data_slice = xr_dataset[var_name].isel(valid_time=last_t_idx).values
-        else:
-            initial_data_slice = xr_dataset[var_name].isel(time=last_t_idx).values
-        
-        # For 3D arrays, we might need to select a specific level
-        if initial_data_slice.ndim > 2:
-            initial_data_slice = initial_data_slice[0]
-        
-        # Downsample the data
-        if initial_data_slice.shape[0] == len(lats) and initial_data_slice.shape[1] == len(lons):
-            initial_data_downsampled = initial_data_slice[::downsample_factor, ::downsample_factor]
-        else:
-            import scipy.ndimage
-            zoom_factors = (len(lats_downsampled)/initial_data_slice.shape[0], 
-                           len(lons_downsampled)/initial_data_slice.shape[1])
-            initial_data_downsampled = scipy.ndimage.zoom(initial_data_slice, zoom_factors, order=1)
-        
-        # Replace NaN values with a default value if necessary
-        initial_data_downsampled = np.nan_to_num(initial_data_downsampled, nan=-999)
-        
-        # Calculate contour levels
-        contour_levels = np.linspace(min_value, max_value, 20)
-        
-        # Create contour plot instead of heatmap
-        initial_data = [
-            go.Contour(
-                z=initial_data_downsampled,
+            # Add contour plot
+            contour = go.Contour(
+                z=data_downsampled,
                 x=lons_downsampled,
                 y=lats_downsampled,
                 colorscale='turbo',
                 zmin=min_value,
                 zmax=max_value,
-                ncontours=50,  # Set number of contour levels to 50
-                #connectgaps=True,
-                hoverinfo='none',
+                ncontours=50,
                 contours=dict(
                     start=min_value,
                     end=max_value,
@@ -527,122 +435,77 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                 colorbar=dict(
                     title='W/m²',
                     title_side='right',
-                    orientation='h',
-                    y=-0.15,
                     len=0.6,
                     thickness=20,
                     tickmode='auto',
-                    nticks=15
+                    nticks=10,
+                    y=1.0 - (i / num_plots),  # Position colorbar next to its subplot
+                    yanchor='middle'
                 ),
-                #hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>',
+                hoverinfo='none',
             )
-        ]
-    except Exception as e:
-        print(f"Error creating initial frame: {e}")
-        # Use first frame data as fallback
-        initial_data = frames[0].data[:1]  # Just use the contour from the first frame
+            
+            # Add the contour to the subplot
+            fig.add_trace(contour, row=i+1, col=1)
+            
+            # Add boundary traces for this subplot
+            for boundary in boundary_traces:
+                fig.add_trace(
+                    go.Scatter(
+                        x=boundary.x,
+                        y=boundary.y,
+                        mode='lines',
+                        line=dict(color='white', width=2.5),
+                        hoverinfo='skip',
+                        showlegend=False
+                    ),
+                    row=i+1, col=1
+                )
+                
+        except Exception as e:
+            print(f"Error creating plot {i}: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            # Add error annotation to the subplot
+            fig.add_annotation(
+                text=f"Error: Could not create plot for {time_str}",
+                xref=f"x{i+1}", yref=f"y{i+1}",
+                x=0.5, y=0.5,
+                showarrow=False,
+                font=dict(size=14, color="white")
+            )
     
-    # Add boundary traces to initial data
-    initial_data.extend(boundary_traces)
-    
-    # Add traces to figure
-    for trace in initial_data:
-        fig.add_trace(trace)
-    
-    # Get the time string for the last time index
-    last_time_str = time_labels[0]
-    
-    # Update layout with optimized settings
+    # Update layout for all subplots
     fig.update_layout(
-        title=dict(
-            text=f"Solar Radiation at {last_time_str} CET",
-            x=0.0,
-            y=0.95,
-            xanchor='left',
-            yanchor='top'
-        ),
-        xaxis=dict(
-            title='Longitude',
-            constrain='domain',
-            autorange=True
-        ),
-        yaxis=dict(
-            title='Latitude',
-            scaleanchor='x',
-            scaleratio=1,
-            autorange=True
-        ),
-        margin=dict(l=0, r=0, t=90, b=80),
-        updatemenus=[
-            {
-                "type": "buttons",
-                "buttons": [
-                    {
-                        "args": [None, {"frame": {"duration": 300, "redraw": True}, "fromcurrent": True}],
-                        "label": "Play",
-                        "method": "animate"
-                    },
-                    {
-                        "args": [[None], {"frame": {"duration": 0, "redraw": True}, "mode": "immediate"}],
-                        "label": "Pause",
-                        "method": "animate"
-                    }
-                ],
-                "direction": "left",
-                "pad": {"r": 10, "t": 10},
-                "showactive": False,
-                "type": "buttons",
-                "x": 0.1,
-                "xanchor": "right",
-                "y": 1.05,
-                "yanchor": "bottom"
-            }
-        ],
-        sliders=[
-            {
-                "active": len(frames) - 1,  # Set to last frame
-                "yanchor": "bottom",
-                "xanchor": "left",
-                "currentvalue": {
-                    "font": {"size": 16},
-                    "prefix": "Time: ",
-                    "visible": True,
-                    "xanchor": "right"
-                },
-                "transition": {"duration": 300, "easing": "cubic-in-out"},
-                "pad": {"b": 10, "t": 10},
-                "len": 0.9,
-                "x": 0.1,
-                "y": 1.05,
-                "steps": [
-                    {
-                        "args": [
-                            [f"frame{i}"],
-                            {
-                                "frame": {"duration": 300, "redraw": True},
-                                "mode": "immediate",
-                                "transition": {"duration": 300}
-                            }
-                        ],
-                        "label": f'{time_labels[i][-5:]} CET',  # Use time as the label instead of frame number
-                        "method": "animate"
-                    }
-                    for i in range(len(frames))
-                ]
-            }
-        ],
-        height=700,
+        height=300 * num_plots,  # Adjust height based on number of plots
         width=700,
         template="plotly_dark",
+        margin=dict(l=50, r=50, t=100, b=50),
     )
     
-    fig.frames = frames
+    # Update x and y axes for all subplots to maintain aspect ratio and labels
+    for i in range(1, num_plots+1):
+        fig.update_xaxes(
+            title='Longitude' if i == num_plots else '',  # Only add title to bottom plot
+            constrain='domain',
+            autorange=True,
+            row=i, col=1
+        )
+        fig.update_yaxes(
+            title='Latitude',
+            scaleanchor=f'x{i}',
+            scaleratio=1,
+            autorange=True,
+            row=i, col=1
+        )
+    
     return fig
 
 
-def generate_sat_rad_anim_ch1_optimized():
+def generate_sat_rad_multi_plots():
     """
-    Optimized version of the original function to generate the solar radiation animation.
+    Generate multiple solar radiation plots arranged vertically.
     """
     # Set the prefix
     prefix = "icon-ch/ch1/radiation/"
@@ -678,15 +541,18 @@ def generate_sat_rad_anim_ch1_optimized():
     # Path to the Swiss cantonal boundaries GeoJSON
     geojson_path = 'swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.geojson'
     
-    # Create the animation with optimized settings
-    # Use downsampling and limit frames for better performance
-    fig = plot_solar_radiation_animation_optimized(
+    # Create multiple plots instead of an animation
+    fig = plot_multiple_solar_radiation_plots(
         ds_renamed_var, 
         geojson_path, 
         min_value=0, 
         max_value=1100,
-        downsample_factor=1,  # Downsample spatial resolution
-        max_frames=96          # Limit number of frames
+        downsample_factor=1,
+        num_plots=4       # Create 4 plots (can be adjusted)
     )
     
     return fig
+
+
+# You can call this function from your Streamlit app instead of generate_sat_rad_anim_ch1_optimized
+# st.plotly_chart(generate_sat_rad_multi_plots())
