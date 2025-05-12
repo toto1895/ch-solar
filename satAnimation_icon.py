@@ -427,7 +427,7 @@ def get_latest_nc_files(conn, prefix, count=12):
         conn._instance.invalidate_cache(prefix)
         
         # List all files in the prefix
-        files = conn._instance.ls(prefix, max_results=100)
+        files = conn._instance.ls(prefix, max_results=50)
         
         # Filter for .nc files
         nc_files = [f for f in files if f.endswith('.nc')]
@@ -510,7 +510,7 @@ def generate_sat_rad_anim_ch1():
     combined_dataset = concat_datasets(datasets)
 
 
-    ds_renamed_var = combined_dataset.rename({'GLOBAL_SW': 'SID'})[['SID']]
+    ds_renamed_var = combined_dataset.rename({'GLOBAL_SW': 'SID'})['SID']
     # Convert time zones
     time_index = pd.DatetimeIndex(ds_renamed_var.valid_time.values).tz_localize('UTC')
     ds_renamed_var = ds_renamed_var.assign_coords(valid_time=time_index.tz_convert('CET'))
