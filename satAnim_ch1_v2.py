@@ -107,7 +107,7 @@ def get_connection():
 def generate_single_frame_image(xr_dataset, t_idx, time_dim, var_name, lats, lons, 
                                lats_downsampled, lons_downsampled, downsample_factor,
                                min_value, max_value, geojson_path=None,
-                               width=700, height=700, dpi=100):
+                               width=700, height=700, dpi=150):
     """
     Generate a single frame as a matplotlib image and return it as a PIL Image.
     """
