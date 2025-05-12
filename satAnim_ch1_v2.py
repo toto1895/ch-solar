@@ -111,10 +111,10 @@ def generate_single_frame_image(xr_dataset, t_idx, time_dim, var_name, lats, lon
     """
     Generate a single frame as a matplotlib image and return it as a PIL Image.
     """
-    # Create a new matplotlib figure
-    fig, ax = plt.subplots(figsize=(width/dpi, height/dpi), dpi=dpi)
-    
     try:
+        # Create a new matplotlib figure
+        fig, ax = plt.subplots(figsize=(width/dpi, height/dpi), dpi=dpi)
+        
         # Get data for this time and downsample
         if time_dim == 'valid_time':
             data_slice = xr_dataset[var_name].isel(valid_time=t_idx).values
@@ -151,9 +151,6 @@ def generate_single_frame_image(xr_dataset, t_idx, time_dim, var_name, lats, lon
         # Add boundaries if geojson is provided
         if geojson_path and os.path.exists(geojson_path):
             try:
-                from matplotlib.path import Path
-                from matplotlib.patches import PathPatch
-                
                 with open(geojson_path, 'r') as f:
                     geojson_data = json.load(f)
                 
@@ -234,7 +231,8 @@ def generate_single_frame_image(xr_dataset, t_idx, time_dim, var_name, lats, lon
         print(f"Error generating frame {t_idx}: {e}")
         import traceback
         traceback.print_exc()
-        plt.close(fig)
+        if 'fig' in locals():
+            plt.close(fig)
         return None, None
 
 def generate_all_frame_images(xr_dataset, time_dim, var_name, max_frames=48, downsample_factor=1,
@@ -333,57 +331,72 @@ def create_image_slider_animation(frames, time_labels):
     """
     Create a Streamlit animation using pre-rendered images with a slider control.
     """
+    # Initialize session state for frame index if it doesn't exist
+    if 'frame_index' not in st.session_state:
+        st.session_state.frame_index = len(frames) - 1
+    
     # Create a container for the animation
     animation_container = st.empty()
+    
+    # Create a title container
+    title_container = st.empty()
     
     # Create a slider for selecting frames
     frame_index = st.slider(
         "Time", 
         min_value=0, 
         max_value=len(frames)-1, 
-        value=len(frames)-1,  # Default to last frame
-        format=lambda i: time_labels[i][-5:] + " CET"  # Show time in slider
+        value=st.session_state.frame_index,
+        format=lambda i: time_labels[i][-5:] + " CET",  # Show time in slider
+        key="time_slider"
     )
+    
+    # Store the current index
+    st.session_state.frame_index = frame_index
     
     # Display the selected frame
     animation_container.image(frames[frame_index], use_column_width=True)
     
     # Add a title showing the full datetime
-    st.markdown(f"## Solar Radiation at {time_labels[frame_index]} CET")
+    title_container.markdown(f"## Solar Radiation at {time_labels[frame_index]} CET")
     
-    # Add play button
-    if st.button("Play Animation"):
+    # Add play button in columns to keep the layout clean
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        play_button = st.button("Play Animation")
+    
+    if play_button:
         # Show animation frames
-        progress_bar = st.progress(0)
         for i in range(len(frames)):
-            # Update slider (this will update the image)
-            st.session_state['slider_value'] = i
-            frame_index = i
-            
-            # Update progress bar
-            progress_bar.progress((i+1)/len(frames))
+            # Update the frame index
+            st.session_state.frame_index = i
             
             # Display the current frame
             animation_container.image(frames[i], use_column_width=True)
             
             # Update title
-            st.markdown(f"## Solar Radiation at {time_labels[i]} CET")
+            title_container.markdown(f"## Solar Radiation at {time_labels[i]} CET")
             
             # Small delay between frames
             time.sleep(0.3)
-        
+            
         # Reset to last frame after animation finishes
-        st.session_state['slider_value'] = len(frames)-1
+        st.session_state.frame_index = len(frames) - 1
 
-# Cache the frame generation to avoid regenerating on every interaction
-@lru_cache(maxsize=1)
-def generate_cached_frames(dataset_json):
+# Use a simpler caching approach with a dictionary
+_frame_cache = {}
+
+def generate_frames_with_caching(dataset, cache_key):
     """
     Generate and cache frames to avoid regeneration on every interaction.
-    We use a JSON string of the dataset as the cache key.
+    We use a simplified cache key approach.
     """
-    # Recreate dataset from JSON
-    dataset = xr.Dataset.from_dict(json.loads(dataset_json))
+    global _frame_cache
+    
+    # Check if we have cached frames for this dataset
+    if cache_key in _frame_cache:
+        print("Using cached frames")
+        return _frame_cache[cache_key]
     
     # Get variable name
     var_name = 'SID' if 'SID' in dataset.variables else list(dataset.data_vars)[0]
@@ -393,12 +406,16 @@ def generate_cached_frames(dataset_json):
     
     # Generate all frame images
     geojson_path = 'swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.geojson'
+    print("Generating new frames...")
     frames, time_labels = generate_all_frame_images(
         dataset, time_dim, var_name,
         max_frames=96,  # Higher frame count for smoother animation
         min_value=0, max_value=1100,
         geojson_path=geojson_path
     )
+    
+    # Cache the result
+    _frame_cache[cache_key] = (frames, time_labels)
     
     return frames, time_labels
 
@@ -442,20 +459,27 @@ def generate_image_based_animation():
         time_index = pd.DatetimeIndex(ds_renamed_var.valid_time.values).tz_localize('UTC')
         ds_renamed_var = ds_renamed_var.assign_coords(valid_time=time_index.tz_convert('CET'))
         
-        # Convert dataset to JSON for caching
-        dataset_json = ds_renamed_var.to_dict().__str__()
-        
-        # Generate frames (cached)
-        frames, time_labels = generate_cached_frames(dataset_json)
+        # Instead of trying to serialize the entire dataset, create a unique identifier
+    # based on the dataset's properties for caching
+    cache_key = f"{ds_renamed_var.dims}_{ds_renamed_var.valid_time.values[0]}_{len(ds_renamed_var.valid_time)}"
+    
+    # Generate frames (using simplified caching approach)
+    frames, time_labels = generate_frames_with_caching(ds_renamed_var, cache_key)
         
         # Create the slider-based animation
-        create_image_slider_animation(frames, time_labels)
+    create_image_slider_animation(frames, time_labels)
     
     return "Animation completed"
 
-# Main streamlit app function
-def main_render():
-    # Generate image-based animation
-    result = generate_image_based_animation()
-
+def main():
+    st.title("Solar Radiation Animation")
+    st.write("Using pre-rendered images for better performance")
     
+    try:
+        # Generate image-based animation
+        result = generate_image_based_animation()
+  
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")
+        import traceback
+        st.code(traceback.format_exc(), language="python")
