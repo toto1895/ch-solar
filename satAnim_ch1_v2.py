@@ -344,26 +344,9 @@ def create_image_slider_animation(frames, time_labels):
     # Create shortened time labels for the slider
     slider_labels = [label[-5:] + " CET" if len(label) >= 5 else label for label in time_labels]
     
-    # Create a slider for selecting frames - use indices only, no formatting function
-    frame_index = st.slider(
-        "Time", 
-        min_value=0, 
-        max_value=len(frames)-1, 
-        value=st.session_state.frame_index,
-        key="time_slider"
-    )
-    
-    # Store the current index
-    st.session_state.frame_index = frame_index
-    
-    # Display the selected frame
-    animation_container.image(frames[frame_index], use_container_width=True)
-    
     # Show the time below the slider
     st.caption(f"Time: {slider_labels[frame_index]}")
     
-    # Add a title showing the full datetime
-    title_container.markdown(f"## Solar Radiation at {time_labels[frame_index]} CET")
     
     # Add play button in columns to keep the layout clean
     col1, col2 = st.columns([1, 3])
@@ -383,10 +366,26 @@ def create_image_slider_animation(frames, time_labels):
             title_container.markdown(f"## Solar Radiation at {time_labels[i]} CET")
             
             # Small delay between frames
-            time.sleep(0.3)
+            time.sleep(1)
             
         # Reset to last frame after animation finishes
         st.session_state.frame_index = len(frames) - 1
+    # Create a slider for selecting frames - use indices only, no formatting function
+    frame_index = st.slider(
+        "Time", 
+        min_value=0, 
+        max_value=len(frames)-1, 
+        value=st.session_state.frame_index,
+        key="time_slider"
+    )
+    
+    # Store the current index
+    st.session_state.frame_index = frame_index
+    
+    # Display the selected frame
+    animation_container.image(frames[frame_index], use_container_width=True)
+    
+    
 
 # Use a simpler caching approach with a dictionary
 _frame_cache = {}
@@ -446,16 +445,6 @@ def generate_image_based_animation():
         combined_dataset = concat_datasets(datasets)
     
         # Filter region
-        min_lon, max_lon = 5.8, 10.5
-        min_lat, max_lat = 45.8, 48
-    
-        combined_dataset = combined_dataset.where(
-            (combined_dataset['lon'] >= min_lon) & 
-            (combined_dataset['lon'] <= max_lon) & 
-            (combined_dataset['lat'] >= min_lat) & 
-            (combined_dataset['lat'] <= max_lat), 
-            drop=True
-        )
     
         # Rename variables
         ds_renamed_var = combined_dataset.rename({'GLOBAL_SW': 'SID'})[['SID']]
@@ -477,20 +466,11 @@ def generate_image_based_animation():
     return "Animation completed"
 
 def main_render():
-    st.title("Solar Radiation Animation")
-    st.write("Using pre-rendered images for better performance")
-    
+   
     try:
         # Generate image-based animation
         result = generate_image_based_animation()
-        
-        # Add explanation
-        st.write("""
-        ### About this visualization
-        This animation shows solar radiation (W/m²) over Switzerland. 
-        The animation uses pre-rendered images for each frame to improve performance 
-        when using the time slider.
-        """)
+     
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
         import traceback
