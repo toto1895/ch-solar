@@ -201,12 +201,8 @@ def get_connection():
 
 
 
-def plot_solar_radiation_animation_optimized():
-    """
-    Optimized version of the original function to generate the solar radiation animation.
-    """
-    import streamlitdef plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_value=0, max_value=700, 
-                                 downsample_factor=2, max_frames=12):
+def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_value=0, max_value=700, 
+                                 downsample_factor=1, max_frames=48):
     """
     Create an optimized animation of solar radiation data from an xarray dataset with Swiss boundaries.
     
