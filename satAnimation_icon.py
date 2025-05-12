@@ -270,7 +270,204 @@ def plot_solar_radiation_subplots(xr_dataset, geojson_path=None, min_value=0, ma
     
     return fig
 
-def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=9):
+import xarray as xr
+import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from google.cloud import storage
+import os
+import tempfile
+from datetime import datetime, timedelta
+import pandas as pd
+import json
+import streamlit as st
+from st_files_connection import FilesConnection
+
+def concat_datasets(datasets):
+    # Sort datasets by time
+    datasets.sort(key=lambda ds: ds.time.values[0])
+    
+    # Concatenate along the time dimension
+    combined_dataset = xr.concat(datasets, dim='time')
+    
+    # Ensure time values are datetime objects
+    if not np.issubdtype(combined_dataset.time.dtype, np.datetime64):
+        combined_dataset = combined_dataset.assign_coords(
+            time=pd.to_datetime(combined_dataset.time.values)
+        )
+    
+    # Convert time coordinate to pandas DatetimeIndex with UTC timezone
+    time_index = pd.DatetimeIndex(combined_dataset.time.values).tz_localize('UTC')
+    
+    # Replace the time coordinate
+    combined_dataset = combined_dataset.assign_coords(time=time_index)
+    
+    return combined_dataset
+
+
+def load_geojson(file_path):
+    """
+    Load a GeoJSON file.
+    
+    Parameters:
+    -----------
+    file_path : str
+        Path to the GeoJSON file
+        
+    Returns:
+    --------
+    dict
+        GeoJSON data
+    """
+    with open(file_path, 'r') as f:
+        geojson_data = json.load(f)
+    
+    return geojson_data
+
+def create_boundary_traces(geojson_data):
+    """
+    Create traces for boundary lines from GeoJSON data.
+    
+    Parameters:
+    -----------
+    geojson_data : dict
+        GeoJSON data
+        
+    Returns:
+    --------
+    list
+        List of Scattergeo traces
+    """
+    traces = []
+    
+    for feature in geojson_data['features']:
+        # Get the geometry
+        geometry = feature['geometry']
+        
+        # Process MultiPolygon
+        if geometry['type'] == 'MultiPolygon':
+            for polygon in geometry['coordinates']:
+                for ring in polygon:
+                    lons, lats = zip(*ring)
+                    traces.append(
+                        go.Scattergeo(
+                            lon=lons,
+                            lat=lats,
+                            mode='lines',
+                            line=dict(width=2.5, color='white'),
+                            showlegend=False,
+                            hoverinfo='skip'
+                        )
+                    )
+        
+        # Process Polygon
+        elif geometry['type'] == 'Polygon':
+            for ring in geometry['coordinates']:
+                lons, lats = zip(*ring)
+                traces.append(
+                    go.Scattergeo(
+                        lon=lons,
+                        lat=lats,
+                        mode='lines',
+                        line=dict(width=2.5, color='white'),
+                        showlegend=False,
+                        hoverinfo='skip'
+                    )
+                )
+    
+    return traces
+
+def get_latest_nc_files(conn, prefix, count=12):
+    """
+    Get the latest count nc files from the specified prefix.
+    
+    Parameters:
+    -----------
+    conn : FilesConnection
+        The connection to GCS
+    prefix : str
+        Prefix for the objects to list
+    count : int, optional
+        Number of latest files to return
+        
+    Returns:
+    --------
+    list
+        List of file paths sorted by date (newest first)
+    """
+    try:
+        # Invalidate the cache to refresh the bucket listing
+        conn._instance.invalidate_cache(prefix)
+        
+        # List all files in the prefix
+        files = conn._instance.ls(prefix, max_results=50)
+        
+        # Filter for .nc files
+        nc_files = [f for f in files if f.endswith('.nc')]
+        
+        # Sort files by name (which should contain date information)
+        nc_files.sort(reverse=True)
+        
+        # Return the latest count
+        return nc_files[:count]
+    except Exception as e:
+        print(f"Error listing files: {e}")
+        return []
+
+def download_and_open_nc_files(conn, file_paths):
+    """
+    Download nc files from GCS and open them with xarray.
+    
+    Parameters:
+    -----------
+    conn : FilesConnection
+        The connection to GCS
+    file_paths : list
+        List of file paths to download
+        
+    Returns:
+    --------
+    list
+        List of xarray datasets
+    """
+    datasets = []
+    
+    # Create a temporary directory to store the downloaded files
+    temp_dir = tempfile.mkdtemp()
+    
+    for file_path in file_paths:
+        try:
+            # Extract filename from path
+            file_name = os.path.basename(file_path)
+            temp_file_path = os.path.join(temp_dir, file_name)
+            
+            # Download the file to the temporary location
+            conn._instance.get(file_path, temp_file_path)
+            
+            # Now open the local file with xarray
+            ds = xr.open_dataset(temp_file_path)
+            
+            # Extract the timestamp from the filename
+            timestamp_str = file_name.split('.')[0]
+            timestamp = datetime.strptime(timestamp_str, '%Y%m%d%H%M')
+            
+            # Set the time coordinate
+            ds = ds.assign_coords(time=[timestamp])
+            datasets.append(ds)
+            
+        except Exception as e:
+            print(f"Error processing file {file_path}: {e}")
+    
+    return datasets
+
+
+def get_connection():
+    """Get the GCS connection instance"""
+    return st.connection('gcs', type=FilesConnection)
+
+
+
+def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=32):
     """
     Generate multiple solar radiation plots using sample data or provided data.
     
@@ -291,7 +488,20 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
     # Load data - for demonstration using a sample dataset
     if data_path and os.path.exists(data_path):
         # If actual data is provided
-        ds = xr.open_dataset(data_path)
+        prefix = "icon-ch/ch2/radiation/"
+    
+    # Get the connection using FilesConnection
+        conn = get_connection()
+        
+        # Get the latest nc files - reduced from original count
+        files = get_latest_nc_files(conn, prefix, count=1)
+        
+        # Download and open the files
+        datasets = download_and_open_nc_files(conn, files)
+        
+        # Concatenate the datasets
+        ds = concat_datasets(datasets)
+
     else:
         # Generate sample data for demonstration
         print("No data path provided or file not found. Using sample data.")
@@ -382,7 +592,7 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
         max_value=max_value,
         downsample_factor=1,
         time_indices=time_indices,
-        num_cols=32,
+        num_cols=3,
         figsize=(16, 12)
     )
     
