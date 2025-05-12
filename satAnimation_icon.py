@@ -13,6 +13,10 @@ import cartopy.feature as cfeature
 from cartopy.io.shapereader import Reader
 from cartopy.feature import ShapelyFeature
 from matplotlib.gridspec import GridSpec
+import matplotlib.animation as animation
+import io
+from matplotlib.figure import Figure
+import streamlit as st
 
 def concat_datasets(datasets):
     """Concatenate datasets along the time dimension."""
@@ -184,10 +188,10 @@ def plot_solar_radiation_subplots(xr_dataset, geojson_path=None, min_value=0, ma
         
         # Create contour plot
         contour_filled = ax.contourf(lon_mesh, lat_mesh, data_downsampled, 
-                                    levels=levels, 
-                                    cmap='turbo', 
-                                    extend='both',
-                                    transform=ccrs.PlateCarree())
+                                   levels=levels, 
+                                   cmap='turbo', 
+                                   extend='both',
+                                   transform=ccrs.PlateCarree())
         
         # Store for colorbar (only need one)
         if i == 0:
@@ -384,6 +388,5 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
     
     return fig
 
-# Example usage:
-# fig = generate_solar_radiation_plots(data_path='your_data.nc', geojson_path='switzerland_boundaries.geojson', num_plots=9)
-# plt.show()
+
+ 

@@ -646,9 +646,9 @@ def sat_anim():
 
 from satAnimation_icon import generate_solar_radiation_plots
 def sat_anim_ch1():
-    fig_anim = generate_solar_radiation_plots()
+    fig_anim = generate_solar_radiation_plots(32)
 
-    st.plotly_chart(fig_anim, use_container_width=True, theme=None)
+    st.pyplot(fig_anim, use_container_width=True, theme=None)
 
 
 
