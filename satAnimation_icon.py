@@ -486,27 +486,26 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
         The figure containing the contour plots
     """
     # Load data - for demonstration using a sample dataset
-    if data_path and os.path.exists(data_path):
         # If actual data is provided
-        prefix = "icon-ch/ch2/radiation/"
-    
-    # Get the connection using FilesConnection
-        conn = get_connection()
-        
-        # Get the latest nc files - reduced from original count
-        files = get_latest_nc_files(conn, prefix, count=1)
-        
-        # Download and open the files
-        datasets = download_and_open_nc_files(conn, files)
-        
-        # Concatenate the datasets
-        ds = concat_datasets(datasets)
+    prefix = "icon-ch/ch2/radiation/"
 
-        ds_renamed_var = ds.rename({'GLOBAL_SW': 'SID'})[['SID']]
+# Get the connection using FilesConnection
+    conn = get_connection()
     
-        # Convert time zones
-        time_index = pd.DatetimeIndex(ds_renamed_var.valid_time.values).tz_localize('UTC')
-        ds = ds_renamed_var.assign_coords(valid_time=time_index.tz_convert('CET'))
+    # Get the latest nc files - reduced from original count
+    files = get_latest_nc_files(conn, prefix, count=1)
+    
+    # Download and open the files
+    datasets = download_and_open_nc_files(conn, files)
+    
+    # Concatenate the datasets
+    ds = concat_datasets(datasets)
+
+    ds_renamed_var = ds.rename({'GLOBAL_SW': 'SID'})[['SID']]
+
+    # Convert time zones
+    time_index = pd.DatetimeIndex(ds_renamed_var.valid_time.values).tz_localize('UTC')
+    ds = ds_renamed_var.assign_coords(valid_time=time_index.tz_convert('CET'))
 
     # Define plot parameters
     min_value = 0
