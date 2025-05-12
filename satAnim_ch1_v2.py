@@ -471,7 +471,7 @@ def generate_image_based_animation():
     
     return "Animation completed"
 
-def main():
+def main_render():
     st.title("Solar Radiation Animation")
     st.write("Using pre-rendered images for better performance")
     
