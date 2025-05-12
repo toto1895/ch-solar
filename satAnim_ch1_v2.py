@@ -112,7 +112,7 @@ def generate_single_frame_image(xr_dataset, t_idx, time_dim, var_name, lats, lon
     """
     try:
         # Create a new matplotlib figure
-        fig, ax = plt.subplots(figsize=(width/dpi, height/dpi), dpi=dpi)
+        fig, ax = plt.subplots(figsize=(width, height), dpi=dpi)
         
         # Get data for this time and downsample
         if time_dim == 'valid_time':
