@@ -550,7 +550,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
         fig.add_trace(trace)
     
     # Get the time string for the last time index
-    last_time_str = time_labels[-1]
+    last_time_str = time_labels[0]
     
     # Update layout with optimized settings
     fig.update_layout(
@@ -685,7 +685,7 @@ def generate_sat_rad_anim_ch1_optimized():
         geojson_path, 
         min_value=0, 
         max_value=1100,
-        downsample_factor=2,  # Downsample spatial resolution
+        downsample_factor=1,  # Downsample spatial resolution
         max_frames=96          # Limit number of frames
     )
     
