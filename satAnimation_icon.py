@@ -429,9 +429,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                     colorscale='turbo',
                     zmin=min_value,
                     zmax=max_value,
-                    ncontours=50,  # Set number of contour levels to 50
-                line=dict(width=0),
-                connectgaps=True,
+                    ncontours=50,  
                     colorbar=dict(
                         title='W/m²',
                         title_side='right',
@@ -514,8 +512,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                 zmin=min_value,
                 zmax=max_value,
                 ncontours=50,  # Set number of contour levels to 50
-                line=dict(width=0),
-                connectgaps=True,
+                
                 colorbar=dict(
                     title='W/m²',
                     title_side='right',
