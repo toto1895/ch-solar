@@ -542,7 +542,7 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
             np.random.seed(42 + i)  # Different seed for each time step
             
             # Add some random clouds (areas of lower radiation)
-            num_clouds = 50
+            num_clouds = 3
             for _ in range(num_clouds):
                 cloud_x = np.random.uniform(lons.min(), lons.max())
                 cloud_y = np.random.uniform(lats.min(), lats.max())
@@ -593,7 +593,7 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
         downsample_factor=1,
         time_indices=time_indices,
         num_cols=3,
-        figsize=(16, 12)
+        figsize=(16, 40)
     )
     
     return fig
