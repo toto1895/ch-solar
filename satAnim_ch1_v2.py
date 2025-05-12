@@ -106,7 +106,7 @@ def get_connection():
 def generate_single_frame_image(xr_dataset, t_idx, time_dim, var_name, lats, lons, 
                                lats_downsampled, lons_downsampled, downsample_factor,
                                min_value, max_value, geojson_path=None,
-                               width=1200, height=800, dpi=110):
+                               width=1200, height=880, dpi=150):
     """
     Generate a single frame as a matplotlib image and return it as a PIL Image.
     """
@@ -146,7 +146,7 @@ def generate_single_frame_image(xr_dataset, t_idx, time_dim, var_name, lats, lon
         # Add colorbar
         cbar = fig.colorbar(contour, ax=ax, orientation='horizontal', 
                            label='W/m²', pad=0.1)
-        cbar.ax.tick_params(labelsize=8)  # Reduce colorbar tick font size
+        cbar.ax.tick_params(labelsize=6)  # Reduce colorbar tick font size
         
         # Add boundaries if geojson is provided
         if geojson_path and os.path.exists(geojson_path):
@@ -196,12 +196,12 @@ def generate_single_frame_image(xr_dataset, t_idx, time_dim, var_name, lats, lon
                 time_str = f"Frame {t_idx+1}"
         
         # Set title and labels with smaller font sizes
-        ax.set_title(f"Solar Radiation at {time_str} CET", fontsize=10)
-        ax.set_xlabel('Longitude', fontsize=8)
-        ax.set_ylabel('Latitude', fontsize=8)
+        ax.set_title(f"Solar Radiation at {time_str} CET", fontsize=8)
+        ax.set_xlabel('Longitude', fontsize=6)
+        ax.set_ylabel('Latitude', fontsize=6)
         
         # Reduce tick label size
-        ax.tick_params(axis='both', which='major', labelsize=7)
+        ax.tick_params(axis='both', which='major', labelsize=5)
         
         # Set background color to match dark theme
         fig.patch.set_facecolor('#111111')
@@ -289,7 +289,7 @@ def create_image_slider_animation(frames, time_labels):
             animation_container.image(frames[i], use_container_width=True)
             
             # Small delay between frames
-            time.sleep(1)
+            time.sleep(1.5)
             
         # Reset to last frame after animation finishes
         st.session_state.frame_index = len(frames) - 1
