@@ -417,7 +417,6 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                     zmin=min_value,
                     zmax=max_value,
                     ncontours=50,  # Set number of contour levels to 50
-                connectgaps=True,
                     contours=dict(
                         start=min_value,
                         end=max_value,
@@ -428,7 +427,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                             color='white',
                         ),
                     ),
-                    line=dict(width=0.5),
+                    line=dict(width=0.),
                     colorbar=dict(
                         title='W/m²',
                         title_side='right',
@@ -439,7 +438,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                         tickmode='auto',
                         nticks=8
                     ),
-                    hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>',
+                    #hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>',
                 )
             ]
             
@@ -511,7 +510,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                 zmin=min_value,
                 zmax=max_value,
                 ncontours=50,  # Set number of contour levels to 50
-                connectgaps=True,
+                #connectgaps=True,
                 contours=dict(
                     start=min_value,
                     end=max_value,
@@ -522,7 +521,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                         color='white',
                     ),
                 ),
-                line=dict(width=0.5),
+                line=dict(width=0.),
                 colorbar=dict(
                     title='W/m²',
                     title_side='right',
@@ -533,7 +532,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                     tickmode='auto',
                     nticks=8
                 ),
-                hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>',
+                #hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>',
             )
         ]
     except Exception as e:
