@@ -502,79 +502,6 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
         # Concatenate the datasets
         ds = concat_datasets(datasets)
 
-    else:
-        # Generate sample data for demonstration
-        print("No data path provided or file not found. Using sample data.")
-        
-        # Create sample lat/lon grid centered on Switzerland
-        lats = np.linspace(45.8, 48, 100)
-        lons = np.linspace(5.8, 10.5, 100)
-        
-        # Create time steps
-        time_steps = pd.date_range("2025-05-13T08:00:00", periods=num_plots, freq='1H')
-        
-        # Create meshgrid for synthetic data
-        lon_mesh, lat_mesh = np.meshgrid(lons, lats)
-        
-        # Generate synthetic solar radiation data
-        # Create a gaussian-like pattern with time variation
-        x_center = (lons.max() + lons.min()) / 2
-        y_center = (lats.max() + lats.min()) / 2
-        
-        # Calculate distance from center
-        dist = np.sqrt((lon_mesh - x_center)**2 + (lat_mesh - y_center)**2)
-        
-        # Create data array to store time series
-        radiation_data = np.zeros((len(time_steps), len(lats), len(lons)))
-        
-        for i, time in enumerate(time_steps):
-            # Time of day factor (higher at noon)
-            hour = time.hour
-            time_factor = np.sin(np.pi * (hour - 6) / 12) if 6 <= hour <= 18 else 0
-            time_factor = max(0, time_factor)
-            
-            # Create gaussian pattern with time variation
-            sigma = 1.5
-            base_radiation = 900 * time_factor
-            radiation = base_radiation * np.exp(-dist**2 / (2 * sigma**2))
-            
-            # Add some random variation and clouds
-            np.random.seed(42 + i)  # Different seed for each time step
-            
-            # Add some random clouds (areas of lower radiation)
-            num_clouds = 3
-            for _ in range(num_clouds):
-                cloud_x = np.random.uniform(lons.min(), lons.max())
-                cloud_y = np.random.uniform(lats.min(), lats.max())
-                cloud_dist = np.sqrt((lon_mesh - cloud_x)**2 + (lat_mesh - cloud_y)**2)
-                cloud_sigma = np.random.uniform(0.3, 0.8)
-                cloud_intensity = np.random.uniform(0.3, 0.8)
-                
-                # Create cloud effect (reduce radiation)
-                cloud_effect = cloud_intensity * np.exp(-cloud_dist**2 / (2 * cloud_sigma**2))
-                radiation = radiation * (1 - cloud_effect)
-            
-            # Add noise
-            radiation += np.random.normal(0, 30, radiation.shape)
-            
-            # Clip negative values
-            radiation = np.clip(radiation, 0, None)
-            
-            # Store in the data array
-            radiation_data[i] = radiation
-        
-        # Create xarray dataset
-        ds = xr.Dataset(
-            data_vars=dict(
-                SID=(["time", "lat", "lon"], radiation_data)
-            ),
-            coords=dict(
-                lon=(["lon"], lons),
-                lat=(["lat"], lats),
-                time=time_steps
-            )
-        )
-    
     # Define plot parameters
     min_value = 0
     max_value = 1100
@@ -593,7 +520,7 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
         downsample_factor=1,
         time_indices=time_indices,
         num_cols=3,
-        figsize=(16, 40)
+        figsize=(16, 45)
     )
     
     return fig
