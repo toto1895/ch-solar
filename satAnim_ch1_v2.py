@@ -454,7 +454,7 @@ def generate_image_based_animation():
     return "Animation completed"
 
 # Main streamlit app function
-def main():
+def main_render():
     # Generate image-based animation
     result = generate_image_based_animation()
 

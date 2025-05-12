@@ -650,12 +650,12 @@ def sat_anim_ch1():
 
     st.plotly_chart(fig_anim, use_container_width=True, theme=None)
 
-from satAnim_ch1_v2 import main
+from satAnim_ch1_v2 import main_render
 def sat_anim_ch1_v2():
     #fig_anim = generate_sat_rad_anim_ch1_optimized()
 
     #st.plotly_chart(fig_anim, use_container_width=True, theme=None)
-    main()
+    main_render()
 
 from satAnimation_icon_ch2 import generate_sat_rad_anim_ch1_optimized_ch2
 def sat_anim_ch2():
