@@ -650,6 +650,13 @@ def sat_anim_ch1():
 
     st.plotly_chart(fig_anim, use_container_width=True, theme=None)
 
+from satAnim_ch1_v2 import main
+def sat_anim_ch1_v2():
+    #fig_anim = generate_sat_rad_anim_ch1_optimized()
+
+    #st.plotly_chart(fig_anim, use_container_width=True, theme=None)
+    main()
+
 from satAnimation_icon_ch2 import generate_sat_rad_anim_ch1_optimized_ch2
 def sat_anim_ch2():
     fig_anim = generate_sat_rad_anim_ch1_optimized_ch2()
@@ -685,7 +692,8 @@ def main():
         sat_anim()
 
     elif page_choice == "Forecast (ICON-CH1 1km)":
-        sat_anim_ch1()
+        #sat_anim_ch1()
+        sat_anim_ch1_v2()
 
     elif page_choice == "Forecast (ICON-CH2 2.1km)":
         sat_anim_ch2()
