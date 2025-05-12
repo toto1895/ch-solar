@@ -106,13 +106,13 @@ def get_connection():
 def generate_single_frame_image(xr_dataset, t_idx, time_dim, var_name, lats, lons, 
                                lats_downsampled, lons_downsampled, downsample_factor,
                                min_value, max_value, geojson_path=None,
-                               width=1200, height=880, dpi=150):
+                               width=1200, height=880, dpi=200):
     """
     Generate a single frame as a matplotlib image and return it as a PIL Image.
     """
     try:
         # Create a new matplotlib figure
-        fig, ax = plt.subplots(figsize=(width, height), dpi=dpi)
+        fig, ax = plt.subplots(figsize=(width/dpi, height/dpi), dpi=dpi)
         
         # Get data for this time and downsample
         if time_dim == 'valid_time':
