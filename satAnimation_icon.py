@@ -142,7 +142,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
     import numpy as np
     
     # Get the variable name for solar radiation (assuming it's SID)
-    var_name = 'SID' if 'SID' in xr_dataset.variables else list(xr_dataset.data_vars)[0]
+    var_name = 'GLOBAL_SW' if 'GLOBAL_SW' in xr_dataset.variables else list(xr_dataset.data_vars)[0]
     
     # Create figure
     fig = go.Figure()
@@ -417,7 +417,7 @@ def generate_sat_rad_anim_ch1_optimized():
     combined_dataset = concat_datasets(datasets)
 
     # Rename variables
-    ds_renamed_var = combined_dataset.rename({'GLOBAL_SW': 'SID'})['SID']
+    ds_renamed_var = combined_dataset[['GLOBAL_SW']]
     
     # Convert time zones
     time_index = pd.DatetimeIndex(ds_renamed_var.valid_time.values).tz_localize('UTC')
@@ -546,7 +546,7 @@ def generate_sat_rad_anim_ch1():
     combined_dataset = concat_datasets(datasets)
 
 
-    ds_renamed_var = combined_dataset.rename({'GLOBAL_SW': 'SID'})[['SID']]
+    ds_renamed_var = combined_dataset[['GLOBAL_SW']]
     # Convert time zones
     time_index = pd.DatetimeIndex(ds_renamed_var.valid_time.values).tz_localize('UTC')
     ds_renamed_var = ds_renamed_var.assign_coords(valid_time=time_index.tz_convert('CET'))
