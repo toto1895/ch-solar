@@ -687,8 +687,7 @@ def main():
         sat_anim()
 
     elif page_choice == "Forecast (ICON-CH1 1km)":
-        #sat_anim_ch1()
-        sat_anim_ch1_v2()
+        sat_anim_ch1()
 
     elif page_choice == "Forecast (ICON-CH2 2.1km)":
         sat_anim_ch2()
