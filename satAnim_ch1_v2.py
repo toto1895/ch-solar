@@ -341,13 +341,15 @@ def create_image_slider_animation(frames, time_labels):
     # Create a title container
     title_container = st.empty()
     
-    # Create a slider for selecting frames
+    # Create shortened time labels for the slider
+    slider_labels = [label[-5:] + " CET" if len(label) >= 5 else label for label in time_labels]
+    
+    # Create a slider for selecting frames - use indices only, no formatting function
     frame_index = st.slider(
         "Time", 
         min_value=0, 
         max_value=len(frames)-1, 
         value=st.session_state.frame_index,
-        format=lambda i: time_labels[i][-5:] + " CET",  # Show time in slider
         key="time_slider"
     )
     
@@ -356,6 +358,9 @@ def create_image_slider_animation(frames, time_labels):
     
     # Display the selected frame
     animation_container.image(frames[frame_index], use_column_width=True)
+    
+    # Show the time below the slider
+    st.caption(f"Time: {slider_labels[frame_index]}")
     
     # Add a title showing the full datetime
     title_container.markdown(f"## Solar Radiation at {time_labels[frame_index]} CET")
@@ -466,20 +471,19 @@ def generate_image_based_animation():
     # Generate frames (using simplified caching approach)
     frames, time_labels = generate_frames_with_caching(ds_renamed_var, cache_key)
         
-        # Create the slider-based animation
+    # Create the slider-based animation
     create_image_slider_animation(frames, time_labels)
     
     return "Animation completed"
 
 def main_render():
-    st.title("Solar Radiation Animation")
-    st.write("Using pre-rendered images for better performance")
-    
+   
     try:
         # Generate image-based animation
         result = generate_image_based_animation()
-  
+
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
         import traceback
         st.code(traceback.format_exc(), language="python")
+
