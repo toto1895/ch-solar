@@ -141,23 +141,55 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
     import json
     import numpy as np
     
-    # Get the variable name for solar radiation (assuming it's SID)
-    var_name = 'GLOBAL_SW' if 'GLOBAL_SW' in xr_dataset.variables else list(xr_dataset.data_vars)[0]
+    # Debug: Print dataset structure to understand its format
+    print(f"Dataset dimensions: {xr_dataset.dims}")
+    print(f"Dataset variables: {list(xr_dataset.variables)}")
+    print(f"Dataset coordinates: {list(xr_dataset.coords)}")
+    
+    # Get the variable name for solar radiation
+    var_name = 'SID' if 'SID' in xr_dataset.variables else list(xr_dataset.data_vars)[0]
+    print(f"Using variable: {var_name}")
     
     # Create figure
     fig = go.Figure()
     
-    # Get the coordinates properly
+    # Get the coordinates properly - handle different naming conventions
     if 'lat' in xr_dataset.dims:
         lats = xr_dataset.lat.values
         lons = xr_dataset.lon.values
     elif 'latitude' in xr_dataset.dims:
         lats = xr_dataset.latitude.values
         lons = xr_dataset.longitude.values
+    elif 'rlat' in xr_dataset.dims and 'rlon' in xr_dataset.dims:
+        # For rotated lat/lon grids
+        lats = xr_dataset.rlat.values
+        lons = xr_dataset.rlon.values
     else:
-        raise ValueError("Could not find latitude/longitude dimensions in the dataset")
+        # If we can't find dimension names, try looking for coordinate variables
+        possible_lat_names = ['lat', 'latitude', 'rlat', 'y']
+        possible_lon_names = ['lon', 'longitude', 'rlon', 'x']
+        
+        for lat_name in possible_lat_names:
+            if lat_name in xr_dataset.coords:
+                lats = xr_dataset[lat_name].values
+                break
+        else:
+            raise ValueError("Could not find latitude coordinate")
+            
+        for lon_name in possible_lon_names:
+            if lon_name in xr_dataset.coords:
+                lons = xr_dataset[lon_name].values
+                break
+        else:
+            raise ValueError("Could not find longitude coordinate")
+    
+    # Print the shape of the coordinate arrays
+    print(f"Latitude shape: {lats.shape}")
+    print(f"Longitude shape: {lons.shape}")
     
     # Downsample spatial resolution for better performance
+    # Ensure we don't downsample too much for small arrays
+    downsample_factor = min(downsample_factor, max(1, len(lats)//20))
     lats_downsampled = lats[::downsample_factor]
     lons_downsampled = lons[::downsample_factor]
     
@@ -165,40 +197,58 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
     boundary_traces = []
     if geojson_path:
         try:
-            # Load the boundary data once and create traces
-            with open(geojson_path, 'r') as f:
-                geojson_data = json.load(f)
-            
-            # Extract simplified boundary coordinates
-            # We'll just create a single trace for better performance
-            if geojson_data['type'] == 'FeatureCollection':
+            # Check if the geojson file exists
+            import os
+            if not os.path.exists(geojson_path):
+                print(f"Warning: GeoJSON file not found: {geojson_path}")
+            else:
+                # Load the boundary data once and create traces
+                with open(geojson_path, 'r') as f:
+                    geojson_data = json.load(f)
+                
+                # Create simplified boundary trace
+                # We'll create a single trace with Nones between features for efficiency
                 all_lons = []
                 all_lats = []
-                for feature in geojson_data['features']:
-                    geometry = feature['geometry']
+                
+                # Extract coordinates based on GeoJSON type
+                if geojson_data['type'] == 'FeatureCollection':
+                    features = geojson_data['features']
+                elif geojson_data['type'] == 'Feature':
+                    features = [geojson_data]
+                else:
+                    # If it's a direct geometry
+                    geometry = geojson_data
+                    features = [{'geometry': geometry}]
+                
+                for feature in features:
+                    geometry = feature.get('geometry', {})
+                    if not geometry:
+                        continue
+                        
+                    # Process different geometry types
                     if geometry['type'] == 'Polygon':
-                        for ring in geometry['coordinates']:
-                            # Add None to create discontinuity between polygons
-                            if all_lons:  # Not the first polygon
+                        rings = geometry['coordinates']
+                        # Add the outer ring of the polygon
+                        if all_lons and all_lons[-1] is not None:
+                            all_lons.append(None)
+                            all_lats.append(None)
+                        coords = rings[0][::3]  # Downsample coordinates
+                        lons_poly, lats_poly = zip(*coords)
+                        all_lons.extend(lons_poly)
+                        all_lats.extend(lats_poly)
+                    
+                    elif geometry['type'] == 'MultiPolygon':
+                        for polygon in geometry['coordinates']:
+                            if all_lons and all_lons[-1] is not None:
                                 all_lons.append(None)
                                 all_lats.append(None)
-                            # Downsample the coordinates for better performance
-                            coords = ring[::3]  # Take every 3rd coordinate
+                            coords = polygon[0][::3]  # Outer ring, downsampled
                             lons_poly, lats_poly = zip(*coords)
                             all_lons.extend(lons_poly)
                             all_lats.extend(lats_poly)
-                    elif geometry['type'] == 'MultiPolygon':
-                        for polygon in geometry['coordinates']:
-                            for ring in polygon:
-                                if all_lons:  # Not the first polygon
-                                    all_lons.append(None)
-                                    all_lats.append(None)
-                                coords = ring[::3]  # Take every 3rd coordinate
-                                lons_poly, lats_poly = zip(*coords)
-                                all_lons.extend(lons_poly)
-                                all_lats.extend(lats_poly)
                 
-                # Create single boundary trace
+                # Create single boundary trace if we have coordinates
                 if all_lons:
                     boundary_traces.append(
                         go.Scatter(
@@ -212,12 +262,18 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                     )
         except Exception as e:
             print(f"Error loading GeoJSON: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    # Get the time values - handle the case where valid_time might not be the name
+    time_dim = 'valid_time' if 'valid_time' in xr_dataset.dims else 'time'
+    time_values = xr_dataset[time_dim].values
+    print(f"Number of time steps: {len(time_values)}")
     
     # Limit the number of frames
-    time_values = xr_dataset.valid_time.values
     if len(time_values) > max_frames:
         # Select frames at regular intervals
-        step = len(time_values) // max_frames
+        step = max(1, len(time_values) // max_frames)
         time_indices = list(range(0, len(time_values), step))
         # Always include the last frame
         if len(time_values) - 1 not in time_indices:
@@ -225,21 +281,141 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
     else:
         time_indices = list(range(len(time_values)))
     
+    # Sort time indices to ensure they're in order
+    time_indices.sort()
+    
     # Get the last time index (always included)
     last_t_idx = time_indices[-1]
     
     # Create the animation frames
     frames = []
     for i, t_idx in enumerate(time_indices):
-        # Get data for this time and downsample
-        data_slice = xr_dataset[var_name].isel(valid_time=t_idx).values[::downsample_factor, ::downsample_factor]
-        time_str = pd.to_datetime(xr_dataset.valid_time[t_idx].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')
+        try:
+            # Get data for this time and downsample, handling different dimension names
+            if time_dim == 'valid_time':
+                data_slice = xr_dataset[var_name].isel(valid_time=t_idx).values
+            else:
+                data_slice = xr_dataset[var_name].isel(time=t_idx).values
+            
+            # For 3D arrays, we might need to select a specific level
+            if data_slice.ndim > 2:
+                # Take first level if there are multiple levels
+                data_slice = data_slice[0]
+            
+            # Downsample the data with proper dimension handling
+            if data_slice.shape[0] == len(lats) and data_slice.shape[1] == len(lons):
+                # Regular grid
+                data_downsampled = data_slice[::downsample_factor, ::downsample_factor]
+            else:
+                # Irregular grid or other shape - reshape data
+                print(f"Warning: Data shape {data_slice.shape} doesn't match coordinates: lats {len(lats)}, lons {len(lons)}")
+                import scipy.ndimage
+                zoom_factors = (len(lats_downsampled)/data_slice.shape[0], len(lons_downsampled)/data_slice.shape[1])
+                data_downsampled = scipy.ndimage.zoom(data_slice, zoom_factors, order=1)
+            
+            # Format time string
+            if hasattr(xr_dataset[time_dim][t_idx], 'dt'):
+                # If it's a pandas/numpy datetime
+                ts = xr_dataset[time_dim][t_idx].dt.strftime('%Y-%m-%d %H:%M').values
+                time_str = str(ts)
+            else:
+                # Try to convert from numpy datetime64
+                try:
+                    time_str = pd.to_datetime(xr_dataset[time_dim][t_idx].values).strftime('%Y-%m-%d %H:%M')
+                except:
+                    time_str = f"Frame {i+1}"
+            
+            # Debug: check data values
+            print(f"Frame {i} data min: {np.nanmin(data_downsampled)}, max: {np.nanmax(data_downsampled)}")
+            
+            # Replace NaN values with a default value if necessary
+            data_downsampled = np.nan_to_num(data_downsampled, nan=-999)
+            
+            # Create frame with heatmap
+            frame_data = [
+                go.Heatmap(
+                    z=data_downsampled,
+                    x=lons_downsampled,
+                    y=lats_downsampled,
+                    colorscale='turbo',
+                    zmin=min_value,
+                    zmax=max_value,
+                    colorbar=dict(
+                        title='W/m²',
+                        title_side='right',
+                        orientation='h',
+                        y=-0.15,
+                        len=0.6,
+                        thickness=20,
+                        tickmode='auto',
+                        nticks=8
+                    ),
+                    # Handle NaN values with nanmin/nanmax if needed
+                    hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>',
+                    # Make sure heatmap is behind boundaries
+                    zsmooth='best',  # Smooth the data
+                )
+            ]
+            
+            # Create frame - boundary traces go after heatmap so they're visible on top
+            frame = go.Frame(
+                data=frame_data + boundary_traces,
+                name=f'frame{i}',
+                layout=go.Layout(
+                    title=dict(
+                        text=f"Solar Radiation at {time_str}",
+                        x=0.4,
+                        y=0.95,
+                        xanchor='left',
+                        yanchor='top'
+                    )
+                )
+            )
+            frames.append(frame)
+        except Exception as e:
+            print(f"Error creating frame {i}: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    # If we couldn't create any frames, show a message
+    if not frames:
+        fig.add_annotation(
+            text="Error: Could not create animation frames from the dataset",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5,
+            showarrow=False,
+            font=dict(size=14, color="white")
+        )
+        return fig
+    
+    # Initial data for the figure - use first frame as fallback if last frame fails
+    try:
+        # Get data for the initial display (last time index)
+        if time_dim == 'valid_time':
+            initial_data_slice = xr_dataset[var_name].isel(valid_time=last_t_idx).values
+        else:
+            initial_data_slice = xr_dataset[var_name].isel(time=last_t_idx).values
         
-        # Create optimized heatmap 
-        # Using heatmap instead of contour for better performance
-        frame_data = [
+        # For 3D arrays, we might need to select a specific level
+        if initial_data_slice.ndim > 2:
+            initial_data_slice = initial_data_slice[0]
+        
+        # Downsample the data
+        if initial_data_slice.shape[0] == len(lats) and initial_data_slice.shape[1] == len(lons):
+            initial_data_downsampled = initial_data_slice[::downsample_factor, ::downsample_factor]
+        else:
+            import scipy.ndimage
+            zoom_factors = (len(lats_downsampled)/initial_data_slice.shape[0], 
+                           len(lons_downsampled)/initial_data_slice.shape[1])
+            initial_data_downsampled = scipy.ndimage.zoom(initial_data_slice, zoom_factors, order=1)
+        
+        # Replace NaN values with a default value if necessary
+        initial_data_downsampled = np.nan_to_num(initial_data_downsampled, nan=-999)
+        
+        # Create heatmap
+        initial_data = [
             go.Heatmap(
-                z=data_slice,
+                z=initial_data_downsampled,
                 x=lons_downsampled,
                 y=lats_downsampled,
                 colorscale='turbo',
@@ -248,71 +424,42 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                 colorbar=dict(
                     title='W/m²',
                     title_side='right',
-                    orientation='h',     
-                    y=-0.15,             
-                    len=0.6,             
-                    thickness=20,        
-                    tickmode='auto',     
-                    nticks=8            
+                    orientation='h',
+                    y=-0.15,
+                    len=0.6,
+                    thickness=20,
+                    tickmode='auto',
+                    nticks=8
                 ),
-                hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>'
+                hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>',
+                zsmooth='best',  # Smooth the data
             )
         ]
-        
-        # Create frame
-        frame = go.Frame(
-            data=frame_data + boundary_traces,  # Add boundary traces to each frame
-            name=f'frame{i}',
-            layout=go.Layout(
-                title=dict(
-                    text=f"Solar Radiation at {time_str} CET",
-                    x=0.4,
-                    y=0.865,
-                    xanchor='left',
-                    yanchor='top'
-                )
-            )
-        )
-        frames.append(frame)
-    
-    # Initial data for the figure - use last frame
-    initial_data = [
-        go.Heatmap(
-            z=xr_dataset[var_name].isel(valid_time=last_t_idx).values[::downsample_factor, ::downsample_factor],
-            x=lons_downsampled,
-            y=lats_downsampled,
-            colorscale='turbo',
-            zmin=min_value,
-            zmax=max_value,
-            colorbar=dict(
-                title='W/m²',
-                title_side='right',
-                orientation='h',
-                y=-0.15,
-                len=0.6,
-                thickness=20,
-                tickmode='auto',
-                nticks=8
-            ),
-            hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>'
-        )
-    ]
+    except Exception as e:
+        print(f"Error creating initial frame: {e}")
+        # Use first frame data as fallback
+        initial_data = frames[0].data[:1]  # Just use the heatmap from the first frame
     
     # Add boundary traces to initial data
-    for trace in boundary_traces:
-        initial_data.append(trace)
+    initial_data.extend(boundary_traces)
     
     # Add traces to figure
     for trace in initial_data:
         fig.add_trace(trace)
     
-    # Compute the time string for the last time index
-    last_time_str = pd.to_datetime(xr_dataset.valid_time[last_t_idx].values).tz_localize('UTC').tz_convert('CET').strftime('%Y-%m-%d %H:%M')
+    # Get the time string for the last time index
+    try:
+        if hasattr(xr_dataset[time_dim][last_t_idx], 'dt'):
+            last_time_str = str(xr_dataset[time_dim][last_t_idx].dt.strftime('%Y-%m-%d %H:%M').values)
+        else:
+            last_time_str = pd.to_datetime(xr_dataset[time_dim][last_t_idx].values).strftime('%Y-%m-%d %H:%M')
+    except:
+        last_time_str = f"Frame {len(frames)}"
     
     # Update layout with optimized settings
     fig.update_layout(
         title=dict(
-            text=f"Solar Radiation at {last_time_str} CET",
+            text=f"Solar Radiation at {last_time_str}",
             x=0.0,
             y=0.95,
             xanchor='left',
@@ -381,15 +528,15 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                                 "transition": {"duration": 300}
                             }
                         ],
-                        "label": pd.to_datetime(xr_dataset.valid_time[time_indices[i]].values).tz_localize('UTC').tz_convert('CET').strftime('%H:%M CET'),
+                        "label": f"Frame {i+1}",  # Simplified label for performance
                         "method": "animate"
                     }
                     for i in range(len(frames))
                 ]
             }
         ],
-        height=700,  # Reduced height for better performance
-        width=700,   # Reduced width for better performance
+        height=700,
+        width=700,
         template="plotly_dark",
     )
     

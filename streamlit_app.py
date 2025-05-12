@@ -644,9 +644,9 @@ def sat_anim():
 
     st.plotly_chart(fig_anim, use_container_width=True, theme=None)
 
-from satAnimation_icon import generate_sat_rad_anim_ch1
+from satAnimation_icon import generate_sat_rad_anim_ch1_optimized
 def sat_anim_ch1():
-    fig_anim = generate_sat_rad_anim_ch1()
+    fig_anim = generate_sat_rad_anim_ch1_optimized()
 
     st.plotly_chart(fig_anim, use_container_width=True, theme=None)
 
