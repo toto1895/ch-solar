@@ -203,28 +203,7 @@ def get_connection():
 
 def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_value=0, max_value=700, 
                                  downsample_factor=1, max_frames=48):
-    """
-    Create an optimized animation of solar radiation data from an xarray dataset with Swiss boundaries.
     
-    Parameters:
-    -----------
-    xr_dataset : xarray.Dataset
-        Dataset containing solar radiation data with dimensions (time, lat, lon)
-    geojson_path : str, optional
-        Path to the GeoJSON file with boundary data
-    min_value : float, optional
-        Minimum value for the color scale
-    max_value : float, optional
-        Maximum value for the color scale
-    downsample_factor : int, optional
-        Factor by which to downsample the spatial resolution
-    max_frames : int, optional
-        Maximum number of frames to include in the animation
-        
-    Returns:
-    --------
-    plotly.graph_objects.Figure
-    """
     import plotly.graph_objects as go
     import pandas as pd
     import json
