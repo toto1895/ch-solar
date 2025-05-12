@@ -202,7 +202,7 @@ def get_connection():
 
 
 def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_value=0, max_value=700, 
-                                 downsample_factor=1, max_frames=24*4):
+                                 downsample_factor=1, max_frames=96):
     """
     Create an optimized animation of solar radiation data from an xarray dataset with Swiss boundaries.
     
