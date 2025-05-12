@@ -505,7 +505,6 @@ def generate_sat_rad_anim_ch1():
     # Download and open the files
     datasets = download_and_open_nc_files(conn, files)
     
-
     # Concatenate the datasets
     combined_dataset = concat_datasets(datasets)
 
