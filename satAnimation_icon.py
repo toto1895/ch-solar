@@ -669,8 +669,8 @@ def generate_sat_rad_anim_ch1_optimized():
         geojson_path, 
         min_value=0, 
         max_value=900,
-        downsample_factor=3,  # Downsample spatial resolution
-        max_frames=8          # Limit number of frames
+        downsample_factor=1,  # Downsample spatial resolution
+        max_frames=48          # Limit number of frames
     )
     
     return fig
