@@ -646,14 +646,14 @@ def sat_anim():
 
 from satAnimation_icon import generate_solar_radiation_plots
 def sat_anim_ch1():
-    fig_anim = generate_solar_radiation_plots(32)
+    fig_anim = generate_solar_radiation_plots(num_plots=32)
     st.pyplot(fig_anim)
 
 
 
 from satAnimation_icon_ch2 import generate_solar_radiation_plots_
 def sat_anim_ch2():
-    fig_anim = generate_solar_radiation_plots_(119)
+    fig_anim = generate_solar_radiation_plots_(num_plots=119)
     st.pyplot(fig_anim)
 
 
