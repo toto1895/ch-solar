@@ -195,9 +195,9 @@ def get_connection():
 
 
 def plot_multiple_solar_radiation_plots(xr_dataset, geojson_path=None, min_value=0, max_value=700, 
-                                      downsample_factor=1, num_plots=4):
+                                      downsample_factor=1, num_plots=12, num_columns=3):
     """
-    Create multiple solar radiation plots arranged vertically instead of using a slider.
+    Create multiple solar radiation plots arranged in a grid with a single colorbar at the top.
     
     Parameters:
     -----------
@@ -213,11 +213,13 @@ def plot_multiple_solar_radiation_plots(xr_dataset, geojson_path=None, min_value
         Factor to downsample the spatial resolution
     num_plots : int, optional
         Number of plots to create
+    num_columns : int, optional
+        Number of columns in the grid layout
         
     Returns:
     --------
     plotly.graph_objects.Figure
-        The figure containing multiple plots
+        The figure containing multiple plots arranged in a grid with a single colorbar
     """
     
     import plotly.graph_objects as go
@@ -225,6 +227,7 @@ def plot_multiple_solar_radiation_plots(xr_dataset, geojson_path=None, min_value
     import pandas as pd
     import json
     import numpy as np
+    import math
     
     # Debug: Print dataset structure to understand its format
     print(f"Dataset dimensions: {xr_dataset.dims}")
@@ -373,16 +376,25 @@ def plot_multiple_solar_radiation_plots(xr_dataset, geojson_path=None, min_value
                 time_str = f"Frame {t_idx+1}"
         time_labels.append(time_str)
     
-    # Create a subplot with multiple rows, one for each time step
+    # Calculate number of rows needed
+    num_rows = math.ceil(len(time_indices) / num_columns)
+    
+    # Create a subplot with multiple rows and columns
     fig = make_subplots(
-        rows=num_plots, 
-        cols=1,
+        rows=num_rows, 
+        cols=num_columns,
         subplot_titles=[f"Solar Radiation at {time_str} CET" for time_str in time_labels],
-        vertical_spacing=0.05
+        vertical_spacing=0.1,
+        horizontal_spacing=0.05,
+        specs=[[{'type': 'xy'} for _ in range(num_columns)] for _ in range(num_rows)]
     )
     
     # Create plot for each selected time
     for i, (t_idx, time_str) in enumerate(zip(time_indices, time_labels)):
+        # Calculate row and column for this plot
+        row = (i // num_columns) + 1
+        col = (i % num_columns) + 1
+        
         try:
             # Get data for this time and downsample, handling different dimension names
             if time_dim == 'valid_time':
@@ -412,7 +424,7 @@ def plot_multiple_solar_radiation_plots(xr_dataset, geojson_path=None, min_value
             # Replace NaN values with a default value if necessary
             data_downsampled = np.nan_to_num(data_downsampled, nan=-999)
             
-            # Add contour plot
+            # Add contour plot WITHOUT a colorbar (we'll add a single colorbar later)
             contour = go.Contour(
                 z=data_downsampled,
                 x=lons_downsampled,
@@ -432,21 +444,12 @@ def plot_multiple_solar_radiation_plots(xr_dataset, geojson_path=None, min_value
                     ),
                 ),
                 line=dict(width=0.),
-                colorbar=dict(
-                    title='W/m²',
-                    title_side='right',
-                    len=0.6,
-                    thickness=20,
-                    tickmode='auto',
-                    nticks=10,
-                    y=1.0 - (i / num_plots),  # Position colorbar next to its subplot
-                    yanchor='middle'
-                ),
+                showscale=False,  # Hide individual colorbars
                 hoverinfo='none',
             )
             
             # Add the contour to the subplot
-            fig.add_trace(contour, row=i+1, col=1)
+            fig.add_trace(contour, row=row, col=col)
             
             # Add boundary traces for this subplot
             for boundary in boundary_traces:
@@ -455,11 +458,11 @@ def plot_multiple_solar_radiation_plots(xr_dataset, geojson_path=None, min_value
                         x=boundary.x,
                         y=boundary.y,
                         mode='lines',
-                        line=dict(color='white', width=2.5),
+                        line=dict(color='white', width=1.5),  # Thinner lines for grid layout
                         hoverinfo='skip',
                         showlegend=False
                     ),
-                    row=i+1, col=1
+                    row=row, col=col
                 )
                 
         except Exception as e:
@@ -476,36 +479,95 @@ def plot_multiple_solar_radiation_plots(xr_dataset, geojson_path=None, min_value
                 font=dict(size=14, color="white")
             )
     
+    # Calculate an appropriate height based on number of rows
+    # Each plot is approximately 300px tall, but we need less when arranged in a grid
+    plot_height = 240  # Height per plot in pixels
+    
+    # Add a single colorbar at the top
+    # Create a dummy contour trace just for the colorbar
+    dummy_z = np.linspace(min_value, max_value, 10).reshape(2, 5)
+    colorbar_trace = go.Contour(
+        z=dummy_z,
+        x=[0, 1],
+        y=[0, 1],
+        zmin=min_value,
+        zmax=max_value,
+        colorscale='turbo',
+        showscale=True,
+        colorbar=dict(
+            title='W/m²',
+            title_side='right',
+            thickness=15,
+            len=0.6,
+            yanchor="top",
+            y=1.02,  # Position above the plots
+            xanchor="center",
+            x=0.5,   # Center horizontally
+            orientation="h",  # Horizontal colorbar
+            tickmode='auto',
+            nticks=8,
+        ),
+        hoverinfo='none',
+    )
+    
+    # Create a new empty subplot for the colorbar
+    # Add the dummy trace to a new row at the top
+    fig.add_trace(
+        colorbar_trace,
+        row=1, col=1  # Adding to first subplot but will be hidden
+    )
+    # Hide the dummy trace completely
+    dummy_trace_index = len(fig.data) - 1
+    fig.data[dummy_trace_index].visible = True
+    fig.data[dummy_trace_index].opacity = 0
+    
     # Update layout for all subplots
     fig.update_layout(
-        height=300 * num_plots,  # Adjust height based on number of plots
-        width=700,
+        height=plot_height * num_rows + 80,  # Add extra space for the colorbar at top
+        width=300 * num_columns,  # Width per column
         template="plotly_dark",
-        margin=dict(l=50, r=50, t=100, b=50),
+        margin=dict(l=50, r=80, t=120, b=50),  # Increased top margin for colorbar
     )
     
     # Update x and y axes for all subplots to maintain aspect ratio and labels
-    for i in range(1, num_plots+1):
+    for i in range(1, len(time_indices) + 1):
+        row = ((i-1) // num_columns) + 1
+        col = ((i-1) % num_columns) + 1
+        
+        # Only add x-axis title to the bottom row
+        show_x_title = (row == num_rows) or (i + num_columns > len(time_indices))
+        
+        # Only add y-axis title to the leftmost column
+        show_y_title = (col == 1)
+        
         fig.update_xaxes(
-            title='Longitude' if i == num_plots else '',  # Only add title to bottom plot
+            title='Longitude' if show_x_title else '',
             constrain='domain',
             autorange=True,
-            row=i, col=1
+            row=row, col=col,
+            tickfont=dict(size=10),  # Smaller tick labels for grid layout
+            title_font=dict(size=12)  # Smaller axis titles
         )
         fig.update_yaxes(
-            title='Latitude',
+            title='Latitude' if show_y_title else '',
             scaleanchor=f'x{i}',
             scaleratio=1,
             autorange=True,
-            row=i, col=1
+            row=row, col=col,
+            tickfont=dict(size=10),  # Smaller tick labels
+            title_font=dict(size=12)  # Smaller axis titles
         )
+    
+    # Make subplot titles smaller
+    for i in fig['layout']['annotations']:
+        i['font'] = dict(size=12)
     
     return fig
 
 
 def generate_sat_rad_multi_plots():
     """
-    Generate multiple solar radiation plots arranged vertically.
+    Generate multiple solar radiation plots arranged in a grid layout.
     """
     # Set the prefix
     prefix = "icon-ch/ch1/radiation/"
@@ -541,18 +603,16 @@ def generate_sat_rad_multi_plots():
     # Path to the Swiss cantonal boundaries GeoJSON
     geojson_path = 'swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.geojson'
     
-    # Create multiple plots instead of an animation
+    # Create multiple plots in a grid layout with 3 columns
     fig = plot_multiple_solar_radiation_plots(
         ds_renamed_var, 
         geojson_path, 
         min_value=0, 
         max_value=1100,
         downsample_factor=1,
-        num_plots=4       # Create 4 plots (can be adjusted)
+        num_plots=32,       # Create 12 plots (can be adjusted)
+        num_columns=3       # Arrange in 3 columns
     )
     
     return fig
 
-
-# You can call this function from your Streamlit app instead of generate_sat_rad_anim_ch1_optimized
-# st.plotly_chart(generate_sat_rad_multi_plots())
