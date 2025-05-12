@@ -556,6 +556,6 @@ def generate_sat_rad_anim_ch1():
     geojson_path = 'swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.geojson'
     
     # Create the animation
-    fig = plot_solar_radiation_animation(ds_renamed_var, geojson_path, min_value=0, max_value=900)
+    fig = plot_solar_radiation_animation_optimized(ds_renamed_var, geojson_path, min_value=0, max_value=900)
     
     return fig
