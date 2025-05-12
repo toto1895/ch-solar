@@ -555,7 +555,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
     # Update layout with optimized settings
     fig.update_layout(
         title=dict(
-            text=f"Solar Radiation at {last_time_str}",
+            text=f"Solar Radiation at {last_time_str} CET",
             x=0.0,
             y=0.95,
             xanchor='left',
@@ -624,7 +624,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                                 "transition": {"duration": 300}
                             }
                         ],
-                        "label": f'{time_labels[i][-5:]} UTC',  # Use time as the label instead of frame number
+                        "label": f'{time_labels[i][-5:]} CET',  # Use time as the label instead of frame number
                         "method": "animate"
                     }
                     for i in range(len(frames))
@@ -660,7 +660,7 @@ def generate_sat_rad_anim_ch1_optimized():
     combined_dataset = concat_datasets(datasets)
 
     min_lon, max_lon = 5.8, 10.5
-    min_lat, max_lat = 45.8, 47.8
+    min_lat, max_lat = 45.8, 48
 
     combined_dataset = combined_dataset.where((combined_dataset['lon'] >= min_lon) & 
                       (combined_dataset['lon'] <= max_lon) & 
