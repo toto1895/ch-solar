@@ -357,7 +357,7 @@ def create_image_slider_animation(frames, time_labels):
     st.session_state.frame_index = frame_index
     
     # Display the selected frame
-    animation_container.image(frames[frame_index], use_column_width=True)
+    animation_container.image(frames[frame_index], use_container_width=True)
     
     # Show the time below the slider
     st.caption(f"Time: {slider_labels[frame_index]}")
@@ -377,7 +377,7 @@ def create_image_slider_animation(frames, time_labels):
             st.session_state.frame_index = i
             
             # Display the current frame
-            animation_container.image(frames[i], use_column_width=True)
+            animation_container.image(frames[i], use_container_width=True)
             
             # Update title
             title_container.markdown(f"## Solar Radiation at {time_labels[i]} CET")
@@ -471,17 +471,26 @@ def generate_image_based_animation():
     # Generate frames (using simplified caching approach)
     frames, time_labels = generate_frames_with_caching(ds_renamed_var, cache_key)
         
-    # Create the slider-based animation
-    create_image_slider_animation(frames, time_labels)
+        # Create the slider-based animation
+        create_image_slider_animation(frames, time_labels)
     
     return "Animation completed"
 
 def main_render():
-   
+    st.title("Solar Radiation Animation")
+    st.write("Using pre-rendered images for better performance")
+    
     try:
         # Generate image-based animation
         result = generate_image_based_animation()
-
+        
+        # Add explanation
+        st.write("""
+        ### About this visualization
+        This animation shows solar radiation (W/m²) over Switzerland. 
+        The animation uses pre-rendered images for each frame to improve performance 
+        when using the time slider.
+        """)
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
         import traceback
