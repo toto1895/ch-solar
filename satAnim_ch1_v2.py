@@ -347,7 +347,14 @@ def create_image_slider_animation(frames, time_labels):
     # Show the time below the slider
     st.caption(f"Time: {slider_labels[frame_index]}")
     
-    
+    # Create a slider for selecting frames - use indices only, no formatting function
+    frame_index = st.slider(
+        "Time", 
+        min_value=0, 
+        max_value=len(frames)-1, 
+        value=st.session_state.frame_index,
+        key="time_slider"
+    )
     # Add play button in columns to keep the layout clean
     col1, col2 = st.columns([1, 3])
     with col1:
@@ -370,14 +377,7 @@ def create_image_slider_animation(frames, time_labels):
             
         # Reset to last frame after animation finishes
         st.session_state.frame_index = len(frames) - 1
-    # Create a slider for selecting frames - use indices only, no formatting function
-    frame_index = st.slider(
-        "Time", 
-        min_value=0, 
-        max_value=len(frames)-1, 
-        value=st.session_state.frame_index,
-        key="time_slider"
-    )
+    
     
     # Store the current index
     st.session_state.frame_index = frame_index
