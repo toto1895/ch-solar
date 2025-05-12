@@ -88,7 +88,7 @@ def create_boundary_traces(geojson_data):
                             lon=lons,
                             lat=lats,
                             mode='lines',
-                            line=dict(width=1, color='white'),
+                            line=dict(width=2.5, color='white'),
                             showlegend=False,
                             hoverinfo='skip'
                         )
@@ -103,7 +103,7 @@ def create_boundary_traces(geojson_data):
                         lon=lons,
                         lat=lats,
                         mode='lines',
-                        line=dict(width=1, color='white'),
+                        line=dict(width=2.5, color='white'),
                         showlegend=False,
                         hoverinfo='skip'
                     )
@@ -344,7 +344,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                             x=all_lons,
                             y=all_lats,
                             mode='lines',
-                            line=dict(color='white', width=1),
+                            line=dict(color='white', width=2.5),
                             hoverinfo='skip',
                             showlegend=False
                         )
@@ -571,7 +571,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                 "type": "buttons",
                 "buttons": [
                     {
-                        "args": [None, {"frame": {"duration": 500, "redraw": True}, "fromcurrent": True}],
+                        "args": [None, {"frame": {"duration": 300, "redraw": True}, "fromcurrent": True}],
                         "label": "Play",
                         "method": "animate"
                     },
@@ -668,9 +668,9 @@ def generate_sat_rad_anim_ch1_optimized():
         ds_renamed_var, 
         geojson_path, 
         min_value=0, 
-        max_value=900,
+        max_value=1100,
         downsample_factor=1,  # Downsample spatial resolution
-        max_frames=48          # Limit number of frames
+        max_frames=96          # Limit number of frames
     )
     
     return fig
