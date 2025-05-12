@@ -277,11 +277,19 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     ]
     
     # Add boundary traces to initial data
-    
-
-
-
-    
+    #for coords in border_coords:
+    #    lons_boundary = [point[0] for point in coords]
+    #    lats_boundary = [point[1] for point in coords]
+    #    initial_data.append(
+    #        go.Scatter(
+    #            x=lons_boundary,
+    #            y=lats_boundary,
+    #            mode='lines',
+    #            line=dict(color='white', width=1.5),
+    #            hoverinfo='skip',
+    #            showlegend=False
+    #        )
+    #    )
     
     # Add traces to figure
     for trace in initial_data:
