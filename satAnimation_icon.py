@@ -502,6 +502,12 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
         # Concatenate the datasets
         ds = concat_datasets(datasets)
 
+        ds_renamed_var = ds.rename({'GLOBAL_SW': 'SID'})[['SID']]
+    
+        # Convert time zones
+        time_index = pd.DatetimeIndex(ds_renamed_var.valid_time.values).tz_localize('UTC')
+        ds = ds_renamed_var.assign_coords(valid_time=time_index.tz_convert('CET'))
+
     # Define plot parameters
     min_value = 0
     max_value = 1100
