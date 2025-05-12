@@ -625,7 +625,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                                 "transition": {"duration": 300}
                             }
                         ],
-                        "label": time_labels[i],  # Use time as the label instead of frame number
+                        "label": time_labels[i][-5:],  # Use time as the label instead of frame number
                         "method": "animate"
                     }
                     for i in range(len(frames))
