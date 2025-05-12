@@ -650,6 +650,12 @@ def sat_anim_ch1():
 
     st.plotly_chart(fig_anim, use_container_width=True, theme=None)
 
+from satAnimation_icon_ch2 import generate_sat_rad_anim_ch1_optimized_ch2
+def sat_anim_ch2():
+    fig_anim = generate_sat_rad_anim_ch1_optimized_ch2()
+
+    st.plotly_chart(fig_anim, use_container_width=True, theme=None)
+
 
 import streamlit.components.v1 as components
 
@@ -682,7 +688,7 @@ def main():
         sat_anim_ch1()
 
     elif page_choice == "Forecast (ICON-CH2 2.1km)":
-        print('processing')
+        sat_anim_ch2()
 
     elif page_choice == 'Forecast (DWD-ICON-D2 2.1km)':
         print('processing')
