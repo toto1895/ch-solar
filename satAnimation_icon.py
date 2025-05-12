@@ -659,6 +659,15 @@ def generate_sat_rad_anim_ch1_optimized():
     # Concatenate the datasets
     combined_dataset = concat_datasets(datasets)
 
+    min_lon, max_lon = 5.8, 10.5
+    min_lat, max_lat = 45.8, 47.8
+
+    combined_dataset = combined_dataset.where((combined_dataset['lon'] >= min_lon) & 
+                      (combined_dataset['lon'] <= max_lon) & 
+                      (combined_dataset['lat'] >= min_lat) & 
+                      (combined_dataset['lat'] <= max_lat), 
+                      drop=True)
+
     # Rename variables
     ds_renamed_var = combined_dataset.rename({'GLOBAL_SW': 'SID'})[['SID']]
     
