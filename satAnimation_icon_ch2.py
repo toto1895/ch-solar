@@ -467,7 +467,7 @@ def get_connection():
 
 
 
-def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=32):
+def generate_solar_radiation_plots_(data_path=None, geojson_path=None, num_plots=32):
     """
     Generate multiple solar radiation plots using sample data or provided data.
     
