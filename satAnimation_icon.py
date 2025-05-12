@@ -200,7 +200,6 @@ def get_connection():
     return st.connection('gcs', type=FilesConnection)
 
 
-
 def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_value=0, max_value=700, 
                                  downsample_factor=1, max_frames=48):
     
@@ -355,6 +354,21 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
     # Get the last time index (always included)
     last_t_idx = time_indices[-1]
     
+    # Create time labels for each frame for slider
+    time_labels = []
+    for t_idx in time_indices:
+        if hasattr(xr_dataset[time_dim][t_idx], 'dt'):
+            # If it's a pandas/numpy datetime
+            ts = xr_dataset[time_dim][t_idx].dt.strftime('%Y-%m-%d %H:%M').values
+            time_str = str(ts)
+        else:
+            # Try to convert from numpy datetime64
+            try:
+                time_str = pd.to_datetime(xr_dataset[time_dim][t_idx].values).strftime('%Y-%m-%d %H:%M')
+            except:
+                time_str = f"Frame {t_idx+1}"
+        time_labels.append(time_str)
+    
     # Create the animation frames
     frames = []
     for i, t_idx in enumerate(time_indices):
@@ -382,16 +396,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                 data_downsampled = scipy.ndimage.zoom(data_slice, zoom_factors, order=1)
             
             # Format time string
-            if hasattr(xr_dataset[time_dim][t_idx], 'dt'):
-                # If it's a pandas/numpy datetime
-                ts = xr_dataset[time_dim][t_idx].dt.strftime('%Y-%m-%d %H:%M').values
-                time_str = str(ts)
-            else:
-                # Try to convert from numpy datetime64
-                try:
-                    time_str = pd.to_datetime(xr_dataset[time_dim][t_idx].values).strftime('%Y-%m-%d %H:%M')
-                except:
-                    time_str = f"Frame {i+1}"
+            time_str = time_labels[i]
             
             # Debug: check data values
             print(f"Frame {i} data min: {np.nanmin(data_downsampled)}, max: {np.nanmax(data_downsampled)}")
@@ -399,16 +404,29 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
             # Replace NaN values with a default value if necessary
             data_downsampled = np.nan_to_num(data_downsampled, nan=-999)
             
-            # Create frame with heatmap
+            # Calculate contour levels
+            contour_levels = np.linspace(min_value, max_value, 20)
+            
+            # Create frame with contour plot instead of heatmap
             frame_data = [
-                go.Heatmap(
+                go.Contour(
                     z=data_downsampled,
                     x=lons_downsampled,
                     y=lats_downsampled,
                     colorscale='turbo',
                     zmin=min_value,
                     zmax=max_value,
-                    ncontours=50,  
+                    contours=dict(
+                        start=min_value,
+                        end=max_value,
+                        size=(max_value-min_value)/20,
+                        showlabels=True,
+                        labelfont=dict(
+                            size=8,
+                            color='white',
+                        ),
+                    ),
+                    line=dict(width=0.5),
                     colorbar=dict(
                         title='W/m²',
                         title_side='right',
@@ -419,14 +437,11 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                         tickmode='auto',
                         nticks=8
                     ),
-                    # Handle NaN values with nanmin/nanmax if needed
                     hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>',
-                    # Make sure heatmap is behind boundaries
-                    zsmooth='best',  # Smooth the data
                 )
             ]
             
-            # Create frame - boundary traces go after heatmap so they're visible on top
+            # Create frame - boundary traces go after contour so they're visible on top
             frame = go.Frame(
                 data=frame_data + boundary_traces,
                 name=f'frame{i}',
@@ -481,17 +496,29 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
         # Replace NaN values with a default value if necessary
         initial_data_downsampled = np.nan_to_num(initial_data_downsampled, nan=-999)
         
-        # Create heatmap
+        # Calculate contour levels
+        contour_levels = np.linspace(min_value, max_value, 20)
+        
+        # Create contour plot instead of heatmap
         initial_data = [
-            go.Heatmap(
+            go.Contour(
                 z=initial_data_downsampled,
                 x=lons_downsampled,
                 y=lats_downsampled,
                 colorscale='turbo',
                 zmin=min_value,
                 zmax=max_value,
-                ncontours=50,  # Set number of contour levels to 50
-                
+                contours=dict(
+                    start=min_value,
+                    end=max_value,
+                    size=(max_value-min_value)/20,
+                    showlabels=True,
+                    labelfont=dict(
+                        size=8,
+                        color='white',
+                    ),
+                ),
+                line=dict(width=0.5),
                 colorbar=dict(
                     title='W/m²',
                     title_side='right',
@@ -503,13 +530,12 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                     nticks=8
                 ),
                 hovertemplate='Lon: %{x:.2f}<br>Lat: %{y:.2f}<br>Solar Radiation: %{z:.1f} W/m²<extra></extra>',
-                zsmooth='best',  # Smooth the data
             )
         ]
     except Exception as e:
         print(f"Error creating initial frame: {e}")
         # Use first frame data as fallback
-        initial_data = frames[0].data[:1]  # Just use the heatmap from the first frame
+        initial_data = frames[0].data[:1]  # Just use the contour from the first frame
     
     # Add boundary traces to initial data
     initial_data.extend(boundary_traces)
@@ -519,13 +545,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
         fig.add_trace(trace)
     
     # Get the time string for the last time index
-    try:
-        if hasattr(xr_dataset[time_dim][last_t_idx], 'dt'):
-            last_time_str = str(xr_dataset[time_dim][last_t_idx].dt.strftime('%Y-%m-%d %H:%M').values)
-        else:
-            last_time_str = pd.to_datetime(xr_dataset[time_dim][last_t_idx].values).strftime('%Y-%m-%d %H:%M')
-    except:
-        last_time_str = f"Frame {len(frames)}"
+    last_time_str = time_labels[-1]
     
     # Update layout with optimized settings
     fig.update_layout(
@@ -599,7 +619,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                                 "transition": {"duration": 300}
                             }
                         ],
-                        "label": f"Frame {i+1}",  # Simplified label for performance
+                        "label": time_labels[i],  # Use time as the label instead of frame number
                         "method": "animate"
                     }
                     for i in range(len(frames))
