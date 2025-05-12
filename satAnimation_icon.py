@@ -294,7 +294,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                             x=all_lons,
                             y=all_lats,
                             mode='lines',
-                            line=dict(color='white', width=1),
+                            line=dict(color='white', width=2),
                             hoverinfo='skip',
                             showlegend=False
                         )
