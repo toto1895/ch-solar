@@ -344,9 +344,6 @@ def create_image_slider_animation(frames, time_labels):
     # Create shortened time labels for the slider
     slider_labels = [label[-5:] + " CET" if len(label) >= 5 else label for label in time_labels]
     
-    # Show the time below the slider
-    st.caption(f"Time: {slider_labels[frame_index]}")
-    
     # Create a slider for selecting frames - use indices only, no formatting function
     frame_index = st.slider(
         "Time", 
@@ -355,6 +352,8 @@ def create_image_slider_animation(frames, time_labels):
         value=st.session_state.frame_index,
         key="time_slider"
     )
+    # Show the time below the slider
+    st.caption(f"Time: {slider_labels[frame_index]}")
     # Add play button in columns to keep the layout clean
     col1, col2 = st.columns([1, 3])
     with col1:
