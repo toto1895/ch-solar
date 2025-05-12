@@ -623,7 +623,7 @@ def plot_solar_radiation_animation_optimized(xr_dataset, geojson_path=None, min_
                                 "transition": {"duration": 300}
                             }
                         ],
-                        "label": time_labels[i],  # Use time as the label instead of frame number
+                        "label": time_labels[i][-5:],  # Use time as the label instead of frame number
                         "method": "animate"
                     }
                     for i in range(len(frames))
@@ -675,7 +675,7 @@ def generate_sat_rad_anim_ch1_optimized():
         geojson_path, 
         min_value=0, 
         max_value=1100,
-        downsample_factor=1,  # Downsample spatial resolution
+        downsample_factor=2,  # Downsample spatial resolution
         max_frames=96          # Limit number of frames
     )
     
