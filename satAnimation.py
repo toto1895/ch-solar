@@ -137,7 +137,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     import numpy as np
     
     # Get the variable name for solar radiation (assuming it's SID)
-    var_name = 'SID' if 'SID' in xr_dataset.variables else list(xr_dataset.data_vars)[0]
+    var_name = 'SIS' if 'SIS' in xr_dataset.variables else list(xr_dataset.data_vars)[0]
     
     # Create figure
     fig = go.Figure()
