@@ -495,7 +495,7 @@ def get_connection():
 
 def generate_sat_rad_anim():
     # Set the prefix
-    prefix = "dwd-solar-sat/radiation_sid/"
+    prefix = "dwd-solar-sat/radiation_sis/"
     
     # Get the connection using FilesConnection
     conn = get_connection()
