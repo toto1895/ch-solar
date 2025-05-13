@@ -255,7 +255,7 @@ def plot_solar_radiation_subplots(xr_dataset, geojson_path=None, min_value=0, ma
             gl.bottom_labels = False
         
         # Add title
-        ax.set_title(f'{time_str} CET', fontsize=10)
+        ax.set_title(f'{time_str} UTC', fontsize=10)
     
     # Add shared colorbar at the top
     cbar_ax = fig.add_subplot(gs[0, :])
