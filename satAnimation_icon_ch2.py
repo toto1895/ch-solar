@@ -525,7 +525,7 @@ def generate_solar_radiation_plots_(data_path=None, geojson_path=None, num_plots
         downsample_factor=1,
         time_indices=time_indices,
         num_cols=3,
-        figsize=(16, 100)
+        figsize=(16, 120)
     )
     
     return fig
