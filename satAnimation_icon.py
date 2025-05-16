@@ -499,6 +499,39 @@ def download_and_open_nc_files(conn, file_paths):
     
     return datasets
 
+def download_png(conn, file_paths):
+    """
+    Download nc files from GCS and open them with xarray.
+    
+    Parameters:
+    -----------
+    conn : FilesConnection
+        The connection to GCS
+    file_paths : list
+        List of file paths to download
+        
+    Returns:
+    --------
+    list
+        List of xarray datasets
+    """
+    datasets = []
+    
+    # Create a temporary directory to store the downloaded files
+    temp_dir = tempfile.mkdtemp()
+    
+    for file_path in file_paths:
+        try:
+            # Extract filename from path
+            file_name = os.path.basename(file_path)
+            temp_file_path = os.path.join(temp_dir, file_name)
+
+            conn._instance.get(file_path, temp_file_path)            
+        except Exception as e:
+            temp_file_path = None
+            print(f"Error processing file {file_path}: {e}")
+    
+    return temp_file_path
 
 def get_connection():
     """Get the GCS connection instance"""
@@ -599,7 +632,7 @@ def display_png():
     prefix = "icon-ch/ch1/rad-png/"
     conn = get_connection()
     files = get_latest_png_files(conn, prefix, count=1)
-    
+    png_path = download_png(conn, files)
     #datasets = download_and_open_nc_files(conn, files)
     st.write(files)
-    display_png_streamlit(files[0])
+    display_png_streamlit(png_path)
