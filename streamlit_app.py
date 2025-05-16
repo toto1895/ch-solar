@@ -690,9 +690,6 @@ def main():
 
     elif page_choice == "Forecast (ICON-CH2 2.1km)":
         sat_anim_ch2()
-
-    elif page_choice == 'Forecast (DWD-ICON-D2 2.1km)':
-        print('processing')
         
     elif page_choice == "About":
         about_page()
