@@ -625,6 +625,8 @@ def display_png_streamlit(image_path):
         
         # Load and display the image directly with streamlit
         img = Image.open(image_path)
+        st.image(img, caption="", use_container_width =True)
+
 
     except Exception as e:
         st.error(f"Error loading or displaying image: {e}")
