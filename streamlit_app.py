@@ -647,7 +647,7 @@ from satAnimation_icon import  display_png
 def sat_anim_ch1():
     display_png()
 
-from satAnimation_icon_ch2 import display_png
+from satAnimation_icon_ch2 import display_png_
 def sat_anim_ch2():
     display_png()
 

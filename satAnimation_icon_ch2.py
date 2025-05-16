@@ -633,7 +633,7 @@ def display_png_streamlit(image_path):
 
 
 
-def display_png():
+def display_png_():
     prefix = "icon-ch/ch2/rad-png/"
     conn = get_connection()
     files = get_latest_png_files(conn, prefix, count=1)
