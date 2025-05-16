@@ -377,6 +377,45 @@ def create_boundary_traces(geojson_data):
     
     return traces
 
+
+def get_latest_png_files(conn, prefix, count=12):
+    """
+    Get the latest count nc files from the specified prefix.
+    
+    Parameters:
+    -----------
+    conn : FilesConnection
+        The connection to GCS
+    prefix : str
+        Prefix for the objects to list
+    count : int, optional
+        Number of latest files to return
+        
+    Returns:
+    --------
+    list
+        List of file paths sorted by date (newest first)
+    """
+    try:
+        # Invalidate the cache to refresh the bucket listing
+        conn._instance.invalidate_cache(prefix)
+        
+        # List all files in the prefix
+        files = conn._instance.ls(prefix, max_results=50)
+        
+        # Filter for .nc files
+        nc_files = [f for f in files if f.endswith('.png')]
+        
+        # Sort files by name (which should contain date information)
+        nc_files.sort(reverse=True)
+        
+        # Return the latest count
+        return nc_files[:count]
+    except Exception as e:
+        print(f"Error listing files: {e}")
+        return []
+
+
 def get_latest_nc_files(conn, prefix, count=12):
     """
     Get the latest count nc files from the specified prefix.
@@ -559,8 +598,8 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
 def display_png():
     prefix = "icon-ch/ch1/rad-png/"
     conn = get_connection()
-    files = get_latest_nc_files(conn, prefix, count=1)
+    files = get_latest_png_files(conn, prefix, count=1)
     
     #datasets = download_and_open_nc_files(conn, files)
     st.write(files)
-    display_png_streamlit(files)
+    display_png_streamlit(files[0])
