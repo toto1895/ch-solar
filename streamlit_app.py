@@ -644,10 +644,11 @@ def sat_anim():
 
     st.plotly_chart(fig_anim, use_container_width=True, theme=None)
 
-from satAnimation_icon import generate_solar_radiation_plots
+from satAnimation_icon import generate_solar_radiation_plots, display_png
 def sat_anim_ch1():
-    fig_anim = generate_solar_radiation_plots(num_plots=32)
-    st.pyplot(fig_anim)
+    #fig_anim = generate_solar_radiation_plots(num_plots=32)
+    #st.pyplot(fig_anim)
+    display_png()
 
 
 

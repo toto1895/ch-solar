@@ -465,6 +465,31 @@ def get_connection():
     """Get the GCS connection instance"""
     return st.connection('gcs', type=FilesConnection)
 
+from PIL import Image
+
+def display_png_streamlit(image_path):
+    """
+    Display a PNG image in a Streamlit app.
+    
+    Parameters:
+    -----------
+    image_path : str
+        Path to the PNG image file
+    """
+    try:
+        st.title("PNG Image Display")
+        
+        # Check if file exists
+        if not os.path.exists(image_path):
+            st.error(f"Image file not found: {image_path}")
+            return
+        
+        # Load and display the image directly with streamlit
+        img = Image.open(image_path)
+        st.image(img, caption="Loaded PNG Image", use_column_width=True)
+
+    except Exception as e:
+        st.error(f"Error loading or displaying image: {e}")
 
 
 def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=32):
@@ -531,4 +556,10 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
     return fig
 
 
- 
+def display_png():
+    prefix = "icon-ch/ch1/radiation/"
+    conn = get_connection()
+    files = get_latest_nc_files(conn, prefix, count=1)
+    
+    #datasets = download_and_open_nc_files(conn, files)
+    display_png_streamlit(files[0])
