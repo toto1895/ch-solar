@@ -377,45 +377,6 @@ def create_boundary_traces(geojson_data):
     
     return traces
 
-
-def get_latest_png_files(conn, prefix, count=12):
-    """
-    Get the latest count nc files from the specified prefix.
-    
-    Parameters:
-    -----------
-    conn : FilesConnection
-        The connection to GCS
-    prefix : str
-        Prefix for the objects to list
-    count : int, optional
-        Number of latest files to return
-        
-    Returns:
-    --------
-    list
-        List of file paths sorted by date (newest first)
-    """
-    try:
-        # Invalidate the cache to refresh the bucket listing
-        conn._instance.invalidate_cache(prefix)
-        
-        # List all files in the prefix
-        files = conn._instance.ls(prefix, max_results=50)
-        
-        # Filter for .nc files
-        nc_files = [f for f in files if f.endswith('.png')]
-        
-        # Sort files by name (which should contain date information)
-        nc_files.sort(reverse=True)
-        
-        # Return the latest count
-        return nc_files[:count]
-    except Exception as e:
-        print(f"Error listing files: {e}")
-        return []
-
-
 def get_latest_nc_files(conn, prefix, count=12):
     """
     Get the latest count nc files from the specified prefix.
@@ -533,35 +494,51 @@ def download_png(conn, file_paths):
     
     return temp_file_path
 
-def get_connection():
-    """Get the GCS connection instance"""
-    return st.connection('gcs', type=FilesConnection)
 
-from PIL import Image
 
-def display_png_streamlit(image_path):
+def get_latest_png_files(conn, prefix, count=12):
     """
-    Display a PNG image in a Streamlit app.
+    Get the latest count nc files from the specified prefix.
     
     Parameters:
     -----------
-    image_path : str
-        Path to the PNG image file
+    conn : FilesConnection
+        The connection to GCS
+    prefix : str
+        Prefix for the objects to list
+    count : int, optional
+        Number of latest files to return
+        
+    Returns:
+    --------
+    list
+        List of file paths sorted by date (newest first)
     """
     try:
-        st.success(f"MODEL RUN {image_path.split('/')[-1][:-4]}")
+        # Invalidate the cache to refresh the bucket listing
+        conn._instance.invalidate_cache(prefix)
         
-        # Check if file exists
-        if not os.path.exists(image_path):
-            st.error(f"Image file not found: {image_path}")
-            return
+        # List all files in the prefix
+        files = conn._instance.ls(prefix, max_results=50)
         
-        # Load and display the image directly with streamlit
-        img = Image.open(image_path)
-        st.image(img, caption="Loaded PNG Image", use_container_width =True)
-
+        # Filter for .nc files
+        nc_files = [f for f in files if f.endswith('.png')]
+        
+        # Sort files by name (which should contain date information)
+        nc_files.sort(reverse=True)
+        
+        # Return the latest count
+        return nc_files[:count]
     except Exception as e:
-        st.error(f"Error loading or displaying image: {e}")
+        print(f"Error listing files: {e}")
+        return []
+
+
+
+
+def get_connection():
+    """Get the GCS connection instance"""
+    return st.connection('gcs', type=FilesConnection)
 
 
 def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=32):
@@ -626,6 +603,34 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
     )
     
     return fig
+
+
+from PIL import Image
+
+def display_png_streamlit(image_path):
+    """
+    Display a PNG image in a Streamlit app.
+    
+    Parameters:
+    -----------
+    image_path : str
+        Path to the PNG image file
+    """
+    try:
+        st.success(f"MODEL RUN {image_path.split('/')[-1][:-4]}")
+        
+        # Check if file exists
+        if not os.path.exists(image_path):
+            st.error(f"Image file not found: {image_path}")
+            return
+        
+        # Load and display the image directly with streamlit
+        img = Image.open(image_path)
+        st.image(img, caption="Loaded PNG Image", use_container_width =True)
+
+    except Exception as e:
+        st.error(f"Error loading or displaying image: {e}")
+
 
 
 def display_png():

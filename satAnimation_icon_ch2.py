@@ -531,4 +531,111 @@ def generate_solar_radiation_plots_(data_path=None, geojson_path=None, num_plots
     return fig
 
 
- 
+def download_png(conn, file_paths):
+    """
+    Download nc files from GCS and open them with xarray.
+    
+    Parameters:
+    -----------
+    conn : FilesConnection
+        The connection to GCS
+    file_paths : list
+        List of file paths to download
+        
+    Returns:
+    --------
+    list
+        List of xarray datasets
+    """
+    datasets = []
+    
+    # Create a temporary directory to store the downloaded files
+    temp_dir = tempfile.mkdtemp()
+    
+    for file_path in file_paths:
+        try:
+            # Extract filename from path
+            file_name = os.path.basename(file_path)
+            temp_file_path = os.path.join(temp_dir, file_name)
+
+            conn._instance.get(file_path, temp_file_path)            
+        except Exception as e:
+            temp_file_path = None
+            print(f"Error processing file {file_path}: {e}")
+    
+    return temp_file_path
+
+
+
+def get_latest_png_files(conn, prefix, count=12):
+    """
+    Get the latest count nc files from the specified prefix.
+    
+    Parameters:
+    -----------
+    conn : FilesConnection
+        The connection to GCS
+    prefix : str
+        Prefix for the objects to list
+    count : int, optional
+        Number of latest files to return
+        
+    Returns:
+    --------
+    list
+        List of file paths sorted by date (newest first)
+    """
+    try:
+        # Invalidate the cache to refresh the bucket listing
+        conn._instance.invalidate_cache(prefix)
+        
+        # List all files in the prefix
+        files = conn._instance.ls(prefix, max_results=50)
+        
+        # Filter for .nc files
+        nc_files = [f for f in files if f.endswith('.png')]
+        
+        # Sort files by name (which should contain date information)
+        nc_files.sort(reverse=True)
+        
+        # Return the latest count
+        return nc_files[:count]
+    except Exception as e:
+        print(f"Error listing files: {e}")
+        return []
+
+from PIL import Image
+
+def display_png_streamlit(image_path):
+    """
+    Display a PNG image in a Streamlit app.
+    
+    Parameters:
+    -----------
+    image_path : str
+        Path to the PNG image file
+    """
+    try:
+        st.success(f"MODEL RUN {image_path.split('/')[-1][:-4]}")
+        
+        # Check if file exists
+        if not os.path.exists(image_path):
+            st.error(f"Image file not found: {image_path}")
+            return
+        
+        # Load and display the image directly with streamlit
+        img = Image.open(image_path)
+        st.image(img, caption="Loaded PNG Image", use_container_width =True)
+
+    except Exception as e:
+        st.error(f"Error loading or displaying image: {e}")
+
+
+
+def display_png():
+    prefix = "icon-ch/ch2/rad-png/"
+    conn = get_connection()
+    files = get_latest_png_files(conn, prefix, count=1)
+    png_path = download_png(conn, files)
+    #datasets = download_and_open_nc_files(conn, files)
+    display_png_streamlit(png_path)
