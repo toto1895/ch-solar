@@ -650,8 +650,6 @@ def sat_anim_ch1():
     #st.pyplot(fig_anim)
     display_png()
 
-
-
 from satAnimation_icon_ch2 import display_png
 def sat_anim_ch2():
     display_png()
