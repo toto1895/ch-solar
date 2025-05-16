@@ -674,7 +674,6 @@ def main():
                     "Near-Realtime (MeteoSat 5km)",
                     "Forecast (ICON-CH1 1km)",
                     "Forecast (ICON-CH2 2.1km)",
-                    "Forecast (DWD-ICON-d2 2.1km)",
                     "About"
                                             ]
     )
