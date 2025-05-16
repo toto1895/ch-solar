@@ -649,7 +649,7 @@ def sat_anim_ch1():
 
 from satAnimation_icon_ch2 import display_png_
 def sat_anim_ch2():
-    display_png()
+    display_png_()
 
 
 import streamlit.components.v1 as components
