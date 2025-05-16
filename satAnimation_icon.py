@@ -634,5 +634,5 @@ def display_png():
     files = get_latest_png_files(conn, prefix, count=1)
     png_path = download_png(conn, files)
     #datasets = download_and_open_nc_files(conn, files)
-    st.write(files)
+    st.write(png_path)
     display_png_streamlit(png_path)
