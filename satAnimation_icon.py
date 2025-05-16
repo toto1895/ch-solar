@@ -557,7 +557,7 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
 
 
 def display_png():
-    prefix = "icon-ch/ch1/radiation/"
+    prefix = "icon-ch/ch1/rad-png/"
     conn = get_connection()
     files = get_latest_nc_files(conn, prefix, count=1)
     
