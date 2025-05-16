@@ -549,7 +549,7 @@ def display_png_streamlit(image_path):
         Path to the PNG image file
     """
     try:
-        st.title("PNG Image Display")
+        st.status(f"MODEL RUN {image_path.split('/')[-1][:-4]}")
         
         # Check if file exists
         if not os.path.exists(image_path):
@@ -558,7 +558,7 @@ def display_png_streamlit(image_path):
         
         # Load and display the image directly with streamlit
         img = Image.open(image_path)
-        st.image(img, caption="Loaded PNG Image", use_column_width=True)
+        st.image(img, caption="Loaded PNG Image", use_container_width =True)
 
     except Exception as e:
         st.error(f"Error loading or displaying image: {e}")
