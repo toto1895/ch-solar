@@ -637,7 +637,6 @@ def display_png_streamlit(image_path):
         st.error(f"Error loading or displaying image: {e}")
 
 
-
 def display_png(param):
     filename_prefix = None
     if param=='solar':
