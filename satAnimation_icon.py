@@ -498,7 +498,7 @@ def download_png(conn, file_paths):
     return None
 
 # Also improve the display_png function with caching
-def get_latest_png_file_cached(conn, prefix, filename_prefix=None):
+def get_latest_png_file_cached(conn, prefix, filename_prefix=None, count=1):
     """
     Get the latest PNG file path with caching.
     
