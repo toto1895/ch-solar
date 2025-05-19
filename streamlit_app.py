@@ -682,7 +682,13 @@ def main():
         sat_anim_ch1()
 
     elif page_choice == "Forecast (ICON-CH2 2.1km)":
-        sat_anim_ch2()
+        selected = st.selectbox(
+            "weather parameter:",
+            options=['solar','precip','cloud','wind_speed'],
+            index=0  # Default to dmi_seamless
+        )
+        if selected=='solar':
+            sat_anim_ch2()
         
     elif page_choice == "About":
         about_page()
