@@ -641,11 +641,11 @@ def display_png_streamlit(image_path):
 def display_png(param):
     
     if param=='solar':
-        prefix = "icon-ch/ch1/rad-png/"
+        prefix = "icon-ch/ch1/rad-png"
         filename_prefix = None
         
     elif param=='precip':
-        prefix = "icon-ch/ch1/other-png/"
+        prefix = "icon-ch/ch1/other_png"
         filename_prefix = 'TOT_PREC'
 
     
