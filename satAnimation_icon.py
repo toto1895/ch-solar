@@ -633,8 +633,13 @@ def display_png_streamlit(image_path):
 
 
 
-def display_png():
-    prefix = "icon-ch/ch1/rad-png/"
+def display_png(param):
+    if param=='solar':
+        prefix = "icon-ch/ch1/rad-png/"
+        
+    elif param=='precip':
+        prefix = "icon-ch/ch1/other-png/TOT_PREC"
+    
     conn = get_connection()
     files = get_latest_png_files(conn, prefix, count=1)
     png_path = download_png(conn, files)

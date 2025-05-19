@@ -644,8 +644,8 @@ def sat_anim():
     st.plotly_chart(fig_anim, use_container_width=True, theme=None)
 
 from satAnimation_icon import  display_png
-def sat_anim_ch1():
-    display_png()
+def sat_anim_ch1(param):
+    display_png(param)
 
 from satAnimation_icon_ch2 import display_png_
 def sat_anim_ch2():
@@ -684,8 +684,8 @@ def main():
             options=['solar','precip','cloud','wind_speed'],
             index=0  # Default to dmi_seamless
         )
-        if selected=='solar':
-            sat_anim_ch1()
+        sat_anim_ch1(selected)
+
 
     elif page_choice == "Forecast (ICON-CH2 2.1km)":
         selected = st.selectbox(
