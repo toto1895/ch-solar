@@ -615,6 +615,7 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
 
 from PIL import Image
 
+@st.cache_data(ttl=3600) 
 def display_png_streamlit(image_path):
     """
     Display a PNG image in a Streamlit app.
