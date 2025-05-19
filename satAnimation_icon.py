@@ -495,17 +495,18 @@ def download_png(conn, file_paths):
     return temp_file_path
 
 
-
-def get_latest_png_files(conn, prefix, count=12):
+def get_latest_png_files(conn, prefix, filename_prefix=None, count=12):
     """
-    Get the latest count nc files from the specified prefix.
+    Get the latest count png files from the specified prefix with optional filename prefix filter.
     
     Parameters:
     -----------
     conn : FilesConnection
         The connection to GCS
     prefix : str
-        Prefix for the objects to list
+        Prefix for the objects to list (directory path)
+    filename_prefix : str, optional
+        Optional prefix for the filenames (like 'TOT_PREC' or 'CLOUD')
     count : int, optional
         Number of latest files to return
         
@@ -519,20 +520,24 @@ def get_latest_png_files(conn, prefix, count=12):
         conn._instance.invalidate_cache(prefix)
         
         # List all files in the prefix
-        files = conn._instance.ls(prefix, max_results=50)
+        files = conn._instance.ls(prefix, max_results=100)  # Increased max_results to ensure we get enough files
         
-        # Filter for .nc files
-        nc_files = [f for f in files if f.endswith('.png')]
+        # Filter for .png files
+        png_files = [f for f in files if f.endswith('.png')]
+        
+        # Apply the filename prefix filter if provided
+        if filename_prefix:
+            # Get just the filename part (after the last slash)
+            png_files = [f for f in png_files if f.split('/')[-1].startswith(filename_prefix)]
         
         # Sort files by name (which should contain date information)
-        nc_files.sort(reverse=True)
+        png_files.sort(reverse=True)
         
         # Return the latest count
-        return nc_files[:count]
+        return png_files[:count]
     except Exception as e:
         print(f"Error listing files: {e}")
         return []
-
 
 
 
@@ -634,14 +639,17 @@ def display_png_streamlit(image_path):
 
 
 def display_png(param):
+    filename_prefix = None
     if param=='solar':
         prefix = "icon-ch/ch1/rad-png/"
         
     elif param=='precip':
-        prefix = "icon-ch/ch1/other-png/TOT_PREC*"
+        prefix = "icon-ch/ch1/other-png/"
+        filename_prefix = 'TOT_PREC'
+
     
     conn = get_connection()
-    files = get_latest_png_files(conn, prefix, count=1)
+    files = get_latest_png_files(conn, prefix, filename_prefix, count=1)
     png_path = download_png(conn, files)
     #datasets = download_and_open_nc_files(conn, files)
     display_png_streamlit(png_path)
