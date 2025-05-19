@@ -462,7 +462,6 @@ def download_and_open_nc_files(conn, file_paths):
 
 
 
-@st.cache_data(ttl=3600)  # Cache for 1 hour
 def download_png(conn, file_paths):
     """
     Download PNG files from GCS with caching support.
@@ -499,7 +498,6 @@ def download_png(conn, file_paths):
     return None
 
 # Also improve the display_png function with caching
-@st.cache_data(ttl=3600)  # Cache for 1 hour
 def get_latest_png_file_cached(conn, prefix, filename_prefix=None):
     """
     Get the latest PNG file path with caching.
@@ -615,7 +613,6 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
 
 from PIL import Image
 
-@st.cache_data(ttl=3600) 
 def display_png_streamlit(image_path):
     """
     Display a PNG image in a Streamlit app.
