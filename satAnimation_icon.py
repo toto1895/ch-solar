@@ -638,7 +638,7 @@ def display_png_streamlit(image_path):
 
 
 
-def display_png(param):
+def display_png_ch1(param):
     
     if param=='solar':
         prefix = "icon-ch/ch1/rad-png"
@@ -654,6 +654,33 @@ def display_png(param):
     
     elif param=='temperature':
         prefix = "icon-ch/ch1/other_png"
+        filename_prefix = 'T_2M'
+
+    
+    conn = get_connection()
+    files = get_latest_png_file_cached(conn, prefix, filename_prefix, count=1)
+    png_path = download_png(conn, files)
+    #datasets = download_and_open_nc_files(conn, files)
+    display_png_streamlit(png_path)
+
+
+
+def display_png_ch2(param):
+    
+    if param=='solar':
+        prefix = "icon-ch/ch2/rad-png"
+        filename_prefix = None
+        
+    elif param=='precipitation':
+        prefix = "icon-ch/ch2/other_png"
+        filename_prefix = 'TOT_PREC'
+
+    elif param=='cloud':
+        prefix = "icon-ch/ch2/other_png"
+        filename_prefix = 'CLCT'
+    
+    elif param=='temperature':
+        prefix = "icon-ch/ch2/other_png"
         filename_prefix = 'T_2M'
 
     

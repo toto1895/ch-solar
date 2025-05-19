@@ -643,13 +643,8 @@ def sat_anim():
     fig_anim = generate_sat_rad_anim()
     st.plotly_chart(fig_anim, use_container_width=True, theme=None)
 
-from satAnimation_icon import  display_png
-def sat_anim_ch1(param):
-    display_png(param)
+from satAnimation_icon import  display_png_ch1, display_png_ch2
 
-from satAnimation_icon_ch2 import display_png_
-def sat_anim_ch2():
-    display_png_()
 
 
 import streamlit.components.v1 as components
@@ -685,7 +680,7 @@ def main():
             index=0  # Default to dmi_seamless
         )
         with st.spinner("Downloading ..."):
-            sat_anim_ch1(selected)
+            display_png_ch1(selected)
 
 
     elif page_choice == "Forecast (ICON-CH2 2.1km)":
@@ -694,8 +689,9 @@ def main():
             options=['solar','precipitation','cloud','temperature'],
             index=0  # Default to dmi_seamless
         )
-        if selected=='solar':
-            sat_anim_ch2()
+        with st.spinner("Downloading ..."):
+            display_png_ch2(selected)
+
         
     elif page_choice == "About":
         about_page()
