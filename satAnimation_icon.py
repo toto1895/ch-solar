@@ -644,9 +644,17 @@ def display_png(param):
         prefix = "icon-ch/ch1/rad-png"
         filename_prefix = None
         
-    elif param=='precip':
+    elif param=='precipitation':
         prefix = "icon-ch/ch1/other_png"
         filename_prefix = 'TOT_PREC'
+
+    elif param=='cloud':
+        prefix = "icon-ch/ch1/other_png"
+        filename_prefix = 'CLCT'
+    
+    elif param=='temperature':
+        prefix = "icon-ch/ch1/other_png"
+        filename_prefix = 'T_2M'
 
     
     conn = get_connection()
