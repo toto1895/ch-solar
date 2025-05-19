@@ -526,28 +526,35 @@ def download_png(conn, files):
     str
         Path to the downloaded PNG file or None if download failed
     """
+    # Initialize the variable outside the try block
+    temp_file_path = None
+    
     if not files:
         print("No files to download")
         return None
     
     try:
-        # Create a temporary file to store the downloaded PNG
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
-        temp_file_path = temp_file.name
-        temp_file.close()  # Close the file so it can be written to
-        
-        # Download the first file in the list
+        # Get the first file in the list
         file_path = files[0]
+        
+        # Create a temporary file to store the downloaded PNG
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as temp_file:
+            temp_file_path = temp_file.name
+        
         print(f"Downloading {file_path} to {temp_file_path}")
         conn.get(file_path, temp_file_path)
         
-        return temp_file_path
     except Exception as e:
+        # If there's an error, try to clean up the temp file
+        if temp_file_path and os.path.exists(temp_file_path):
+            try:
+                os.remove(temp_file_path)
+            except:
+                pass
+        temp_file_path = None
         print(f"Error downloading file: {e}")
-        # If temp_file_path exists and there's an error, try to clean it up
-        if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
-        return None
+    
+    return temp_file_path
 
 def display_png_streamlit(png_path):
     """
