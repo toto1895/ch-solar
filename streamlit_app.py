@@ -684,7 +684,8 @@ def main():
             options=['solar','precipitation','cloud','temperature'],
             index=0  # Default to dmi_seamless
         )
-        sat_anim_ch1(selected)
+        with st.spinner("Downloading ..."):
+            sat_anim_ch1(selected)
 
 
     elif page_choice == "Forecast (ICON-CH2 2.1km)":
