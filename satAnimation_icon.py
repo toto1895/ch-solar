@@ -647,7 +647,6 @@ def display_png(param):
         prefix = "icon-ch/ch1/other-png/"
         filename_prefix = 'TOT_PREC'
 
-    
     conn = get_connection()
     files = get_latest_png_files(conn, prefix, filename_prefix, count=1)
     png_path = download_png(conn, files)
