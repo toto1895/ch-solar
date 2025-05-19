@@ -639,9 +639,10 @@ def display_png_streamlit(image_path):
 
 
 def display_png(param):
-    filename_prefix = None
+    
     if param=='solar':
         prefix = "icon-ch/ch1/rad-png/"
+        filename_prefix = None
         
     elif param=='precip':
         prefix = "icon-ch/ch1/other-png/"
@@ -649,7 +650,7 @@ def display_png(param):
 
     
     conn = get_connection()
-    files = get_latest_png_files(conn, prefix,filename_prefix, count=1)
+    files = get_latest_png_files(conn, prefix, filename_prefix, count=1)
     print(files)
     png_path = download_png(conn, files)
     #datasets = download_and_open_nc_files(conn, files)
