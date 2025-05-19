@@ -544,7 +544,7 @@ def get_latest_png_file_cached(conn, prefix, filename_prefix=None):
 
 
 @st.cache_resource
-def initialize_connection():
+def get_connection():
     """Initialize and return the GCS connection."""
     return st.connection('gcs', type=FilesConnection)
 
