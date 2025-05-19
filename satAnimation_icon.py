@@ -648,6 +648,7 @@ def display_png(param):
 
     conn = get_connection()
     files = get_latest_png_files(conn, prefix, filename_prefix, count=1)
+    print(files)
     png_path = download_png(conn, files)
     #datasets = download_and_open_nc_files(conn, files)
     display_png_streamlit(png_path)
