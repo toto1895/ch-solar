@@ -460,9 +460,12 @@ def download_and_open_nc_files(conn, file_paths):
     
     return datasets
 
+
+
+@st.cache_data(ttl=3600)  # Cache for 1 hour
 def download_png(conn, file_paths):
     """
-    Download nc files from GCS and open them with xarray.
+    Download PNG files from GCS with caching support.
     
     Parameters:
     -----------
@@ -473,31 +476,33 @@ def download_png(conn, file_paths):
         
     Returns:
     --------
-    list
-        List of xarray datasets
+    str or None
+        Path to the downloaded file or None if error
     """
-    datasets = []
-    
     # Create a temporary directory to store the downloaded files
     temp_dir = tempfile.mkdtemp()
     
     for file_path in file_paths:
         try:
-            # Extract filename from path
+            # Extract filename from path to use in the cached path
             file_name = os.path.basename(file_path)
             temp_file_path = os.path.join(temp_dir, file_name)
-
-            conn._instance.get(file_path, temp_file_path)            
+            
+            # Download the file to the temporary location
+            conn._instance.get(file_path, temp_file_path)
+            return temp_file_path
+            
         except Exception as e:
-            temp_file_path = None
-            print(f"Error processing file {file_path}: {e}")
+            st.error(f"Error downloading file {file_path}: {e}")
+            return None
     
-    return temp_file_path
+    return None
 
-
-def get_latest_png_files(conn, prefix, filename_prefix=None, count=12):
+# Also improve the display_png function with caching
+@st.cache_data(ttl=3600)  # Cache for 1 hour
+def get_latest_png_file_cached(conn, prefix, filename_prefix=None):
     """
-    Get the latest count png files from the specified prefix with optional filename prefix filter.
+    Get the latest PNG file path with caching.
     
     Parameters:
     -----------
@@ -506,39 +511,36 @@ def get_latest_png_files(conn, prefix, filename_prefix=None, count=12):
     prefix : str
         Prefix for the objects to list (directory path)
     filename_prefix : str, optional
-        Optional prefix for the filenames (like 'TOT_PREC' or 'CLOUD')
-    count : int, optional
-        Number of latest files to return
+        Optional prefix for the filenames
         
     Returns:
     --------
     list
-        List of file paths sorted by date (newest first)
+        List containing the most recent file path
     """
     try:
         # Invalidate the cache to refresh the bucket listing
         conn._instance.invalidate_cache(prefix)
         
         # List all files in the prefix
-        files = conn._instance.ls(prefix, max_results=100)  # Increased max_results to ensure we get enough files
+        files = conn._instance.ls(prefix, max_results=100)
         
         # Filter for .png files
         png_files = [f for f in files if f.endswith('.png')]
         
         # Apply the filename prefix filter if provided
         if filename_prefix:
-            # Get just the filename part (after the last slash)
             png_files = [f for f in png_files if f.split('/')[-1].startswith(filename_prefix)]
         
         # Sort files by name (which should contain date information)
         png_files.sort(reverse=True)
         
-        # Return the latest count
-        return png_files[:count]
+        # Return only the latest file
+        return png_files[:1] if png_files else []
+    
     except Exception as e:
-        print(f"Error listing files: {e}")
+        st.error(f"Error listing files: {e}")
         return []
-
 
 
 def get_connection():
@@ -658,8 +660,7 @@ def display_png(param):
 
     
     conn = get_connection()
-    files = get_latest_png_files(conn, prefix, filename_prefix, count=1)
-    print(files)
+    files = get_latest_png_file_cached(conn, prefix, filename_prefix, count=1)
     png_path = download_png(conn, files)
     #datasets = download_and_open_nc_files(conn, files)
     display_png_streamlit(png_path)
