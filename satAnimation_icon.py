@@ -638,7 +638,7 @@ def display_png(param):
         prefix = "icon-ch/ch1/rad-png/"
         
     elif param=='precip':
-        prefix = "icon-ch/ch1/other-png/TOT_PREC"
+        prefix = "icon-ch/ch1/other-png/TOT_PREC*"
     
     conn = get_connection()
     files = get_latest_png_files(conn, prefix, count=1)
