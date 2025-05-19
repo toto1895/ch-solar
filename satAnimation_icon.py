@@ -460,40 +460,11 @@ def download_and_open_nc_files(conn, file_paths):
     
     return datasets
 
-def download_png(conn, file_paths):
-    """
-    Download nc files from GCS and open them with xarray.
-    
-    Parameters:
-    -----------
-    conn : FilesConnection
-        The connection to GCS
-    file_paths : list
-        List of file paths to download
-        
-    Returns:
-    --------
-    list
-        List of xarray datasets
-    """
-    datasets = []
-    
-    # Create a temporary directory to store the downloaded files
-    temp_dir = tempfile.mkdtemp()
-    
-    for file_path in file_paths:
-        try:
-            # Extract filename from path
-            file_name = os.path.basename(file_path)
-            temp_file_path = os.path.join(temp_dir, file_name)
 
-            conn._instance.get(file_path, temp_file_path)            
-        except Exception as e:
-            temp_file_path = None
-            print(f"Error processing file {file_path}: {e}")
-    
-    return temp_file_path
 
+import os
+import tempfile
+import streamlit as st
 
 def get_latest_png_files(conn, prefix, filename_prefix=None, count=12):
     """
@@ -520,7 +491,7 @@ def get_latest_png_files(conn, prefix, filename_prefix=None, count=12):
         conn._instance.invalidate_cache(prefix)
         
         # List all files in the prefix
-        files = conn._instance.ls(prefix, max_results=100)  # Increased max_results to ensure we get enough files
+        files = conn._instance.ls(prefix, max_results=100)
         
         # Filter for .png files
         png_files = [f for f in files if f.endswith('.png')]
@@ -539,6 +510,100 @@ def get_latest_png_files(conn, prefix, filename_prefix=None, count=12):
         print(f"Error listing files: {e}")
         return []
 
+def download_png(conn, files):
+    """
+    Download the first PNG file from the provided list.
+    
+    Parameters:
+    -----------
+    conn : FilesConnection
+        The connection to GCS
+    files : list
+        List of file paths
+        
+    Returns:
+    --------
+    str
+        Path to the downloaded PNG file or None if download failed
+    """
+    if not files:
+        print("No files to download")
+        return None
+    
+    try:
+        # Create a temporary file to store the downloaded PNG
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
+        temp_file_path = temp_file.name
+        temp_file.close()  # Close the file so it can be written to
+        
+        # Download the first file in the list
+        file_path = files[0]
+        print(f"Downloading {file_path} to {temp_file_path}")
+        conn.get(file_path, temp_file_path)
+        
+        return temp_file_path
+    except Exception as e:
+        print(f"Error downloading file: {e}")
+        # If temp_file_path exists and there's an error, try to clean it up
+        if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+        return None
+
+def display_png_streamlit(png_path):
+    """
+    Display a PNG file in Streamlit.
+    
+    Parameters:
+    -----------
+    png_path : str
+        Path to the PNG file to display
+    """
+    if png_path and os.path.exists(png_path):
+        try:
+            # Read the image file
+            with open(png_path, "rb") as f:
+                image_bytes = f.read()
+            
+            # Display the image in Streamlit
+            st.image(image_bytes, caption="Latest Image", use_column_width=True)
+            
+            # Clean up the temporary file after displaying
+            os.remove(png_path)
+        except Exception as e:
+            st.error(f"Error displaying image: {e}")
+    else:
+        st.error("No image available to display")
+
+def display_png(param):
+    filename_prefix = None
+    if param == 'solar':
+        prefix = "icon-ch/ch1/rad-png/"
+    elif param == 'precip':
+        prefix = "icon-ch/ch1/other-png/"
+        filename_prefix = 'TOT_PREC'
+    else:
+        st.error(f"Unknown parameter: {param}")
+        return
+    
+    try:
+        conn = get_connection()
+        files = get_latest_png_files(conn, prefix, filename_prefix, count=1)
+        print(f"Files found: {files}")
+        
+        if not files:
+            st.warning(f"No PNG files found with prefix: {prefix}" + 
+                      (f" and filename starting with {filename_prefix}" if filename_prefix else ""))
+            return
+        
+        png_path = download_png(conn, files)
+        if png_path:
+            display_png_streamlit(png_path)
+        else:
+            st.error("Failed to download image")
+    except Exception as e:
+        st.error(f"Error in display_png: {e}")
+        import traceback
+        st.error(traceback.format_exc())
 
 
 def get_connection():
