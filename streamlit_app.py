@@ -12,6 +12,15 @@ import io
 import os
 
 
+from satAnimation import generate_sat_rad_anim
+from satAnimation_icon import  display_png_ch1, display_png_ch2
+
+def sat_anim():
+    fig_anim = generate_sat_rad_anim()
+    st.plotly_chart(fig_anim, use_container_width=True, theme=None)
+
+
+
 # Page configuration
 st.set_page_config(
     page_title="Swiss solar dashboard",
@@ -650,17 +659,6 @@ def about_page():
     For more information or support, please contact the development team.
     """)
 
-
-from satAnimation import generate_sat_rad_anim
-def sat_anim():
-    fig_anim = generate_sat_rad_anim()
-    st.plotly_chart(fig_anim, use_container_width=True, theme=None)
-
-from satAnimation_icon import  display_png_ch1, display_png_ch2
-
-
-
-import streamlit.components.v1 as components
 
 def main():
     
