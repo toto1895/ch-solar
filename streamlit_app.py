@@ -434,6 +434,7 @@ def home_page():
         # Load capacity data
         capa_df = load_data(latest_file, 'parquet', conn)
 
+        st.dataframe(capa_df)
         #unique_pairs = set(zip(map['Canton'], map['operator']))
         #capa_df = capa_d[capa_d.apply(lambda row: (row['Canton'], row['operator']) in unique_pairs, axis=1)]
         
