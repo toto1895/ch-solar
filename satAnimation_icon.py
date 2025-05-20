@@ -545,7 +545,6 @@ def get_connection():
     """Initialize and return the GCS connection."""
     return st.connection('gcs', type=FilesConnection)
 
-
 def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=32):
     """
     Generate multiple solar radiation plots using sample data or provided data.
@@ -609,7 +608,6 @@ def generate_solar_radiation_plots(data_path=None, geojson_path=None, num_plots=
     
     return fig
 
-
 from PIL import Image
 
 def display_png_streamlit(image_path):
@@ -636,8 +634,6 @@ def display_png_streamlit(image_path):
     except Exception as e:
         st.error(f"Error loading or displaying image: {e}")
 
-
-
 def display_png_ch1(param):
     
     if param=='solar':
@@ -662,8 +658,6 @@ def display_png_ch1(param):
     png_path = download_png(conn, files)
     #datasets = download_and_open_nc_files(conn, files)
     display_png_streamlit(png_path)
-
-
 
 def display_png_ch2(param):
     
