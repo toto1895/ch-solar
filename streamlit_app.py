@@ -6,7 +6,6 @@ import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime
 import re
-from google.oauth2 import service_account
 from st_files_connection import FilesConnection
 import gc
 import io
@@ -413,7 +412,7 @@ def home_page():
     
     # Get the latest parquet file for capacity data
     latest_file = get_latest_parquet_file(conn)
-    
+    st.write(latest_file)
     # Load the power plants data
     powerplants = load_data('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv', 'csv', conn)
 
