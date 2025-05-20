@@ -563,10 +563,11 @@ def home_page():
                 var_name='Canton',         # Name for the variable column
                 value_name='Pronovo'       # Name for the value column
             )
-            # If you want to sort by datetime
+
             pronovo_long = pronovo_long.sort_values('datetime').reset_index(drop=True)
             filtered_df = pd.merge(filtered_df, pronovo_long, on=["datetime","Canton"], how="left")
             st.dataframe(filtered_df)
+            
             # Calculate power metrics
             filtered_df['p0.5_canton'] = 1.1*filtered_df['p0.5'] * filtered_df['cum_canton'] / 1000
             filtered_df['p0.1_canton'] = 1.1*filtered_df['p0.1'] * filtered_df['cum_canton'] / 1000
