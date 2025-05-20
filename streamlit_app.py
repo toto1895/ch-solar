@@ -419,8 +419,6 @@ def home_page():
 
     pronovo = load_data('oracle_predictions/swiss_solar/datasets/solar_part_0.csv', 'csv', conn)
     
-    st.dataframe(pronovo)
-
     if powerplants is not None:
         powerplants = powerplants[['Canton', 'operator', 'longitude', 'latitude', 'TotalPower']]
     
@@ -434,7 +432,6 @@ def home_page():
         # Load capacity data
         capa_df = load_data(latest_file, 'parquet', conn)
 
-        st.dataframe(capa_df)
         #unique_pairs = set(zip(map['Canton'], map['operator']))
         #capa_df = capa_d[capa_d.apply(lambda row: (row['Canton'], row['operator']) in unique_pairs, axis=1)]
         
@@ -558,6 +555,8 @@ def home_page():
             capa_installed =filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()
                                                    ].groupby('datetime')['cum_operator'].sum().values[0]
             st.success(f"Declared installed capacity: {round(capa_installed/1000):,.0f} MW  ( Today ~{1.1*round(capa_installed/1000):,.0f} MW) ")
+            
+            filtered_df = pd.merge(filtered_df, pronovo, on=["datetime","Canton"], how="left")
             st.dataframe(filtered_df)
             # Calculate power metrics
             filtered_df['p0.5_canton'] = 1.1*filtered_df['p0.5'] * filtered_df['cum_canton'] / 1000
