@@ -714,15 +714,15 @@ def main():
     st.markdown("##")  # Extra space
     
     # Create a container for the bottom section
-    bottom_container = st.container()
+    #bottom_container = st.container()
     
     # Use expander to take minimal space (optional)
-    with st.sidebar:
-        st.markdown("---")
-        b_code="""
-        <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="wamine" data-description="Support me on Buy me a coffee!" data-message="" data-color="#FF813F" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
-        """
-        components.html(b_code, height=500)
+    #with st.sidebar:
+    #    st.markdown("---")
+    #    b_code="""
+    #    <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="wamine" data-description="Support me on Buy me a coffee!" data-message="" data-color="#FF813F" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
+    #    """
+    #    components.html(b_code, height=500)
         
 
 
