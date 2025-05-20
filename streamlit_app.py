@@ -406,6 +406,12 @@ def home_page():
     # Initialize connection
     conn = get_connection()
 
+    if conn is None:
+        st.error("❌ Could not establish connection to Google Cloud Storage")
+        st.info("Check your connection settings in .streamlit/secrets.toml")
+        st.info("Try enabling Connection Diagnostics in the sidebar to troubleshoot.")
+        return
+
     # Define available models and clusters
     available_models = ["dmi_seamless", "metno_seamless", "icon_d2", "meteofrance_seamless"]
     available_clusters = ["cluster0", "cluster1", "cluster2"]
