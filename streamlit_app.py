@@ -416,7 +416,11 @@ def home_page():
     
     # Load the power plants data
     powerplants = load_data('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv', 'csv', conn)
+
+    pronovo = load_data('oracle_predictions/swiss_solar/datasets/solar_part_0.csv', 'csv', conn)
     
+    st.dataframe(pronovo)
+
     if powerplants is not None:
         powerplants = powerplants[['Canton', 'operator', 'longitude', 'latitude', 'TotalPower']]
     
@@ -660,9 +664,9 @@ def main():
 
     page_choice = st.sidebar.radio("Go to page:", [
                     "Home",
-                    "Near-Realtime (MeteoSat 5km)",
-                    "Forecast (ICON-CH1 1km)",
-                    "Forecast (ICON-CH2 2.1km)",
+                    "Weather Near-Realtime (MeteoSat 5km)",
+                    "Weather Forecast (ICON-CH1 1km)",
+                    "Weather Forecast (ICON-CH2 2.1km)",
                     "About"
                                             ]
     )
@@ -670,10 +674,10 @@ def main():
     if page_choice == "Home":
         home_page()
 
-    elif page_choice=='Near-Realtime (MeteoSat 5km)':
+    elif page_choice=='Weather Near-Realtime (MeteoSat 5km)':
         sat_anim()
 
-    elif page_choice == "Forecast (ICON-CH1 1km)":
+    elif page_choice == "Weather Forecast (ICON-CH1 1km)":
         selected = st.selectbox(
             "weather parameter:",
             options=['solar','precipitation','cloud','temperature'],
@@ -683,7 +687,7 @@ def main():
             display_png_ch1(selected)
 
 
-    elif page_choice == "Forecast (ICON-CH2 2.1km)":
+    elif page_choice == "Weather Forecast (ICON-CH2 2.1km)":
         selected = st.selectbox(
             "weather parameter:",
             options=['solar','precipitation','cloud','temperature'],
