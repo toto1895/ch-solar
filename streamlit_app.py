@@ -556,7 +556,17 @@ def home_page():
                                                    ].groupby('datetime')['cum_operator'].sum().values[0]
             st.success(f"Declared installed capacity: {round(capa_installed/1000):,.0f} MW  ( Today ~{1.1*round(capa_installed/1000):,.0f} MW) ")
             
-            filtered_df = pd.merge(filtered_df, pronovo, on=["datetime","Canton"], how="left")
+            pronovo_long = pd.melt(
+                pronovo,
+                id_vars=['datetime'],    # Column to keep as is
+                value_vars=pronovo.drop(columns='datetime').columns,  # Columns to unpivot
+                var_name='Canton',         # Name for the variable column
+                value_name='Pronovo'       # Name for the value column
+            )
+
+            # If you want to sort by datetime
+            pronovo_long = pronovo_long.sort_values('datetime').reset_index(drop=True)
+            filtered_df = pd.merge(filtered_df, pronovo_long, on=["datetime","Canton"], how="left")
             st.dataframe(filtered_df)
             # Calculate power metrics
             filtered_df['p0.5_canton'] = 1.1*filtered_df['p0.5'] * filtered_df['cum_canton'] / 1000
