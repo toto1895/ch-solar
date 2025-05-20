@@ -531,16 +531,19 @@ def generate_sat_rad_anim():
     
 
     # Concatenate the datasets
-    combined_dataset = concat_datasets(datasets)
-    
-    # Convert time zones
-    time_index = pd.DatetimeIndex(combined_dataset.time.values).tz_localize('UTC')
-    combined_dataset = combined_dataset.assign_coords(time=time_index.tz_convert('CET'))
+    try:
+        combined_dataset = concat_datasets(datasets)
         
-    # Path to the Swiss cantonal boundaries GeoJSON
-    geojson_path = 'swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.geojson'
-    
-    # Create the animation
-    fig = plot_solar_radiation_animation(combined_dataset, geojson_path, min_value=0,max_value=900)
-    
-    return fig
+        # Convert time zones
+        time_index = pd.DatetimeIndex(combined_dataset.time.values).tz_localize('UTC')
+        combined_dataset = combined_dataset.assign_coords(time=time_index.tz_convert('CET'))
+            
+        # Path to the Swiss cantonal boundaries GeoJSON
+        geojson_path = 'swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.geojson'
+        
+        # Create the animation
+        fig = plot_solar_radiation_animation(combined_dataset, geojson_path, min_value=0,max_value=900)
+        
+        return fig
+    except:
+        None
