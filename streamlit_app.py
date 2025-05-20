@@ -43,8 +43,30 @@ st.markdown(
 
 # Create a connection instance once
 def get_connection():
-    """Get the GCS connection instance"""
-    return st.connection('gcs', type=FilesConnection)
+    """Get the GCS connection instance with error handling"""
+    try:
+        # Check if FilesConnection is properly imported
+        if 'FilesConnection' not in globals():
+            st.error("FilesConnection is not properly imported. Make sure st_files_connection is installed.")
+            st.info("Try running: pip install st-files-connection")
+            return None
+            
+        # Check if GCS connection is configured in Streamlit secrets
+        conn = st.connection('gcs', type=FilesConnection)
+        
+        # Test the connection with a simple operation
+        # This will raise an exception if the connection isn't properly configured
+        # Just accessing a property to force initialization
+        _ = conn._instance
+        
+        return conn
+    except Exception as e:
+        st.error(f"Error establishing GCS connection: {str(e)}")
+        st.info("Make sure you have configured GCS credentials in .streamlit/secrets.toml")
+        # Provide more detailed troubleshooting info
+        import traceback
+        st.text(traceback.format_exc())
+        return None
 
 def fetch_files(conn, prefix, pattern=None):
     """Fetch files from a bucket prefix with optional pattern matching"""
@@ -723,8 +745,6 @@ def main():
         
 
 
-if __name__ == "__main__":
-    
-    main()
+main()
 
     #add_google_analytics('G-NKZVTQPKS5')
