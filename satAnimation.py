@@ -136,7 +136,7 @@ def plot_solar_radiation_animation(xr_dataset, geojson_path=None, min_value=0, m
     import json
     import numpy as np
     
-    
+
     # Get the variable name for solar radiation (assuming it's SID)
     var_name = 'SIS' if 'SIS' in xr_dataset.variables else list(xr_dataset.data_vars)[0]
     
@@ -490,8 +490,30 @@ def download_and_open_nc_files(conn, file_paths):
 
 
 def get_connection():
-    """Get the GCS connection instance"""
-    return st.connection('gcs', type=FilesConnection)
+    """Get the GCS connection instance with error handling"""
+    try:
+        # Check if FilesConnection is properly imported
+        if 'FilesConnection' not in globals():
+            st.error("FilesConnection is not properly imported. Make sure st_files_connection is installed.")
+            st.info("Try running: pip install st-files-connection")
+            return None
+            
+        # Check if GCS connection is configured in Streamlit secrets
+        conn = st.connection('gcs', type=FilesConnection)
+        
+        # Test the connection with a simple operation
+        # This will raise an exception if the connection isn't properly configured
+        # Just accessing a property to force initialization
+        _ = conn._instance
+        
+        return conn
+    except Exception as e:
+        st.error(f"Error establishing GCS connection: {str(e)}")
+        st.info("Make sure you have configured GCS credentials in .streamlit/secrets.toml")
+        # Provide more detailed troubleshooting info
+        import traceback
+        st.text(traceback.format_exc())
+        return None
 
 
 def generate_sat_rad_anim():
