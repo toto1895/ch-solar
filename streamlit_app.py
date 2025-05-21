@@ -6,19 +6,11 @@ import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime
 import re
+from google.oauth2 import service_account
 from st_files_connection import FilesConnection
 import gc
 import io
 import os
-
-
-from satAnimation import generate_sat_rad_anim
-from satAnimation_icon import  display_png_ch1, display_png_ch2
-
-def sat_anim():
-    fig_anim = generate_sat_rad_anim()
-    st.plotly_chart(fig_anim, use_container_width=True, theme=None)
-
 
 
 # Page configuration
@@ -43,30 +35,8 @@ st.markdown(
 
 # Create a connection instance once
 def get_connection():
-    """Get the GCS connection instance with error handling"""
-    try:
-        # Check if FilesConnection is properly imported
-        if 'FilesConnection' not in globals():
-            st.error("FilesConnection is not properly imported. Make sure st_files_connection is installed.")
-            st.info("Try running: pip install st-files-connection")
-            return None
-            
-        # Check if GCS connection is configured in Streamlit secrets
-        conn = st.connection('gcs', type=FilesConnection)
-        
-        # Test the connection with a simple operation
-        # This will raise an exception if the connection isn't properly configured
-        # Just accessing a property to force initialization
-        _ = conn._instance
-        
-        return conn
-    except Exception as e:
-        st.error(f"Error establishing GCS connection: {str(e)}")
-        st.info("Make sure you have configured GCS credentials in .streamlit/secrets.toml")
-        # Provide more detailed troubleshooting info
-        import traceback
-        st.text(traceback.format_exc())
-        return None
+    """Get the GCS connection instance"""
+    return st.connection('gcs', type=FilesConnection)
 
 def fetch_files(conn, prefix, pattern=None):
     """Fetch files from a bucket prefix with optional pattern matching"""
@@ -406,12 +376,6 @@ def home_page():
     # Initialize connection
     conn = get_connection()
 
-    if conn is None:
-        st.error("❌ Could not establish connection to Google Cloud Storage")
-        st.info("Check your connection settings in .streamlit/secrets.toml")
-        st.info("Try enabling Connection Diagnostics in the sidebar to troubleshoot.")
-        
-
     # Define available models and clusters
     available_models = ["dmi_seamless", "metno_seamless", "icon_d2", "meteofrance_seamless"]
     available_clusters = ["cluster0", "cluster1", "cluster2"]
@@ -449,7 +413,7 @@ def home_page():
     
     # Get the latest parquet file for capacity data
     latest_file = get_latest_parquet_file(conn)
-    st.write(latest_file)
+    
     # Load the power plants data
     powerplants = load_data('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv', 'csv', conn)
 
@@ -688,6 +652,17 @@ def about_page():
     """)
 
 
+from satAnimation import generate_sat_rad_anim
+def sat_anim():
+    fig_anim = generate_sat_rad_anim()
+    st.plotly_chart(fig_anim, use_container_width=True, theme=None)
+
+from satAnimation_icon import  display_png_ch1, display_png_ch2
+
+
+
+import streamlit.components.v1 as components
+
 def main():
     
     st.sidebar.title("Navigation")
@@ -751,6 +726,8 @@ def main():
         
 
 
-main()
+if __name__ == "__main__":
+    
+    main()
 
     #add_google_analytics('G-NKZVTQPKS5')
