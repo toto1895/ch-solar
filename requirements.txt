@@ -3,6 +3,7 @@ pandas
 numpy
 plotly
 google-cloud-storage
+google-auth
 st-files-connection
 fastparquet
 fsspec
