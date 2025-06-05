@@ -566,6 +566,7 @@ def home_page():
             )
             
             #pronovo_f = pd.merge(pronovo_long,filtered_df, on=["datetime","Canton"], how="left")
+            st.dataframe(pronovo_long.head())
             st.dataframe(filtered_df.head())
             pronovo_long = pronovo_long.sort_values('datetime').reset_index(drop=True)
             
