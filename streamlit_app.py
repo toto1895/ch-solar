@@ -566,7 +566,7 @@ def home_page():
             )
             
             #pronovo_f = pd.merge(pronovo_long,filtered_df, on=["datetime","Canton"], how="left")
-            st.dataframe(filtered_df)
+            st.dataframe(filtered_df.head())
             pronovo_long = pronovo_long.sort_values('datetime').reset_index(drop=True)
             
             filtered_df['p0.5_canton'] = 1.1*filtered_df['p0.5'] * filtered_df['cum_canton'] / 1000
