@@ -516,6 +516,7 @@ def home_page():
                         filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)]
                         full_capa = full_capa[full_capa["Canton"].isin(selected_cantons)]
                         nowcast = nowcast[nowcast["Canton"].isin(selected_cantons)]
+                        pronovo = pronovo[pronovo["Canton"].isin(selected_cantons)]
                     
                 elif filter_type == "Operator":
                     # Check if 'operator' column exists in merged_df
@@ -563,7 +564,8 @@ def home_page():
                 var_name='Canton',         # Name for the variable column
                 value_name='Pronovo'       # Name for the value column
             )
-            st.dataframe(pronovo_long)
+            pronovo_f = pd.merge(pronovo_long, filtered_df, on=["datetime","Canton"], how="left")
+            st.dataframe(pronovo_f)
             pronovo_long = pronovo_long.sort_values('datetime').reset_index(drop=True)
             #filtered_df = pd.merge(filtered_df, pronovo_long, on=["datetime","Canton"], how="left")
             #st.dataframe(filtered_df)
