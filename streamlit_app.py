@@ -564,7 +564,7 @@ def home_page():
                 var_name='Canton',         # Name for the variable column
                 value_name='Pronovo'       # Name for the value column
             )
-            pronovo_f = pd.merge(filtered_df,pronovo_long, on=["datetime","Canton"], how="left")
+            pronovo_f = pd.merge(pronovo_long,filtered_df, on=["datetime","Canton"], how="left")
             st.dataframe(pronovo_f)
             pronovo_long = pronovo_long.sort_values('datetime').reset_index(drop=True)
             
