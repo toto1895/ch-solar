@@ -543,6 +543,7 @@ def home_page():
             gc.collect()
             
             # Prepare the filtered dataframe for visualization
+            st.dataframe(filtered_df)
             filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator',
                                        'cum_canton', 'cum_operator','year_month','TotalPower']]
             filtered_df.drop_duplicates(['datetime','Canton','operator'], inplace=True)
@@ -572,8 +573,6 @@ def home_page():
                 pronovo_long = pronovo_long[pronovo_long["Operator"].isin(selected_operators)]
             
             pronovo_long = pronovo_long.sort_values('datetime').reset_index(drop=True)
-
-            
             
             filtered_df['p0.5_canton'] = 1.1*filtered_df['p0.5'] * filtered_df['cum_canton'] / 1000
             filtered_df['p0.1_canton'] = 1.1*filtered_df['p0.1'] * filtered_df['cum_canton'] / 1000
