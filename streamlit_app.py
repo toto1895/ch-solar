@@ -587,7 +587,6 @@ def home_page():
             pronovo_long['datetime'] = pd.to_datetime(pronovo_long['datetime'])
 
             pronovo_f = pd.merge(pronovo_long,capa_df, on=["Canton"], how="left")
-            
             st.dataframe(pronovo_f)
 
             chart_type = st.radio(
