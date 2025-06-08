@@ -150,7 +150,7 @@ def load_and_concat_parquet_files(conn, date_str, time_str=None):
     return concatenated_df
 
 
-def create_forecast_chart(filtered_df, nowcast, filter_type, selected_cantons=None, selected_operators=None):
+def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_cantons=None, selected_operators=None):
     """Create a forecast chart based on filtered data"""
     fig = go.Figure()
     plot_df = filtered_df.copy()
@@ -163,6 +163,9 @@ def create_forecast_chart(filtered_df, nowcast, filter_type, selected_cantons=No
 
             canton_now = nowcast[nowcast['Canton'] == canton]
             canton_now = canton_now.sort_values('datetime')
+
+            pronovo_now = pronovo_f[pronovo_f['Canton'] == canton]
+            pronovo_now = pronovo_now.sort_values('datetime')
             
             canton_df = canton_df.groupby(['datetime']).agg({
                 'p0.5_operator': 'sum',
@@ -173,10 +176,15 @@ def create_forecast_chart(filtered_df, nowcast, filter_type, selected_cantons=No
             canton_now = canton_now.groupby(['datetime']).agg({
                 'SolarProduction':'sum'
             }).reset_index()
+
+            pronovo_now = pronovo_now.groupby(['datetime']).agg({
+                'Pronovo_f':'sum'
+            }).reset_index()
             
             # Add traces for this canton
             add_forecast_traces(fig, canton_df, canton)
             add_forecast_traces(fig, canton_now, "Nowcast", color='white')
+            add_forecast_traces(fig, pronovo_now, "Pronovo", color='pink')
             
     # Case 2: Operator filtering
     elif filter_type == "Operator" and 'operator' in filtered_df.columns and selected_operators:
@@ -187,8 +195,15 @@ def create_forecast_chart(filtered_df, nowcast, filter_type, selected_cantons=No
             canton_now = nowcast[nowcast['operator'] == operator]
             canton_now = canton_now.sort_values('datetime')
 
+            pronovo_now = pronovo_f[pronovo_f['operator'] == operator]
+            pronovo_now = pronovo_now.sort_values('datetime')
+
             canton_now = canton_now.groupby(['datetime']).agg({
                 'SolarProduction':'sum'
+            }).reset_index()
+
+            pronovo_now = pronovo_now.groupby(['datetime']).agg({
+                'Pronovo_f':'sum'
             }).reset_index()
             
             operator_df = operator_df.groupby(['datetime']).agg({
@@ -200,6 +215,7 @@ def create_forecast_chart(filtered_df, nowcast, filter_type, selected_cantons=No
             # Add traces for this operator
             add_forecast_traces(fig, operator_df, operator)
             add_forecast_traces(fig, canton_now, "Nowcast", color='white')
+            add_forecast_traces(fig, pronovo_now, "Pronovo", color='pink')
 
     
     # Case 3: No specific filtering
@@ -215,9 +231,14 @@ def create_forecast_chart(filtered_df, nowcast, filter_type, selected_cantons=No
                 'SolarProduction':'sum'
             }).reset_index()
         
+        pronovo_now = pronovo_f.groupby(['datetime']).agg({
+                'Pronovo_f':'sum'
+            }).reset_index()
+        
         # Add traces for the total
         add_forecast_traces(fig, operator_df, "Total", color='red')
         add_forecast_traces(fig, canton_now, "Nowcast", color='white')
+        add_forecast_traces(fig, pronovo_now, "Pronovo", color='pink')
     
     # Add total line if multiple selections
     try:
@@ -598,7 +619,7 @@ def home_page():
             
             if chart_type == "Forecast Chart":
                 # Create forecast chart
-                fig = create_forecast_chart(filtered_df,nowcast, filter_type, selected_cantons, selected_operators)
+                fig = create_forecast_chart(filtered_df,pronovo_f,nowcast, filter_type, selected_cantons, selected_operators)
                 st.plotly_chart(fig, use_container_width=True)
             
             elif chart_type =='Monthly installed capacity':
