@@ -503,7 +503,7 @@ def home_page():
             except:
                 nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
             #merged_df = pd.merge(merged_df, nowcast, on=["datetime","Canton",'operator'], how="left")
-            st.dataframe(nowcast.tail())
+            #st.dataframe(nowcast.tail())
 
             # Clean up to free memory
             #del capa_df
@@ -545,7 +545,10 @@ def home_page():
                     if selected_cantons:
                         filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)]
                         full_capa = full_capa[full_capa["Canton"].isin(selected_cantons)]
-                        nowcast = nowcast[nowcast["Canton"].isin(selected_cantons)]
+                        try:
+                            nowcast = nowcast[nowcast["Canton"].isin(selected_cantons)]
+                        except:
+                            pass
                         #pronovo = pronovo[pronovo["Canton"].isin(selected_cantons)]
                     
                 elif filter_type == "Operator":
@@ -563,7 +566,12 @@ def home_page():
                         # Filter the dataframe based on selected operators
                         if selected_operators:
                             filtered_df = merged_df[merged_df["operator"].isin(selected_operators)]
-                            nowcast = nowcast[nowcast["operator"].isin(selected_operators)]
+                            
+                            try:
+                                nowcast = nowcast[nowcast["operator"].isin(selected_operators)]
+                            except:
+                                pass
+                            
                             full_capa = full_capa[full_capa["operator"].isin(selected_operators)]
                     else:
                         st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
