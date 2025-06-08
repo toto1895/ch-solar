@@ -155,7 +155,6 @@ def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_
     fig = go.Figure()
     plot_df = filtered_df.copy()
     
-    
     # Case 1: Canton filtering
     if filter_type == "Canton" and selected_cantons:
         for canton in selected_cantons:
