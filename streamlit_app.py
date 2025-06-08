@@ -585,8 +585,8 @@ def home_page():
             filtered_df['datetime'] = pd.to_datetime(filtered_df['datetime'])
             pronovo_long['datetime'] = pd.to_datetime(pronovo_long['datetime'])
 
-            pronovo_f = pd.merge(pronovo_long,capa_df, on=["Canton"], how="left")
-            st.dataframe(pronovo_f.head())
+            #pronovo_f = pd.merge(pronovo_long,capa_df, on=["Canton"], how="left")
+            #st.dataframe(pronovo_f.head())
 
             chart_type = st.radio(
                 "Select visualization type:",
