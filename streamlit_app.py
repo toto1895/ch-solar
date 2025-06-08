@@ -587,6 +587,7 @@ def home_page():
 
             pronovo_f = pd.merge(pronovo_long,filtered_df, on=['datetime',"Canton"], how="left")
             pronovo_f['Pronovo_f'] = pronovo_f['cum_ratio'] * pronovo_f['Pronovo'] 
+            
             st.dataframe(pronovo_f.tail())
 
             chart_type = st.radio(
