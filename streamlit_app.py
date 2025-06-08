@@ -497,9 +497,16 @@ def home_page():
 
             dt = merged_df['datetime'].min().tz_convert('CET')
             try:
-                nowcast = load_and_concat_parquet_files(conn, dt.strftime("%Y%m%d"),
-                #                                         ['0445', '0500']
-                                                        )
+                h = []
+                for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=3):
+                    try:
+                        nowcast = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"),
+                        #                                         ['0445', '0500']
+                                                                )
+                        h.append(nowcast)
+                    except:
+                        pass
+                nowcast = pd.concat(h)
             except:
                 nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
             #merged_df = pd.merge(merged_df, nowcast, on=["datetime","Canton",'operator'], how="left")
