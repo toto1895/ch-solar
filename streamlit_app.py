@@ -182,9 +182,9 @@ def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_
             }).reset_index()
             
             # Add traces for this canton
-            add_forecast_traces(fig, canton_df, canton)
-            add_forecast_traces(fig, canton_now, "Nowcast", color='white')
-            add_forecast_traces(fig, pronovo_now, "Pronovo", color='pink')
+            #add_forecast_traces(fig, canton_df, canton)
+            #add_forecast_traces(fig, canton_now, "Nowcast", color='white')
+            #add_forecast_traces(fig, pronovo_now, "Pronovo", color='pink')
             
     # Case 2: Operator filtering
     elif filter_type == "Operator" and 'operator' in filtered_df.columns and selected_operators:
@@ -213,9 +213,9 @@ def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_
             }).reset_index()
             
             # Add traces for this operator
-            add_forecast_traces(fig, operator_df, operator)
-            add_forecast_traces(fig, canton_now, "Nowcast", color='white')
-            add_forecast_traces(fig, pronovo_now, "Pronovo", color='pink')
+            #add_forecast_traces(fig, operator_df, operator)
+            #add_forecast_traces(fig, canton_now, "Nowcast", color='white')
+            #add_forecast_traces(fig, pronovo_now, "Pronovo", color='pink')
 
     
     # Case 3: No specific filtering
@@ -236,9 +236,12 @@ def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_
             }).reset_index()
         
         # Add traces for the total
-        add_forecast_traces(fig, operator_df, "Total", color='red')
+    add_forecast_traces(fig, operator_df, "Total", color='red')
+    try:
         add_forecast_traces(fig, canton_now, "Nowcast", color='white')
-        add_forecast_traces(fig, pronovo_now, "Pronovo", color='pink')
+    except:
+        pass
+    add_forecast_traces(fig, pronovo_now, "Pronovo", color='pink')
     
     # Add total line if multiple selections
     try:
