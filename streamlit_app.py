@@ -496,21 +496,20 @@ def home_page():
             merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
 
             dt = merged_df['datetime'].min().tz_convert('CET')
-            try:
-                h = []
-                for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=3):
-                    try:
-                        nowcast = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"),
-                        #                                         ['0445', '0500']
-                                                                )
-                        h.append(nowcast)
-                    except:
-                        pass
-                nowcast = pd.concat(h)
-            except:
-                nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
-            #merged_df = pd.merge(merged_df, nowcast, on=["datetime","Canton",'operator'], how="left")
-            #st.dataframe(nowcast.tail())
+            #try:
+            h = []
+            for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=3):
+                try:
+                    nowcast = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"),
+                    #                                         ['0445', '0500']
+                                                            )
+                    h.append(nowcast)
+                except:
+                    nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
+            nowcast = pd.concat(h)
+            #except:
+            #    nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
+            
 
             # Clean up to free memory
             #del capa_df
