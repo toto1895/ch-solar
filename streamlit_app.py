@@ -571,11 +571,9 @@ def home_page():
             elif filter_type == "Operator" and selected_operators:
                 pronovo_long = pronovo_long[pronovo_long["Operator"].isin(selected_operators)]
             
-            #pronovo_f = pd.merge(pronovo_long,filtered_df, on=["datetime","Canton"], how="left")
-            
-            
             pronovo_long = pronovo_long.sort_values('datetime').reset_index(drop=True)
-            st.dataframe(pronovo_long.head())
+
+            
             
             filtered_df['p0.5_canton'] = 1.1*filtered_df['p0.5'] * filtered_df['cum_canton'] / 1000
             filtered_df['p0.1_canton'] = 1.1*filtered_df['p0.1'] * filtered_df['cum_canton'] / 1000
@@ -585,6 +583,9 @@ def home_page():
             filtered_df['p0.1_operator'] = 1.1*filtered_df['p0.1'] * filtered_df['cum_operator'] / 1000
             filtered_df['p0.9_operator'] = 1.1*filtered_df['p0.9'] * filtered_df['cum_operator'] / 1000
             
+            pronovo_f = pd.merge(pronovo_long,filtered_df, on=["datetime","Canton"], how="left")
+            
+            st.dataframe(pronovo_f.head())
             # Add a radio button for chart type selection
             chart_type = st.radio(
                 "Select visualization type:",
