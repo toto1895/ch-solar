@@ -545,7 +545,7 @@ def home_page():
             # Prepare the filtered dataframe for visualization
             st.dataframe(filtered_df)
             filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator',
-                                       'cum_canton', 'cum_operator','year_month','TotalPower']]
+                                       'cum_canton', 'cum_operator','cum_ratio','year_month','TotalPower']]
             filtered_df.drop_duplicates(['datetime','Canton','operator'], inplace=True)
             try:
                 nowcast.drop_duplicates(['datetime','Canton','operator'], inplace=True)
@@ -585,8 +585,8 @@ def home_page():
             filtered_df['datetime'] = pd.to_datetime(filtered_df['datetime'])
             pronovo_long['datetime'] = pd.to_datetime(pronovo_long['datetime'])
 
-            #pronovo_f = pd.merge(pronovo_long,capa_df, on=["Canton"], how="left")
-            #st.dataframe(pronovo_f.head())
+            pronovo_f = pd.merge(pronovo_long,capa_df, on=['datetime',"Canton"], how="left")
+            st.dataframe(pronovo_f.tail())
 
             chart_type = st.radio(
                 "Select visualization type:",
