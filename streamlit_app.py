@@ -340,8 +340,9 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
 
 def create_heatmap(merged_plants):
     """Create a heatmap visualization for plant locations"""
-    merged_plants['TotalPower_x'] = round(merged_plants['TotalPower_x']/1000,1)
     
+    merged_plants['TotalPower_x'] = round(merged_plants['TotalPower_x']/1000,1)
+
     fig = px.density_map(
         merged_plants,
         lat="latitude",
