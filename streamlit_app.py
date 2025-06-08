@@ -635,6 +635,7 @@ def home_page():
             pronovo_f.dropna(subset='p0.5', inplace=True)
 
             # NOW filter pronovo_long based on the selected filters
+            st.dataframe(pronovo_f.head())
             if filter_type == "Canton" and selected_cantons:
                 pronovo_f = pronovo_f[pronovo_f["Canton"].isin(selected_cantons)]
             elif filter_type == "Operator" and selected_operators:
