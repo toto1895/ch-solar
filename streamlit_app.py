@@ -575,7 +575,7 @@ def home_page():
             
             
             pronovo_long = pronovo_long.sort_values('datetime').reset_index(drop=True)
-            st.dataframe(pd.concat([pronovo_long,filtered_df],axis=1).head())
+            st.dataframe(pronovo_long.head())
             
             filtered_df['p0.5_canton'] = 1.1*filtered_df['p0.5'] * filtered_df['cum_canton'] / 1000
             filtered_df['p0.1_canton'] = 1.1*filtered_df['p0.1'] * filtered_df['cum_canton'] / 1000
