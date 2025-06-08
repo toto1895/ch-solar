@@ -264,7 +264,7 @@ def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_
         add_forecast_traces(fig, canton_now, "Nowcast", color='white')
     except:
         pass
-    add_forecast_traces(fig, pronovo_now, "Pronovo", color='pink')
+    add_forecast_traces(fig, pronovo_now, "Pronovo", color='white')
     
     # Update layout
     fig.update_layout(
@@ -324,7 +324,7 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
                 x=df['datetime'],
                 y=df['SolarProduction'],
                 mode='lines',
-                name=f'{name} - Actual',
+                name=f'{name} - Meteosat',
                 line=line_style
             ))
         except:
@@ -333,7 +333,7 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
                 y=df['Pronovo_f'],
                 mode='lines',
                 name=f'{name} - Actual',
-                line=line_style
+                line=dash_style
             ))
 
 
