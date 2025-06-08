@@ -158,8 +158,8 @@ def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_
     # Case 1: Canton filtering
     if filter_type == "Canton" and selected_cantons:
         for canton in selected_cantons:
-            canton_df = plot_df[plot_df['Canton'] == canton]
-            canton_df = canton_df.sort_values('datetime')
+            total_df = plot_df[plot_df['Canton'] == canton]
+            total_df = total_df.sort_values('datetime')
 
             canton_now = nowcast[nowcast['Canton'] == canton]
             canton_now = canton_now.sort_values('datetime')
@@ -167,7 +167,7 @@ def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_
             pronovo_now = pronovo_f[pronovo_f['Canton'] == canton]
             pronovo_now = pronovo_now.sort_values('datetime')
             
-            canton_df = canton_df.groupby(['datetime']).agg({
+            total_df = total_df.groupby(['datetime']).agg({
                 'p0.5_operator': 'sum',
                 'p0.1_operator': 'sum',
                 'p0.9_operator': 'sum'
@@ -189,8 +189,8 @@ def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_
     # Case 2: Operator filtering
     elif filter_type == "Operator" and 'operator' in filtered_df.columns and selected_operators:
         for operator in selected_operators:
-            operator_df = plot_df[plot_df['operator'] == operator]
-            operator_df = operator_df.sort_values('datetime')
+            total_df = plot_df[plot_df['operator'] == operator]
+            total_df = total_df.sort_values('datetime')
 
             canton_now = nowcast[nowcast['operator'] == operator]
             canton_now = canton_now.sort_values('datetime')
@@ -206,7 +206,7 @@ def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_
                 'Pronovo_f':'sum'
             }).reset_index()
             
-            operator_df = operator_df.groupby(['datetime']).agg({
+            total_df = total_df.groupby(['datetime']).agg({
                 'p0.5_operator': 'sum',
                 'p0.1_operator': 'sum',
                 'p0.9_operator': 'sum'
@@ -220,8 +220,8 @@ def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_
     
     # Case 3: No specific filtering
     else:
-        operator_df = filtered_df.copy().sort_values('datetime')
-        operator_df = operator_df.groupby(['datetime']).agg({
+        total_df = filtered_df.copy().sort_values('datetime')
+        total_df = total_df.groupby(['datetime']).agg({
             'p0.5_operator': 'sum',
             'p0.1_operator': 'sum',
             'p0.9_operator': 'sum'
@@ -259,7 +259,7 @@ def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_
             })
         
 
-    add_forecast_traces(fig, operator_df, "Total", color='red')
+    add_forecast_traces(fig, total_df, "Total", color='red')
     try:
         add_forecast_traces(fig, canton_now, "Nowcast", color='white')
     except:
