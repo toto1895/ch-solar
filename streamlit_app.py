@@ -503,7 +503,7 @@ def home_page():
             except:
                 nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
             #merged_df = pd.merge(merged_df, nowcast, on=["datetime","Canton",'operator'], how="left")
-            #st.dataframe(merged_df.tail())
+            st.dataframe(nowcast.tail())
 
             # Clean up to free memory
             #del capa_df
@@ -620,7 +620,7 @@ def home_page():
             
             pronovo_f.dropna(subset='p0.5', inplace=True)
 
-            st.dataframe(pronovo_f.tail())
+            #st.dataframe(pronovo_f.tail())
 
             chart_type = st.radio(
                 "Select visualization type:",
