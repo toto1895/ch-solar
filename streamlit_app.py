@@ -476,7 +476,7 @@ def home_page():
             #st.dataframe(merged_df.tail())
 
             # Clean up to free memory
-            del capa_df
+            #del capa_df
             del forecast_df
             gc.collect()
             
@@ -586,9 +586,9 @@ def home_page():
             filtered_df['datetime'] = pd.to_datetime(filtered_df['datetime'])
             pronovo_long['datetime'] = pd.to_datetime(pronovo_long['datetime'])
 
-            #pronovo_f = pd.merge(pronovo_long,capa_df, on=["datetime","Canton"], how="left")
+            pronovo_f = pd.merge(pronovo_long,capa_df, on=["Canton"], how="left")
             
-            st.dataframe(capa_df)
+            st.dataframe(pronovo_f)
 
             chart_type = st.radio(
                 "Select visualization type:",
