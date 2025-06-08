@@ -353,9 +353,9 @@ def create_heatmap(merged_plants):
         },
         color_continuous_scale="Jet",
         radius=9,
-        zoom=7,
+        zoom=8,
         title="Solar Power Plant Density",
-        center={"lat": 46.8, "lon": 8.2},  # Center of Switzerland
+        center={"lat": merged_plants['latitude'].mean(), "lon": merged_plants['longitude'].mean()},  # Center of Switzerland
         opacity=0.9
     )
     
