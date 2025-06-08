@@ -319,13 +319,22 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
             line=dash_style
         ))
     except:
-        fig.add_trace(go.Scatter(
-            x=df['datetime'],
-            y=df['SolarProduction'],
-            mode='lines',
-            name=f'{name} - Actual',
-            line=line_style
-        ))
+        try:
+            fig.add_trace(go.Scatter(
+                x=df['datetime'],
+                y=df['SolarProduction'],
+                mode='lines',
+                name=f'{name} - Actual',
+                line=line_style
+            ))
+        except:
+            fig.add_trace(go.Scatter(
+                x=df['datetime'],
+                y=df['Pronovo_f'],
+                mode='lines',
+                name=f'{name} - Actual',
+                line=line_style
+            ))
 
 
 def create_heatmap(merged_plants):
