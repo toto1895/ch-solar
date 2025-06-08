@@ -610,12 +610,11 @@ def home_page():
                 var_name='Canton',         # Name for the variable column
                 value_name='Pronovo'       # Name for the value column
             )
+            pronovo_long['datetime'] = pd.to_datetime(pronovo_long['datetime'])
 
-            # NOW filter pronovo_long based on the selected filters
-            if filter_type == "Canton" and selected_cantons:
-                pronovo_long = pronovo_long[pronovo_long["Canton"].isin(selected_cantons)]
-            elif filter_type == "Operator" and selected_operators:
-                pronovo_long = pronovo_long[pronovo_long["Operator"].isin(selected_operators)]
+            #pronovo_long = pd.merge(pronovo_long)
+
+            
             
             pronovo_long = pronovo_long.sort_values('datetime').reset_index(drop=True)
             
@@ -627,13 +626,19 @@ def home_page():
             filtered_df['p0.1_operator'] = 1.1*filtered_df['p0.1'] * filtered_df['cum_operator'] / 1000
             filtered_df['p0.9_operator'] = 1.1*filtered_df['p0.9'] * filtered_df['cum_operator'] / 1000
             
-            filtered_df['datetime'] = pd.to_datetime(filtered_df['datetime'])
             pronovo_long['datetime'] = pd.to_datetime(pronovo_long['datetime'])
+            filtered_df['datetime'] = pd.to_datetime(filtered_df['datetime'])
+            
 
             pronovo_f = pd.merge(pronovo_long,filtered_df, on=['datetime',"Canton"], how="left")
             pronovo_f['Pronovo_f'] = 2 * pronovo_f['cum_ratio'] * pronovo_f['Pronovo'] 
-            
             pronovo_f.dropna(subset='p0.5', inplace=True)
+
+            # NOW filter pronovo_long based on the selected filters
+            if filter_type == "Canton" and selected_cantons:
+                pronovo_f = pronovo_f[pronovo_f["Canton"].isin(selected_cantons)]
+            elif filter_type == "Operator" and selected_operators:
+                pronovo_f = pronovo_f[pronovo_f["Operator"].isin(selected_operators)]
 
             #st.dataframe(pronovo_f.tail())
 
