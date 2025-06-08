@@ -122,7 +122,7 @@ def load_and_concat_parquet_files(conn, date_str, time_str=None):
     files = fetch_files(conn, prefix, pattern)
     
     if not files:
-        st.warning(f"No files found matching the pattern: {pattern}")
+        #st.warning(f"No files found matching the pattern: {pattern}")
         return None
     
     # Load and concatenate files
@@ -327,7 +327,7 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
                 name=f'{name} - Meteosat',
                 line=line_style
             ))
-            
+
         except:
             fig.add_trace(go.Scatter(
                 x=df['datetime'],
