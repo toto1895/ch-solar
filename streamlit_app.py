@@ -235,14 +235,7 @@ def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_
                 'Pronovo_f':'sum'
             }).reset_index()
         
-        # Add traces for the total
-    add_forecast_traces(fig, operator_df, "Total", color='red')
-    try:
-        add_forecast_traces(fig, canton_now, "Nowcast", color='white')
-    except:
-        pass
-    add_forecast_traces(fig, pronovo_now, "Pronovo", color='pink')
-    
+
     # Add total line if multiple selections
     try:
         multiple_selections = (selected_operators and len(selected_operators) > 1) or (selected_cantons and len(selected_cantons) > 1)
@@ -265,9 +258,13 @@ def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_
                 'SolarProduction':'sum'
             })
         
-        # Add traces for the total
-        add_forecast_traces(fig, total_df, "Total", line_width=3, color='red')
+
+    add_forecast_traces(fig, operator_df, "Total", color='red')
+    try:
         add_forecast_traces(fig, canton_now, "Nowcast", color='white')
+    except:
+        pass
+    add_forecast_traces(fig, pronovo_now, "Pronovo", color='pink')
     
     # Update layout
     fig.update_layout(
