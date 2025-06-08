@@ -327,6 +327,7 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
                 name=f'{name} - Meteosat',
                 line=line_style
             ))
+            
         except:
             fig.add_trace(go.Scatter(
                 x=df['datetime'],
