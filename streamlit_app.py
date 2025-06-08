@@ -516,7 +516,7 @@ def home_page():
                         filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)]
                         full_capa = full_capa[full_capa["Canton"].isin(selected_cantons)]
                         nowcast = nowcast[nowcast["Canton"].isin(selected_cantons)]
-                        pronovo = pronovo[pronovo["Canton"].isin(selected_cantons)]
+                        #pronovo = pronovo[pronovo["Canton"].isin(selected_cantons)]
                     
                 elif filter_type == "Operator":
                     # Check if 'operator' column exists in merged_df
