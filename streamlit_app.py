@@ -583,6 +583,8 @@ def home_page():
             filtered_df['p0.1_operator'] = 1.1*filtered_df['p0.1'] * filtered_df['cum_operator'] / 1000
             filtered_df['p0.9_operator'] = 1.1*filtered_df['p0.9'] * filtered_df['cum_operator'] / 1000
             
+            pronovo_long['datetime'] = pd.to_datetime(pronovo_long['datetime'], utc=True)
+
             pronovo_f = pd.merge(pronovo_long,filtered_df, on=["datetime","Canton"], how="left")
             
             st.dataframe(pronovo_f.head())
