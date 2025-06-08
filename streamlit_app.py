@@ -586,11 +586,10 @@ def home_page():
             filtered_df['datetime'] = pd.to_datetime(filtered_df['datetime'])
             pronovo_long['datetime'] = pd.to_datetime(pronovo_long['datetime'])
 
-
-            pronovo_f = pd.merge(pronovo_long,capa_df, on=["datetime","Canton"], how="left")
+            #pronovo_f = pd.merge(pronovo_long,capa_df, on=["datetime","Canton"], how="left")
             
-            st.dataframe(pronovo_f)
-            # Add a radio button for chart type selection
+            st.dataframe(capa_df)
+
             chart_type = st.radio(
                 "Select visualization type:",
                 options=["Forecast Chart", 'Monthly installed capacity',"Powerplant Location Heatmap"],
