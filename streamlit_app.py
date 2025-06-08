@@ -587,7 +587,7 @@ def home_page():
 
             pronovo_f = pd.merge(pronovo_long,filtered_df, on=["datetime","Canton"], how="left")
             
-            st.dataframe(pronovo_f.head())
+            st.dataframe(pronovo_f)
             # Add a radio button for chart type selection
             chart_type = st.radio(
                 "Select visualization type:",
