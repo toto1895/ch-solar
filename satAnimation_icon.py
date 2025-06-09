@@ -619,7 +619,7 @@ def display_png_streamlit(image_path):
         Path to the PNG image file
     """
     try:
-        st.success(f"MODEL RUN {image_path.split('/')[-1][:-4]}")
+        st.success(f"MODEL RUN {image_path.split('/')[-1][:-4]} UTC")
         
         # Check if file exists
         if not os.path.exists(image_path):
