@@ -80,7 +80,10 @@ def load_data(file_path, input_format, conn):
 
 def get_forecast_files(model, cluster, conn):
     """Get list of available forecast files for the selected model and cluster"""
-    prefix = f"oracle_predictions/swiss_solar/canton_forecasts_factor/{model}/{cluster}"
+    if model in ['ICON-CH1','ICON-CH2']:
+        prefix = f"icon-ch/ch{model.replace('ICON-CH','')}/ch-prod"
+    else:
+        prefix = f"oracle_predictions/swiss_solar/canton_forecasts_factor/{model}/{cluster}"
     return fetch_files(conn, prefix, r'\.parquet$'), conn
 
 def load_and_concat_parquet_files(conn, date_str, time_str=None):
@@ -411,7 +414,7 @@ def home_page():
     conn = get_connection()
 
     # Define available models and clusters
-    available_models = ["dmi_seamless", "metno_seamless", "icon_d2", "meteofrance_seamless"]
+    available_models = ["ICON-CH1","ICON-CH2","dmi_seamless", "metno_seamless", "icon_d2", "meteofrance_seamless"]
     available_clusters = ["cluster0", "cluster1", "cluster2"]
     
     # Create selection widgets in columns
@@ -430,13 +433,15 @@ def home_page():
             options=available_clusters,
             index=0  # Default to cluster0
         )
+    if selected_model in ['ICON-CH1','ICON-CH2']:
+        forecast_files, _ = get_forecast_files(selected_model, selected_cluster, conn)
+    else:
+        # Get available forecast files for the selected model and cluster
+        forecast_files, _ = get_forecast_files(selected_model, selected_cluster, conn)
     
-    # Get available forecast files for the selected model and cluster
-    forecast_files, _ = get_forecast_files(selected_model, selected_cluster, conn)
-    
-    if not forecast_files:
-        st.warning(f"No forecast files found for {selected_model}/{selected_cluster}")
-        return
+        if not forecast_files:
+            st.warning(f"No forecast files found for {selected_model}/{selected_cluster}")
+            return
     
     # Create a dropdown to select the forecast file
     selected_file = st.selectbox(
