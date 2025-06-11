@@ -640,6 +640,10 @@ def home_page():
 
             #pronovo_long = pd.merge(pronovo_long)
 
+            
+            nowcast.set_index('datetime', inplace=True)
+            nowcast = nowcast.asfreq('15min')
+            nowcast.reset_index(inplace=True)
             nowcast.loc[:,'SolarProduction'] = nowcast.loc[:,'SolarProduction'].fillna(0.0)
             
             pronovo_long = pronovo_long.sort_values('datetime').reset_index(drop=True)
