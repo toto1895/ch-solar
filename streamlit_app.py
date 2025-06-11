@@ -508,7 +508,7 @@ def home_page():
                 merged_df = pd.merge(forecast_df.reset_index(), capa_df, on="Canton", how="left")
                 merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
             except Exception as e:
-                    
+
                 merged_df = pd.merge(forecast_df, capa_df, on=["Canton","operator"], how="left")
                 
                 st.dataframe(merged_df)
@@ -516,6 +516,7 @@ def home_page():
                 merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
 
             dt = merged_df['datetime'].min().tz_convert('CET')
+            
             #try:
             h = []
             for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=4):
