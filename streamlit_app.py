@@ -295,6 +295,7 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
 
     df['datetime']= pd.to_datetime(df['datetime'])
 
+
     try:
         fig.add_trace(go.Scatter(
             x=df['datetime'],
@@ -323,6 +324,12 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
         ))
     except:
         try:
+
+            df.set_index('datetime', inplace=True)
+            df = df.asfreq('15min')
+            df.reset_index(inplace=True)
+            df.loc[:,'SolarProduction'] = df.loc[:,'SolarProduction'].fillna(0.0)
+
             fig.add_trace(go.Scatter(
                 x=df['datetime'],
                 y=df['SolarProduction'],
@@ -641,11 +648,8 @@ def home_page():
             #pronovo_long = pd.merge(pronovo_long)
 
             
-            nowcast.set_index('datetime', inplace=True)
-            nowcast = nowcast.asfreq('15min')
-            nowcast.reset_index(inplace=True)
-            nowcast.loc[:,'SolarProduction'] = nowcast.loc[:,'SolarProduction'].fillna(0.0)
             
+
             pronovo_long = pronovo_long.sort_values('datetime').reset_index(drop=True)
             
             try:
