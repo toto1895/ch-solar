@@ -439,9 +439,9 @@ def home_page():
         # Get available forecast files for the selected model and cluster
         forecast_files, _ = get_forecast_files(selected_model, selected_cluster, conn)
     
-        if not forecast_files:
-            st.warning(f"No forecast files found for {selected_model}/{selected_cluster}")
-            return
+    if not forecast_files:
+        st.warning(f"No forecast files found for {selected_model}/{selected_cluster}")
+        return
     
     # Create a dropdown to select the forecast file
     selected_file = st.selectbox(
