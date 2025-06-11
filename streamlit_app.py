@@ -511,6 +511,7 @@ def home_page():
             except:
                 merged_df = pd.merge(forecast_df, capa_df, on="Canton", how="left")
                 st.dataframe(merged_df)
+                
                 merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
 
             dt = merged_df['datetime'].min().tz_convert('CET')
