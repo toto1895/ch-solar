@@ -667,7 +667,7 @@ def home_page():
             
             pronovo_f = pd.merge(pronovo_long,filtered_df, on=['datetime',"Canton"], how="left")
             pronovo_f['Pronovo_f'] = 2 * pronovo_f['cum_ratio'] * pronovo_f['Pronovo'] 
-            pronovo_f = pronovo_f[filtered_df['datetime'].min():]
+            pronovo_f = pronovo_f.loc[pronovo_f.datetime>=filtered_df['datetime'].min():]
             
             # NOW filter pronovo_long based on the selected filters
             if filter_type == "Canton" and selected_cantons:
