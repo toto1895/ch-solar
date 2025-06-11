@@ -661,7 +661,7 @@ def home_page():
                 filtered_df['p0.1_operator'] = np.nan 
                 filtered_df['p0.9_operator'] = np.nan 
 
-                filtered_df.loc[:,'datetime'] = filtered_df.loc[:,'datetime'] - pd.Timedelta(minutes=30) 
+                filtered_df.loc[:,'datetime'] = filtered_df.loc[:,'datetime'] - pd.Timedelta(minutes=15) 
             
             pronovo_long['datetime'] = pd.to_datetime(pronovo_long['datetime'])
             filtered_df['datetime'] = pd.to_datetime(filtered_df['datetime'])
