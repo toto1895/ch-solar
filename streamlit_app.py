@@ -507,7 +507,8 @@ def home_page():
             try:
                 merged_df = pd.merge(forecast_df.reset_index(), capa_df, on="Canton", how="left")
                 merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
-            except:
+            except Exception as e:
+                    
                 merged_df = pd.merge(forecast_df, capa_df, on=["Canton","operator"], how="left")
                 
                 st.dataframe(merged_df)
