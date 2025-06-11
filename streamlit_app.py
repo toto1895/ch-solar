@@ -429,7 +429,7 @@ def home_page():
 
     
     if selected_model in ['ICON-CH1','ICON-CH2']:
-        
+
         forecast_files, _ = get_forecast_files(selected_model, selected_cluster, conn)
     else:
 
@@ -505,8 +505,12 @@ def home_page():
                 forecast_df = forecast_df.loc[forecast_df.index != max_idx[0]]
             
             # Merge forecast with capacity data
-            merged_df = pd.merge(forecast_df.reset_index(), capa_df, on="Canton", how="left")
-            merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
+            try:
+                merged_df = pd.merge(forecast_df.reset_index(), capa_df, on="Canton", how="left")
+                merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
+            except:
+                merged_df = pd.merge(forecast_df, capa_df, on="Canton", how="left")
+                merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
 
             dt = merged_df['datetime'].min().tz_convert('CET')
             #try:
