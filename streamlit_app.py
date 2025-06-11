@@ -503,7 +503,6 @@ def home_page():
                                 'p0.6', 'p0.7', 'p0.8', 'p0.9', 'p0.95']
                 max_idx = forecast_df.index.unique()[-1:]
                 forecast_df = forecast_df.loc[forecast_df.index != max_idx[0]]
-            
             # Merge forecast with capacity data
             try:
                 merged_df = pd.merge(forecast_df.reset_index(), capa_df, on="Canton", how="left")
