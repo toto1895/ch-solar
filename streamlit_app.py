@@ -426,17 +426,20 @@ def home_page():
             options=available_models,
             index=0  # Default to dmi_seamless
         )
-    
+
     
     if selected_model in ['ICON-CH1','ICON-CH2']:
+        
         forecast_files, _ = get_forecast_files(selected_model, selected_cluster, conn)
     else:
+
         with col2:
             selected_cluster = st.selectbox(
                 "Select Cluster:",
                 options=available_clusters,
                 index=0  # Default to cluster0
             )
+
         # Get available forecast files for the selected model and cluster
         forecast_files, _ = get_forecast_files(selected_model, selected_cluster, conn)
     
