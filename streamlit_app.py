@@ -653,11 +653,11 @@ def home_page():
                 filtered_df['p0.1_operator'] = 1.1*filtered_df['p0.1'] * filtered_df['cum_operator'] / 1000
                 filtered_df['p0.9_operator'] = 1.1*filtered_df['p0.9'] * filtered_df['cum_operator'] / 1000
             except:
-                filtered_df['p0.5_canton'] = 1.1*filtered_df['SolarProduction'] / 1000
+                filtered_df['p0.5_canton'] = 1.05*filtered_df['SolarProduction'] / 1000
                 filtered_df['p0.1_canton'] = np.nan 
                 filtered_df['p0.9_canton'] = np.nan
 
-                filtered_df['p0.5_operator'] = 1.1*filtered_df['SolarProduction'] / 1000
+                filtered_df['p0.5_operator'] = 1.05*filtered_df['SolarProduction'] / 1000
                 filtered_df['p0.1_operator'] = np.nan 
                 filtered_df['p0.9_operator'] = np.nan 
 
