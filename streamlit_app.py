@@ -430,7 +430,7 @@ def home_page():
     
     if selected_model in ['ICON-CH1','ICON-CH2']:
 
-        forecast_files, _ = get_forecast_files(selected_model, selected_cluster, conn)
+        forecast_files, _ = get_forecast_files(selected_model, '', conn)
     else:
 
         with col2:
