@@ -660,6 +660,8 @@ def home_page():
                 filtered_df['p0.5_operator'] = 1.1*filtered_df['SolarProduction'] / 1000
                 filtered_df['p0.1_operator'] = np.nan 
                 filtered_df['p0.9_operator'] = np.nan 
+
+                filtered_df.loc[:,'datetime'] = filtered_df.loc[:,'datetime'] - pd.Timedelta(hours=1) 
             
             pronovo_long['datetime'] = pd.to_datetime(pronovo_long['datetime'])
             filtered_df['datetime'] = pd.to_datetime(filtered_df['datetime'])
