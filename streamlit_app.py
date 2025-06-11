@@ -654,7 +654,7 @@ def home_page():
                 filtered_df['p0.9_operator'] = 1.1*filtered_df['p0.9'] * filtered_df['cum_operator'] / 1000
             except:
                 filtered_df['p0.5_canton'] = 1.1*filtered_df['SolarProduction']
-                filtered_df['p0.1_canton'] =np.nan 
+                filtered_df['p0.1_canton'] = np.nan 
                 filtered_df['p0.9_canton'] = np.nan
 
                 filtered_df['p0.5_operator'] = 1.1*filtered_df['SolarProduction']
@@ -664,10 +664,10 @@ def home_page():
             pronovo_long['datetime'] = pd.to_datetime(pronovo_long['datetime'])
             filtered_df['datetime'] = pd.to_datetime(filtered_df['datetime'])
             
-
+            pronovo_long.dropna(subset='Pronovo', inplace=True)
             pronovo_f = pd.merge(pronovo_long,filtered_df, on=['datetime',"Canton"], how="left")
             pronovo_f['Pronovo_f'] = 2 * pronovo_f['cum_ratio'] * pronovo_f['Pronovo'] 
-            pronovo_f.dropna(subset='p0.5', inplace=True)
+            
 
             # NOW filter pronovo_long based on the selected filters
             if filter_type == "Canton" and selected_cantons:
