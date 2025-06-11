@@ -609,9 +609,15 @@ def home_page():
             
             # Prepare the filtered dataframe for visualization
             #st.dataframe(filtered_df)
-            filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator',
-                                       'cum_canton', 'cum_operator','cum_ratio','year_month','TotalPower']]
+            try:
+                filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator',
+                                        'cum_canton', 'cum_operator','cum_ratio','year_month','TotalPower']]
+            except:
+                filtered_df = filtered_df[['datetime', 'SolarProduction', 'Canton', 'operator',
+                                        'cum_canton', 'cum_operator','cum_ratio','year_month','TotalPower']]
+
             filtered_df.drop_duplicates(['datetime','Canton','operator'], inplace=True)
+
             try:
                 nowcast.drop_duplicates(['datetime','Canton','operator'], inplace=True)
                 nowcast['SolarProduction'] = 1.1*nowcast['SolarProduction']/1000.0
@@ -638,13 +644,22 @@ def home_page():
             
             pronovo_long = pronovo_long.sort_values('datetime').reset_index(drop=True)
             
-            filtered_df['p0.5_canton'] = 1.1*filtered_df['p0.5'] * filtered_df['cum_canton'] / 1000
-            filtered_df['p0.1_canton'] = 1.1*filtered_df['p0.1'] * filtered_df['cum_canton'] / 1000
-            filtered_df['p0.9_canton'] = 1.1*filtered_df['p0.9'] * filtered_df['cum_canton'] / 1000
-            
-            filtered_df['p0.5_operator'] = 1.1*filtered_df['p0.5'] * filtered_df['cum_operator'] / 1000
-            filtered_df['p0.1_operator'] = 1.1*filtered_df['p0.1'] * filtered_df['cum_operator'] / 1000
-            filtered_df['p0.9_operator'] = 1.1*filtered_df['p0.9'] * filtered_df['cum_operator'] / 1000
+            try:
+                filtered_df['p0.5_canton'] = 1.1*filtered_df['p0.5'] * filtered_df['cum_canton'] / 1000
+                filtered_df['p0.1_canton'] = 1.1*filtered_df['p0.1'] * filtered_df['cum_canton'] / 1000
+                filtered_df['p0.9_canton'] = 1.1*filtered_df['p0.9'] * filtered_df['cum_canton'] / 1000
+                
+                filtered_df['p0.5_operator'] = 1.1*filtered_df['p0.5'] * filtered_df['cum_operator'] / 1000
+                filtered_df['p0.1_operator'] = 1.1*filtered_df['p0.1'] * filtered_df['cum_operator'] / 1000
+                filtered_df['p0.9_operator'] = 1.1*filtered_df['p0.9'] * filtered_df['cum_operator'] / 1000
+            except:
+                filtered_df['p0.5_canton'] = 1.1*filtered_df['SolarProduction']
+                filtered_df['p0.1_canton'] =np.nan 
+                filtered_df['p0.9_canton'] = np.nan
+
+                filtered_df['p0.5_operator'] = 1.1*filtered_df['SolarProduction']
+                filtered_df['p0.1_operator'] = np.nan 
+                filtered_df['p0.9_operator'] = np.nan 
             
             pronovo_long['datetime'] = pd.to_datetime(pronovo_long['datetime'])
             filtered_df['datetime'] = pd.to_datetime(filtered_df['datetime'])
