@@ -511,7 +511,7 @@ def home_page():
 
                 merged_df = pd.merge(forecast_df, capa_df, on=["Canton","operator"], how="left")
                 
-                st.dataframe(merged_df)
+                #st.dataframe(merged_df)
 
                 merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
 
