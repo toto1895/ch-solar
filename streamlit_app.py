@@ -806,11 +806,11 @@ def main():
     elif page_choice == "About":
         about_page()
 
-     if st.sidebar.button("Clear Cache"):  
+    if st.sidebar.button("Clear Cache"):  
         st.cache_resource.clear()
         st.cache_data.clear()
         st.sidebar.success("Cache cleared!")
-    
+
 
     st.markdown("##")  # Extra space
     
