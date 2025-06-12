@@ -739,6 +739,14 @@ def main():
         )
         with st.spinner("Downloading ..."):
             display_png_ch1(selected)
+    elif page_choice == "Weather Forecast (ICON-CH2 2.1km)":
+        selected = st.selectbox(
+            "Weather parameter:",
+            options=['solar','precipitation','cloud','temperature'],
+            index=0
+        )
+        with st.spinner("Downloading ..."):
+            display_png_ch2(selected)
 
 
 if __name__ == "__main__":
