@@ -630,7 +630,8 @@ def home_page():
                 nowcast['SolarProduction'] = 1.1*nowcast['SolarProduction']/1000.0
             except:
                 nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
-            #st.dataframe(filtered_df)
+            
+            st.dataframe(full_capa)
 
             capa_installed =filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()
                                                    ].groupby('datetime')['cum_operator'].sum().values[0]
