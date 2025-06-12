@@ -631,7 +631,7 @@ def home_page():
             except:
                 nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
             
-            st.dataframe(full_capa.head())
+            st.dataframe(powerplants['ToalPower'].sum())
 
             capa_installed =filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()
                                                    ].groupby('datetime')['cum_operator'].sum().values[0]
