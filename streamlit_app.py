@@ -12,13 +12,35 @@ import gc
 import io
 import os
 
-
-# Page configuration
+# ——— Page setup & state ———
 st.set_page_config(
-    page_title="Swiss solar dashboard",
+    page_title="Swiss Solar Dashboard",
+    page_icon="☀️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Initialize session state
+if "page" not in st.session_state:
+    st.session_state.page = "login"
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+# ——— Auth Helpers ———
+def user_obj():
+    return getattr(st, "user", None)
+
+def user_is_logged_in() -> bool:
+    u = user_obj()
+    return bool(getattr(u, "is_logged_in", False)) if u else False
+
+def user_name() -> str:
+    u = user_obj()
+    return getattr(u, "name", "Guest") if u else "Guest"
+
+def user_email() -> str:
+    u = user_obj()
+    return getattr(u, "email", "") if u else ""
 
 # Set dark theme for the app
 st.markdown(
@@ -33,7 +55,35 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Create a connection instance once
+# ——— Login Page ———
+def login_page():
+    st.title("🔐 Swiss Solar Dashboard")
+    st.markdown("### Secure Access Portal")
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        st.markdown("""
+        Welcome to the Swiss Solar Dashboard. This platform provides:
+        
+        - ☀️ **Real-time solar generation forecasts**
+        - 📊 **Interactive data visualizations**
+        - 🗺️ **Geographic power plant mapping**
+        - 🌦️ **Weather forecast integration**
+        
+        Please log in to access the dashboard.
+        """)
+        
+        st.info("Use the sidebar to authenticate with your Google account.")
+        
+        if user_is_logged_in():
+            st.success(f"✅ Logged in as: {user_name()}")
+            st.balloons()
+            # Auto-redirect to home after successful login
+            st.session_state.page = "home"
+            st.rerun()
+
+# ——— Original Functions (unchanged) ———
 def get_connection():
     """Get the GCS connection instance"""
     return st.connection('gcs', type=FilesConnection)
@@ -41,12 +91,9 @@ def get_connection():
 def fetch_files(conn, prefix, pattern=None):
     """Fetch files from a bucket prefix with optional pattern matching"""
     try:
-        # Invalidate the cache to refresh the bucket listing
         conn._instance.invalidate_cache(prefix)
-        # Retrieve all files
         files = conn._instance.ls(prefix, max_results=100)
         
-        # Apply pattern filtering if provided
         if pattern:
             regex = re.compile(pattern)
             files = [f for f in files if regex.search(f)]
@@ -66,7 +113,6 @@ def get_latest_parquet_file(conn):
     if not files:
         return None
     
-    # Sort files by date in filename (newest first)
     date_pattern = re.compile(r'(\d{4}-\d{2})\.parquet$')
     return sorted(files, key=lambda x: date_pattern.search(x).group(1), reverse=True)[0]
 
@@ -87,57 +133,29 @@ def get_forecast_files(model, cluster, conn):
     return fetch_files(conn, prefix, r'\.parquet$'), conn
 
 def load_and_concat_parquet_files(conn, date_str, time_str=None):
-    """
-    Load and concatenate parquet files from a specific date and optional time
-    
-    Parameters:
-    -----------
-    date_str : str
-        Date string in format YYYYMMDD (e.g., '20250428')
-    time_str : str or list, optional
-        Time string(s) in format HHMM (e.g., '0445'), or list of time strings
-        
-    Returns:
-    --------
-    pd.DataFrame
-        Concatenated dataframe from all matching parquet files
-    """
-    # Get connection
-    #conn = get_connection()
-    
-    # Set up the prefix to look in
+    """Load and concatenate parquet files from a specific date and optional time"""
     prefix = "dwd-solar-sat/daily_agg_asset_level_prod/"
     
-    # Create pattern based on date and optional time
     if time_str:
         if isinstance(time_str, list):
-            # Create a pattern for multiple specific times
             time_patterns = '|'.join([f"{date_str}{t}" for t in time_str])
             pattern = f"({time_patterns})\.parquet$"
         else:
-            # Pattern for a single specific time
             pattern = f"{date_str}{time_str}\.parquet$"
     else:
-        # Pattern for any time on the specified date
         pattern = f"{date_str}\.parquet$"
     
-    # Fetch matching files
     files = fetch_files(conn, prefix, pattern)
     
     if not files:
-        #st.warning(f"No files found matching the pattern: {pattern}")
         return None
     
-    # Load and concatenate files
     dataframes = []
     for file_path in files:
         try:
-            # Read file from GCS
             with conn._instance.open(file_path, mode='rb') as f:
-                # Read parquet content
                 df = pd.read_parquet(io.BytesIO(f.read()))
                 dataframes.append(df)
-                #st.info(f"Loaded: {file_path}")
         except Exception as e:
             st.error(f"Error reading {file_path}: {e}")
     
@@ -145,20 +163,14 @@ def load_and_concat_parquet_files(conn, date_str, time_str=None):
         st.error("No dataframes could be loaded successfully")
         return None
     
-    # Concatenate all dataframes
     concatenated_df = pd.concat(dataframes)
-    #st.success(f"Successfully concatenated {len(dataframes)} files. " 
-    #           f"Total rows: {len(concatenated_df)}")
-    
     return concatenated_df
 
-
-def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_cantons=None, selected_operators=None):
+def create_forecast_chart(filtered_df, pronovo_f, nowcast, filter_type, selected_cantons=None, selected_operators=None):
     """Create a forecast chart based on filtered data"""
     fig = go.Figure()
     plot_df = filtered_df.copy()
     
-    # Case 1: Canton filtering
     if filter_type == "Canton" and selected_cantons:
         for canton in selected_cantons:
             total_df = plot_df[plot_df['Canton'] == canton]
@@ -184,12 +196,6 @@ def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_
                 'Pronovo_f':'sum'
             }).reset_index()
             
-            # Add traces for this canton
-            #add_forecast_traces(fig, canton_df, canton)
-            #add_forecast_traces(fig, canton_now, "Nowcast", color='white')
-            #add_forecast_traces(fig, pronovo_now, "Pronovo", color='pink')
-            
-    # Case 2: Operator filtering
     elif filter_type == "Operator" and 'operator' in filtered_df.columns and selected_operators:
         for operator in selected_operators:
             total_df = plot_df[plot_df['operator'] == operator]
@@ -214,14 +220,6 @@ def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_
                 'p0.1_operator': 'sum',
                 'p0.9_operator': 'sum'
             }).reset_index()
-            
-            # Add traces for this operator
-            #add_forecast_traces(fig, operator_df, operator)
-            #add_forecast_traces(fig, canton_now, "Nowcast", color='white')
-            #add_forecast_traces(fig, pronovo_now, "Pronovo", color='pink')
-
-    
-    # Case 3: No specific filtering
     else:
         total_df = filtered_df.copy().sort_values('datetime')
         total_df = total_df.groupby(['datetime']).agg({
@@ -237,9 +235,7 @@ def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_
         pronovo_now = pronovo_f.groupby(['datetime']).agg({
                 'Pronovo_f':'sum'
             }).reset_index()
-        
 
-    # Add total line if multiple selections
     try:
         multiple_selections = (selected_operators and len(selected_operators) > 1) or (selected_cantons and len(selected_cantons) > 1)
     except:
@@ -260,7 +256,6 @@ def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_
         canton_now = nowcast.groupby(['datetime']).agg({
                 'SolarProduction':'sum'
             })
-        
 
     add_forecast_traces(fig, total_df, "Total", color='red')
     try:
@@ -269,7 +264,6 @@ def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_
         pass
     add_forecast_traces(fig, pronovo_now, "Pronovo", color='white')
     
-    # Update layout
     fig.update_layout(
         title="Solar Generation Forecast",
         xaxis_title="Date and Time",
@@ -284,17 +278,14 @@ def create_forecast_chart(filtered_df, pronovo_f,nowcast, filter_type, selected_
 
 def add_forecast_traces(fig, df, name, line_width=2, color=None):
     """Add forecast traces to the figure"""
-    # Base style settings
     line_style = dict(width=line_width)
     dash_style = dict(width=max(1, line_width-1), dash='dash')
     
-    # Apply color if specified
     if color:
         line_style['color'] = color
         dash_style['color'] = color
 
     df['datetime']= pd.to_datetime(df['datetime'])
-
 
     try:
         fig.add_trace(go.Scatter(
@@ -305,7 +296,6 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
             line=line_style
         ))
         
-        # Add lower bound
         fig.add_trace(go.Scatter(
             x=df['datetime'],
             y=df['p0.1_operator'],
@@ -314,7 +304,6 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
             line=dash_style
         ))
         
-        # Add upper bound
         fig.add_trace(go.Scatter(
             x=df['datetime'],
             y=df['p0.9_operator'],
@@ -324,7 +313,6 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
         ))
     except:
         try:
-
             df.set_index('datetime', inplace=True)
             df = df.asfreq('15min')
             df.reset_index(inplace=True)
@@ -337,7 +325,6 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
                 name=f'{name} - Meteosat',
                 line=line_style
             ))
-
         except:
             fig.add_trace(go.Scatter(
                 x=df['datetime'],
@@ -347,10 +334,8 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
                 line=dash_style
             ))
 
-
 def create_heatmap(merged_plants):
     """Create a heatmap visualization for plant locations"""
-    
     merged_plants['TotalPower_x'] = round(merged_plants['TotalPower_x']/1000,1)
 
     fig = px.density_map(
@@ -368,7 +353,7 @@ def create_heatmap(merged_plants):
         radius=15,
         zoom=8,
         title="Solar Power Plant Density",
-        center={"lat": merged_plants['latitude'].mean(), "lon": merged_plants['longitude'].mean()},  # Center of Switzerland
+        center={"lat": merged_plants['latitude'].mean(), "lon": merged_plants['longitude'].mean()},
         opacity=0.9
     )
     
@@ -383,47 +368,22 @@ def create_heatmap(merged_plants):
     
     return fig
 
-def download_parquet_from_gcs(bucket_name, prefix, date_pattern):
-    """
-    Download parquet files from GCS bucket matching a specific date pattern
-    """
-    # Initialize GCS client
-    storage_client = storage.Client()
-    
-    # Get bucket
-    bucket = storage_client.get_bucket(bucket_name)
-    
-    # List files with the prefix
-    blobs = list(bucket.list_blobs(prefix=prefix))
-    
-    # Filter blobs by date pattern
-    filtered_blobs = [blob for blob in blobs if date_pattern in blob.name]
-    
-    # Print the files being downloaded
-    print(f"Downloading {len(filtered_blobs)} files:")
-    for blob in filtered_blobs:
-        print(f"- {blob.name}")
-    
-    # Download and read each file
-    dataframes = []
-    for blob in filtered_blobs:
-        file_content = blob.download_as_bytes()
-        dataframe = pd.read_parquet(io.BytesIO(file_content))
-        dataframes.append(dataframe)
-        print(f"Downloaded and read {blob.name}")
-    
-    return dataframes
-
+# ——— Modified home_page with user info ———
 def home_page():
-    st.title("Swiss Solar Forecasts")
+    # Display user info in header
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.title("Swiss Solar Forecasts")
+    with col2:
+        st.markdown(f"**User:** {user_name()}")
+        if user_email():
+            st.caption(user_email())
     
     # Initialize connection
     conn = get_connection()
 
     # Define available models and clusters
-    available_models = ["ICON-CH1","ICON-CH2",
-                        #"dmi_seamless", "metno_seamless", "icon_d2", "meteofrance_seamless"
-                        ]
+    available_models = ["ICON-CH1","ICON-CH2"]
     available_clusters = ["cluster0", "cluster1", "cluster2"]
     
     # Create selection widgets in columns
@@ -433,42 +393,33 @@ def home_page():
         selected_model = st.selectbox(
             "Select Model:",
             options=available_models,
-            index=0  # Default to dmi_seamless
+            index=0
         )
-
     
     if selected_model in ['ICON-CH1','ICON-CH2']:
-
         forecast_files, _ = get_forecast_files(selected_model, '', conn)
     else:
-
         with col2:
             selected_cluster = st.selectbox(
                 "Select Cluster:",
                 options=available_clusters,
-                index=0  # Default to cluster0
+                index=0
             )
-
-        # Get available forecast files for the selected model and cluster
         forecast_files, _ = get_forecast_files(selected_model, selected_cluster, conn)
     
     if not forecast_files:
         st.warning(f"No forecast files found for {selected_model}/{selected_cluster}")
         return
     
-    # Create a dropdown to select the forecast file
     selected_file = st.selectbox(
         "Select Forecast File:",
         options=forecast_files,
-        index=0  # Default to the most recent file
+        index=0
     )
     
-    # Get the latest parquet file for capacity data
     latest_file = get_latest_parquet_file(conn)
     
-    # Load the power plants data
     powerplants = load_data('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv', 'csv', conn)
-
     pronovo = load_data('oracle_predictions/swiss_solar/datasets/solar_part_0.csv', 'csv', conn)
     
     if powerplants is not None:
@@ -478,27 +429,19 @@ def home_page():
         st.warning("No capacity data files found")
         return
     
-    #map = powerplants.drop_duplicates(['Canton','operator'])[['Canton','operator']].reset_index(drop=True)
-    # Main data loading and processing
     with st.spinner("Downloading and processing capacity data..."):
-        # Load capacity data
         capa_df = load_data(latest_file, 'parquet', conn)
-
-        #unique_pairs = set(zip(map['Canton'], map['operator']))
-        #capa_df = capa_d[capa_d.apply(lambda row: (row['Canton'], row['operator']) in unique_pairs, axis=1)]
         
         if capa_df is None:
             st.error("Failed to load capacity data")
             return
             
-        # Get the latest date's capacity data
         latest_mastr_date = capa_df.date.max()
         capa_df = capa_df.loc[capa_df.date == latest_mastr_date].drop(columns='date').reset_index(drop=True)
         
-        # Status notification
         st.warning(f"Master data latest update {latest_mastr_date.strftime('%Y-%m-%d')}")
         full_capa = load_data('oracle_predictions/swiss_solar/datasets/capa_timeseries/full_dataset.parquet', 'parquet', conn)
-        # Download the selected solar forecast data
+        
         with st.spinner(f"Downloading solar forecast data from {selected_file}..."):
             forecast_df = load_data(selected_file, 'parquet', conn)
             
@@ -506,50 +449,35 @@ def home_page():
                 st.error("Failed to load forecast data")
                 return
                 
-            # Special handling for icon_d2 model
             if selected_model == 'icon_d2':
                 percentile_cols = ['p0.05', 'p0.1', 'p0.2', 'p0.3', 'p0.4', 'p0.5', 
                                 'p0.6', 'p0.7', 'p0.8', 'p0.9', 'p0.95']
                 max_idx = forecast_df.index.unique()[-1:]
                 forecast_df = forecast_df.loc[forecast_df.index != max_idx[0]]
-            # Merge forecast with capacity data
+            
             try:
                 merged_df = pd.merge(forecast_df.reset_index(), capa_df, on="Canton", how="left")
                 merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
             except Exception as e:
-
                 merged_df = pd.merge(forecast_df, capa_df, on=["Canton","operator"], how="left")
-                
-                #st.dataframe(merged_df)
-
                 merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
 
             dt = merged_df['datetime'].min().tz_convert('CET')
             
-            #try:
             h = []
             for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=4):
                 try:
-                    nowcast = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"),
-                    #                                         ['0445', '0500']
-                                                            )
+                    nowcast = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"))
                     h.append(nowcast)
                 except:
                     nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
             nowcast = pd.concat(h)
-            #except:
-            #    nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
-            
 
-            # Clean up to free memory
-            #del capa_df
             del forecast_df
             gc.collect()
             
-            # Add filter section
             st.subheader("Filter Data")
             
-            # Create columns for filter selection
             filter_col1, filter_col2 = st.columns([1, 3])
             
             with filter_col1:
@@ -559,25 +487,20 @@ def home_page():
                     index=0
                 )
             
-            # Initialize variables
             selected_cantons = []
             selected_operators = []
             
             with filter_col2:
-                # Initialize filtered_df
                 filtered_df = merged_df.copy()
                 
                 if filter_type == "Canton":
-                    # Get all unique cantons
                     all_cantons = sorted(merged_df["Canton"].unique().tolist())
                     
-                    # Create a multiselect widget for cantons
                     selected_cantons = st.multiselect(
                         "Select Cantons:",
                         options=all_cantons
                     )
                     
-                    # Filter the dataframe based on selected cantons
                     if selected_cantons:
                         filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)]
                         full_capa = full_capa[full_capa["Canton"].isin(selected_cantons)]
@@ -585,21 +508,16 @@ def home_page():
                             nowcast = nowcast[nowcast["Canton"].isin(selected_cantons)]
                         except:
                             pass
-                        #pronovo = pronovo[pronovo["Canton"].isin(selected_cantons)]
                     
                 elif filter_type == "Operator":
-                    # Check if 'operator' column exists in merged_df
                     if 'operator' in merged_df.columns:
-                        # Get all unique operators
                         all_operators = sorted(merged_df["operator"].unique().tolist())
                         
-                        # Create a multiselect widget for operators
                         selected_operators = st.multiselect(
                             "Select Operators:",
                             options=all_operators
                         )
                         
-                        # Filter the dataframe based on selected operators
                         if selected_operators:
                             filtered_df = merged_df[merged_df["operator"].isin(selected_operators)]
                             
@@ -612,12 +530,9 @@ def home_page():
                     else:
                         st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
             
-            # Clean up merged_df to free memory
             del merged_df
             gc.collect()
             
-            # Prepare the filtered dataframe for visualization
-            #st.dataframe(filtered_df)
             try:
                 filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator',
                                         'cum_canton', 'cum_operator','cum_ratio','year_month','TotalPower']]
@@ -632,9 +547,6 @@ def home_page():
                 nowcast['SolarProduction'] = 1.1*nowcast['SolarProduction']/1000.0
             except:
                 nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
-            
-
-            #st.info(powerplants['TotalPower'].sum())
 
             capa_installed =filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()
                                                    ].groupby('datetime')['cum_operator'].sum().values[0]
@@ -642,18 +554,12 @@ def home_page():
             
             pronovo_long = pd.melt(
                 pronovo,
-                id_vars=['datetime'],    # Column to keep as is
-                value_vars=pronovo.drop(columns='datetime').columns,  # Columns to unpivot
-                var_name='Canton',         # Name for the variable column
-                value_name='Pronovo'       # Name for the value column
+                id_vars=['datetime'],
+                value_vars=pronovo.drop(columns='datetime').columns,
+                var_name='Canton',
+                value_name='Pronovo'
             )
             pronovo_long['datetime'] = pd.to_datetime(pronovo_long['datetime'])
-
-            #pronovo_long = pd.merge(pronovo_long)
-
-            
-            
-
             pronovo_long = pronovo_long.sort_values('datetime').reset_index(drop=True)
             
             try:
@@ -678,18 +584,14 @@ def home_page():
             pronovo_long['datetime'] = pd.to_datetime(pronovo_long['datetime'])
             filtered_df['datetime'] = pd.to_datetime(filtered_df['datetime'])
             
-            
             pronovo_f = pd.merge(pronovo_long,filtered_df, on=['datetime',"Canton"], how="left")
             pronovo_f['Pronovo_f'] = 2 * pronovo_f['cum_ratio'] * pronovo_f['Pronovo'] 
             pronovo_f = pronovo_f.loc[pronovo_f.datetime>=filtered_df['datetime'].min(),:]
             
-            # NOW filter pronovo_long based on the selected filters
             if filter_type == "Canton" and selected_cantons:
                 pronovo_f = pronovo_f[pronovo_f["Canton"].isin(selected_cantons)]
             elif filter_type == "Operator" and selected_operators:
                 pronovo_f = pronovo_f[pronovo_f["operator"].isin(selected_operators)]
-
-            #st.dataframe(pronovo_f.tail())
 
             chart_type = st.radio(
                 "Select visualization type:",
@@ -698,7 +600,6 @@ def home_page():
             )
             
             if chart_type == "Forecast Chart":
-                # Create forecast chart
                 fig = create_forecast_chart(filtered_df,pronovo_f,nowcast, filter_type, selected_cantons, selected_operators)
                 st.plotly_chart(fig, use_container_width=True)
             
@@ -708,127 +609,134 @@ def home_page():
                 st.subheader('Monthly added capacity [MW]')
                 fig = go.Figure()
                 fig.add_trace(go.Bar(
-                    x=full_capa.index,  # Use the index of the grouped Series
+                    x=full_capa.index,
                     y=full_capa.values/1000,
                     name='Added Cap a'
-                    # Remove the mode='lines' parameter as it's not applicable for bar charts
                 ))
                 st.plotly_chart(fig, use_container_width=True)
-
 
             else:  # Powerplant Location Heatmap
                 if powerplants is None:
                     st.error("Powerplant data is not available for the heatmap visualization")
                     return
                     
-                # Extract the latest datetime for forecast
                 latest_datetime = filtered_df['datetime'].max()
                 latest_forecast = filtered_df[filtered_df['datetime'] == latest_datetime].copy()
                 
-                # Merge with powerplants data
                 merge_conditions = ["Canton", "operator"]
                 merged_plants = pd.merge(powerplants, latest_forecast, on=merge_conditions, how="inner")
                 
-                # Apply filters
                 if filter_type == "Canton" and selected_cantons:
                     merged_plants = merged_plants[merged_plants['Canton'].isin(selected_cantons)]
                 elif filter_type == "Operator" and selected_operators:
                     merged_plants = merged_plants[merged_plants['operator'].isin(selected_operators)]
                 
-                # Display metrics
                 col1, col2 = st.columns(2)
                 with col1:
                     st.metric("Total Plants", f"{len(merged_plants):,}")
                 with col2:
                     st.metric("Total Capacity", f"{merged_plants['TotalPower_x'].sum()/1000:,.2f} MW")
                 
-                # Create heatmap
                 fig = create_heatmap(merged_plants)
                 st.plotly_chart(fig, use_container_width=True)
 
 def about_page():
-
+    st.title("About Swiss Solar Dashboard")
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.markdown("""
+        ### About This Platform
+        
+        The Swiss Solar Dashboard provides comprehensive insights into solar energy generation across Switzerland. 
+        This platform combines real-time data, advanced forecasting models, and interactive visualizations to help 
+        users understand and analyze solar power production patterns.
+        
+        #### Key Features:
+        - **Real-time Forecasting**: Access to multiple weather prediction models including ICON-CH1 and ICON-CH2
+        - **Interactive Visualizations**: Dynamic charts and geographic heatmaps for data exploration
+        - **Canton & Operator Filtering**: Detailed analysis by region or energy provider
+        - **Weather Integration**: Near real-time satellite imagery and weather forecasts
+        
+        #### Data Sources:
+        - Solar production data from Swiss energy operators
+        - Weather forecasts from MeteoSwiss ICON models
+        - Satellite imagery from Meteosat
+        - Power plant registry data
+        """)
+    
+    with col2:
+        st.info("""
+        **Current User:**  
+        {0}  
+        {1}
+        """.format(user_name(), user_email() if user_email() else ""))
+    
     st.markdown("""
     ### Contact
     For more information or support, please contact aminedev1895@gmail.com.
+    
+    ---
+    
+    **Version:** 1.0.0  
+    **Last Updated:** January 2025
     """)
 
-
+# Import animation functions (assuming these exist in your project)
 from satAnimation import generate_sat_rad_anim
+from satAnimation_icon import display_png_ch1, display_png_ch2
+
 def sat_anim():
     fig_anim = generate_sat_rad_anim()
     st.plotly_chart(fig_anim, use_container_width=True, theme=None)
 
-from satAnimation_icon import  display_png_ch1, display_png_ch2
-
-
-
-import streamlit.components.v1 as components
-
+# ——— Main function with authentication ———
 def main():
+    # Sidebar navigation
+    st.sidebar.title("☀️ Swiss Solar Dashboard")
     
-    st.sidebar.title("Swiss solar forecast")
-    page_choice = st.sidebar.radio("Go to page:", [
-                    "Home",
-                    "Weather Near-Realtime (MeteoSat 5km)",
-                    "Weather Forecast (ICON-CH1 1km)",
-                    "Weather Forecast (ICON-CH2 2.1km)",
-                    "About"
-                                            ]
-    )
-
+    # Authentication section
+    st.sidebar.markdown("### 🔐 Authentication")
+    
+    if user_is_logged_in():
+        st.sidebar.success(f"Logged in as: {user_name()}")
+        if st.sidebar.button("🚪 Logout"):
+            st.logout()
+            st.session_state.page = "login"
+            st.rerun()
+    else:
+        st.sidebar.info("Please log in to access the dashboard")
+        if st.sidebar.button("🔑 Login with Google"):
+            st.login("google")
+            st.rerun()
+    
+    # Show login page if not authenticated
+    if not user_is_logged_in():
+        login_page()
+        return
+    
+    # Navigation menu (only shown when logged in)
+    st.sidebar.markdown("### 📊 Navigation")
+    
+    page_choice = st.sidebar.radio("Select Page:", [
+        "Home",
+        "Weather Near-Realtime (MeteoSat 5km)",
+        "Weather Forecast (ICON-CH1 1km)",
+        "Weather Forecast (ICON-CH2 2.1km)",
+        "About"
+    ])
+    
+    # Page routing
     if page_choice == "Home":
         home_page()
-
-    elif page_choice=='Weather Near-Realtime (MeteoSat 5km)':
+    elif page_choice == 'Weather Near-Realtime (MeteoSat 5km)':
         sat_anim()
-
     elif page_choice == "Weather Forecast (ICON-CH1 1km)":
         selected = st.selectbox(
-            "weather parameter:",
+            "Weather parameter:",
             options=['solar','precipitation','cloud','temperature'],
-            index=0  # Default to dmi_seamless
+            index=0
         )
         with st.spinner("Downloading ..."):
             display_png_ch1(selected)
-
-
-    elif page_choice == "Weather Forecast (ICON-CH2 2.1km)":
-        selected = st.selectbox(
-            "weather parameter:",
-            options=['solar','precipitation','cloud','temperature'],
-            index=0  # Default to dmi_seamless
-        )
-        with st.spinner("Downloading ..."):
-            display_png_ch2(selected)
-
-        
-    elif page_choice == "About":
-        about_page()
-
-
-    st.markdown("##")  # Extra space
-    if st.sidebar.button("Clear Cache"):  
-        st.cache_resource.clear()
-        st.cache_data.clear()
-        st.sidebar.success("Cache cleared!")
-
-
-    
-    
-    # Create a container for the bottom section
-    #bottom_container = st.container()
-    
-    # Use expander to take minimal space (optional)
-    #with st.sidebar:
-    #    st.markdown("---")
-    #    b_code="""
-    #    <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="wamine" data-description="Support me on Buy me a coffee!" data-message="" data-color="#FF813F" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
-    #    """
-    #    components.html(b_code, height=500)
-        
-
-
-if __name__ == "__main__":
-    
-    main()
