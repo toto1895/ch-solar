@@ -747,21 +747,10 @@ def home_page():
                 st.plotly_chart(fig, use_container_width=True)
 
 def about_page():
-    st.title("About This App")
-    st.write("This application displays solar power forecasts for Switzerland based on PRONOVO data.")
-    
+
     st.markdown("""
-    ### Data Sources
-    - Solar installation data from the PRONOVO registry
-    - Weather forecast data from multiple meteorological models
-    
-    ### Features
-    - View forecasts by canton or operator
-    - Compare multiple forecast scenarios
-    - Visualize solar plant locations across Switzerland
-    
     ### Contact
-    For more information or support, please contact the development team.
+    For more information or support, please contact aminedev1895@gmail.com.
     """)
 
 
