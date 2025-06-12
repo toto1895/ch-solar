@@ -767,7 +767,7 @@ import streamlit.components.v1 as components
 
 def main():
     
-    #st.sidebar.title("Navigation")
+    st.sidebar.title("Swiss solar forecast")
     page_choice = st.sidebar.radio("Go to page:", [
                     "Home",
                     "Weather Near-Realtime (MeteoSat 5km)",
