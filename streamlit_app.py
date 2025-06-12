@@ -421,7 +421,9 @@ def home_page():
     conn = get_connection()
 
     # Define available models and clusters
-    available_models = ["ICON-CH1","ICON-CH2","dmi_seamless", "metno_seamless", "icon_d2", "meteofrance_seamless"]
+    available_models = ["ICON-CH1","ICON-CH2",
+                        #"dmi_seamless", "metno_seamless", "icon_d2", "meteofrance_seamless"
+                        ]
     available_clusters = ["cluster0", "cluster1", "cluster2"]
     
     # Create selection widgets in columns
