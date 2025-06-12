@@ -570,7 +570,7 @@ def home_page():
                     all_cantons = sorted(merged_df["Canton"].unique().tolist())
                     
                     # Create a multiselect widget for cantons
-                    selected_cantons = st.multiselect(
+                    selected_cantons = st.selectbox(
                         "Select Cantons:",
                         options=all_cantons
                     )
