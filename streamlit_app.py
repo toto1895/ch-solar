@@ -767,13 +767,7 @@ import streamlit.components.v1 as components
 
 def main():
     
-    st.sidebar.title("Navigation")
-   
-    if st.sidebar.button("Clear Cache"):  
-        st.cache_resource.clear()
-        st.cache_data.clear()
-        st.sidebar.success("Cache cleared!")
-
+    #st.sidebar.title("Navigation")
     page_choice = st.sidebar.radio("Go to page:", [
                     "Home",
                     "Weather Near-Realtime (MeteoSat 5km)",
@@ -811,6 +805,11 @@ def main():
         
     elif page_choice == "About":
         about_page()
+
+     if st.sidebar.button("Clear Cache"):  
+        st.cache_resource.clear()
+        st.cache_data.clear()
+        st.sidebar.success("Cache cleared!")
     
 
     st.markdown("##")  # Extra space
