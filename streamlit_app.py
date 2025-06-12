@@ -716,7 +716,7 @@ def main():
         return
     
     # Navigation menu (only shown when logged in)
-    st.sidebar.markdown("### 📊 Navigation")
+    #st.sidebar.markdown("### 📊 Navigation")
     
     page_choice = st.sidebar.radio("Select Page:", [
         "Home",
