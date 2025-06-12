@@ -740,3 +740,7 @@ def main():
         )
         with st.spinner("Downloading ..."):
             display_png_ch1(selected)
+
+
+if __name__ == "__main__":
+    main()
