@@ -60,7 +60,7 @@ def login_page():
     st.title("🔐 Swiss Solar Dashboard")
     st.markdown("### Secure Access Portal")
     
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2 = st.columns([1, 2])
     
     with col1:
         st.markdown("""
