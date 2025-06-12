@@ -62,7 +62,7 @@ def login_page():
     
     col1, col2, col3 = st.columns([1, 2, 1])
     
-    with col2:
+    with col1:
         st.markdown("""
         Welcome to the Swiss Solar Dashboard. This platform provides:
         
