@@ -806,13 +806,15 @@ def main():
     elif page_choice == "About":
         about_page()
 
+
+    st.markdown("##")  # Extra space
     if st.sidebar.button("Clear Cache"):  
         st.cache_resource.clear()
         st.cache_data.clear()
         st.sidebar.success("Cache cleared!")
 
 
-    st.markdown("##")  # Extra space
+    
     
     # Create a container for the bottom section
     #bottom_container = st.container()
