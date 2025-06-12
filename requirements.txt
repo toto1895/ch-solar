@@ -13,3 +13,4 @@ h5netcdf
 xarray
 matplotlib
 cartopy
+Authlib
