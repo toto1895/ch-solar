@@ -270,7 +270,7 @@ def login_page():
         # Auto-redirect to home after successful login
         if st.button("Continue to Dashboard") or st.session_state.get('login_logged', False):
             st.session_state.page = "home"
-            st.rerun()
+            #st.rerun()
 
 # ——— Original Functions (unchanged) ———
 def get_connection():
