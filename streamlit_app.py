@@ -252,8 +252,9 @@ def login_page():
                 
                 # Upload to cloud in background (optional)
                 # This runs async and doesn't slow down the app
-                if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
-                    upload_logs_to_gcs()
+                #if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
+                print('ok')
+                upload_logs_to_gcs()
         
         st.success(f"✅ Logged in as: {user_email_str}")
         st.balloons()
