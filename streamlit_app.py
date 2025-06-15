@@ -44,21 +44,8 @@ def user_email() -> str:
     return getattr(u, "email", "") if u else ""
 
 import requests
-def get_user_ip_() -> str:
-    """
-    Simplified IP getter using external service.
-    Use this if the above method doesn't work in your environment.
-    
-    Returns:
-        str: The user's IP address, or "Unknown" if unable to determine
-    """
-    try:
-        response = requests.get('https://api.ipify.org?format=text', timeout=3)
-        if response.status_code == 200:
-            return response.text.strip()
-        return "Unknown"
-    except:
-        return "Unknown"
+from typing import Optional
+import socket
 
 def get_user_ip() -> str:
     """
@@ -93,8 +80,7 @@ def get_user_ip() -> str:
                     if ip_value:
                         # X-Forwarded-For can contain multiple IPs, take the first
                         return ip_value.split(',')[0].strip()
-    except Exception as e:
-        print(e)
+    except Exception:
         pass
     
     # Method 2: Try alternative Streamlit session approach
@@ -118,8 +104,7 @@ def get_user_ip() -> str:
             # Try direct client address
             if hasattr(session_info, 'client') and hasattr(session_info.client, 'address'):
                 return session_info.client.address
-    except Exception as e:
-        print(e)
+    except Exception:
         pass
 
 
