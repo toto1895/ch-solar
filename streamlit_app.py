@@ -258,7 +258,7 @@ def login_page():
                     #if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
                     #upload_logs_to_gcs()
                     
-                    #st.balloons()
+                    st.balloons()
                     st.info("🔄 Redirecting to dashboard...")
                     # Small delay to ensure logging completes
 
@@ -270,7 +270,9 @@ def login_page():
         # Auto-redirect to home after successful login
         if st.button("Continue to Dashboard") or st.session_state.get('login_logged', False):
             st.session_state.page = "home"
-            #st.rerun()
+            import time
+            time.sleep(2)
+            st.rerun()
 
 # ——— Original Functions (unchanged) ———
 def get_connection():
