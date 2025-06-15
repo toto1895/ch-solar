@@ -252,16 +252,16 @@ def login_page():
                 
                 # Upload to cloud in background (optional)
                 # This runs async and doesn't slow down the app
-                #if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
-                print('ok')
-                upload_logs_to_gcs()
+                if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
+                    print('ok')
+                    upload_logs_to_gcs()
         
         st.success(f"✅ Logged in as: {user_email_str}")
         st.balloons()
         
         # Auto-redirect to home after successful login
         st.session_state.page = "home"
-        st.rerun()
+        #st.rerun()
 
 # ——— Original Functions (unchanged) ———
 def get_connection():
