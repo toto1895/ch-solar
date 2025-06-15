@@ -128,8 +128,8 @@ def get_user_ip() -> str:
                 if ip_value:
                     # X-Forwarded-For can contain multiple IPs, take the first
                     return ip_value.split(',')[0].strip()
-    except Exception:
-        pass
+    except Exception as e:
+        print(e)
     
     # Method 2: Try alternative Streamlit session approach
     try:
@@ -152,8 +152,8 @@ def get_user_ip() -> str:
             # Try direct client address
             if hasattr(session_info, 'client') and hasattr(session_info.client, 'address'):
                 return session_info.client.address
-    except Exception:
-        pass
+    except Exception as e:
+        print(e)
 
     try:
         # This gets the local IP that connects to the internet
@@ -167,7 +167,8 @@ def get_user_ip() -> str:
         # Only return local IP if it's not a private IP
         if not _is_private_ip(local_ip):
             return local_ip
-    except Exception:
+    except Exception as e:
+        print(e)
         pass
     
     return "Unknown"
