@@ -491,6 +491,7 @@ def login_page():
                 if log_user_signin_simple(user_email_str):
                     st.session_state.login_logged = True
                     
+                    print(get_user_ip())
                     # Get user stats
                     stats = get_user_stats(user_email_str, get_user_ip())
                     
@@ -1156,7 +1157,7 @@ def main():
                 user_email_str = user_email()
                 if log_user_signin_simple(user_email_str):
                     st.session_state.login_logged = True
-                    
+                    print(get_user_ip())
                     # Get user stats
                     stats = get_user_stats(user_email_str, get_user_ip())
                     
