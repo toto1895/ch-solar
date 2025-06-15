@@ -93,7 +93,8 @@ def get_user_ip() -> str:
                     if ip_value:
                         # X-Forwarded-For can contain multiple IPs, take the first
                         return ip_value.split(',')[0].strip()
-    except Exception:
+    except Exception as e:
+        print(e)
         pass
     
     # Method 2: Try alternative Streamlit session approach
@@ -117,7 +118,8 @@ def get_user_ip() -> str:
             # Try direct client address
             if hasattr(session_info, 'client') and hasattr(session_info.client, 'address'):
                 return session_info.client.address
-    except Exception:
+    except Exception as e:
+        print(e)
         pass
 
 
