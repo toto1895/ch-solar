@@ -126,7 +126,7 @@ def upload_logs_to_gcs():
             return False
         
         # Create blob name with date structure
-        blob_name = f"user_logins/{datetime.utcnow().strftime('%Y/%m/%d')}/logins.jsonl"
+        blob_name = f"user_logins/{pd.Timestamp.now('UTC').strftime('%Y/%m/%d')}/logins.jsonl"
         
         # Upload using Google Cloud Storage client
         client = storage.Client()
