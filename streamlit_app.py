@@ -1086,7 +1086,7 @@ def main():
         # Log user signin if not already logged in this session
         if not st.session_state.get('login_logged', False):
             try:
-                user_email_str = user_name()
+                user_email_str = user_email()
                 if log_user_signin_simple(user_email_str):
                     st.session_state.login_logged = True
                     
