@@ -244,7 +244,7 @@ def download_logs_from_gcs(date_filter=None):
         
         # Create local directory if it doesn't exist
         local_dir = Path("downloaded_logs")
-        local_dir = Path("user_logins")
+        local_dir = Path("user_logs")
         local_dir.mkdir(exist_ok=True)
         
         # Create local filename with timestamp
