@@ -188,16 +188,142 @@ def upload_logs_to_gcs():
         print("Full traceback:")
         print(traceback.format_exc())
 
+def download_logs_from_gcs(date_filter=None):
+    """Download logs from Google Cloud Storage
+    
+    Args:
+        date_filter (str, optional): Date in format 'YYYY/MM/DD' to download specific date.
+                                   If None, downloads the most recent file.
+    """
+    try:
+        import json
+        import pandas as pd
+        from pathlib import Path
+        from google.cloud import storage
+        from google.oauth2 import service_account
+        import streamlit as st
+        
+        print("=== Starting download_logs_from_gcs function ===")
+        
+        # Get bucket name
+        bucket_name = "ch-solar-dash-logs"
+        
+        # Setup credentials
+        service_account_json = st.secrets["service_account_json"]
+        service_account_json = service_account_json.replace('\\n', '\n')
+        service_account_info = json.loads(service_account_json)
+        credentials = service_account.Credentials.from_service_account_info(service_account_info)
+        
+        # Create GCS client
+        client = storage.Client(project="gridalert-c48ee", credentials=credentials)
+        bucket = client.bucket(bucket_name)
+        
+        if date_filter:
+            # Download specific date
+            blob_name = f"user_logins/{date_filter}/logins.jsonl"
+            blob = bucket.blob(blob_name)
+            
+            if not blob.exists():
+                st.error(f"No logs found for date {date_filter}")
+                return None
+                
+            print(f"Downloading: {blob_name}")
+            
+        else:
+            # Find the most recent file
+            print("Finding most recent log file...")
+            blobs = list(client.list_blobs(bucket_name, prefix="user_logins/"))
+            
+            if not blobs:
+                st.error("No log files found in bucket")
+                return None
+            
+            # Sort by creation time to get the most recent
+            blobs.sort(key=lambda x: x.time_created, reverse=True)
+            blob = blobs[0]
+            print(f"Most recent file: {blob.name}")
+        
+        # Create local directory if it doesn't exist
+        local_dir = Path("downloaded_logs")
+        local_dir.mkdir(exist_ok=True)
+        
+        # Create local filename with timestamp
+        if date_filter:
+            local_filename = f"logins_{date_filter.replace('/', '_')}.jsonl"
+        else:
+            timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
+            local_filename = f"logins_{timestamp}.jsonl"
+            
+        local_path = local_dir / local_filename
+        
+        # Download the file
+        print(f"Downloading to: {local_path}")
+        blob.download_to_filename(str(local_path))
+        
+        success_msg = f"Successfully downloaded to {local_path}"
+        print(success_msg)
+        st.success(success_msg)
+        
+        # Return the local path for further processing if needed
+        return str(local_path)
+        
+    except Exception as e:
+        error_msg = f"Download failed: {str(e)}"
+        print(error_msg)
+        st.error(error_msg)
+        import traceback
+        print(traceback.format_exc())
+        return None
+
+def list_available_log_dates():
+    """List all available log dates in GCS bucket"""
+    try:
+        import json
+        from google.cloud import storage
+        from google.oauth2 import service_account
+        import streamlit as st
+        
+        # Setup credentials
+        service_account_json = st.secrets["service_account_json"]
+        service_account_json = service_account_json.replace('\\n', '\n')
+        service_account_info = json.loads(service_account_json)
+        credentials = service_account.Credentials.from_service_account_info(service_account_info)
+        
+        # Create GCS client
+        client = storage.Client(project="gridalert-c48ee", credentials=credentials)
+        bucket_name = "ch-solar-dash-logs"
+        
+        # List all blobs with the user_logins prefix
+        blobs = client.list_blobs(bucket_name, prefix="user_logins/")
+        
+        # Extract dates from blob names
+        dates = set()
+        for blob in blobs:
+            # Extract date from path like "user_logins/2025/06/15/logins.jsonl"
+            parts = blob.name.split('/')
+            if len(parts) >= 4:
+                date_str = f"{parts[1]}/{parts[2]}/{parts[3]}"
+                dates.add(date_str)
+        
+        return sorted(list(dates), reverse=True)  # Most recent first
+        
+    except Exception as e:
+        print(f"Failed to list dates: {e}")
+        st.error(f"Failed to list available dates: {e}")
+        return []
 
 def show_login_analytics():
     """Simple analytics from local log files"""
     st.title("📊 User Login Analytics")
+
+    download_logs_from_gcs()
     
     log_file = Path("user_logs/user_logins.jsonl")
     
     if not log_file.exists():
         st.info("No login data available yet.")
         return
+    
     
     # Read all login records
     records = []
@@ -237,8 +363,8 @@ def show_login_analytics():
     st.subheader("Recent Logins")
     
     # Show last 20 logins
-    recent_records = records[-20:]
-    recent_records.reverse()  # Show newest first
+    recent_records = records[:]
+    recent_records.reverse() # Show newest first
     
     if recent_records:
         df = pd.DataFrame(recent_records)
