@@ -85,29 +85,50 @@ def log_user_signin_simple(user_email):
         st.error(f"Logging failed: {e}")
         return False
 
-def get_user_stats(user_email):
-    """Get user login statistics"""
+def get_user_stats(user_email, ip_address=None):
+    """Get user login statistics including IP address tracking"""
     try:
         log_file = Path("user_logs/user_logins.jsonl")
         if not log_file.exists():
-            return {"total_logins": 1, "first_login": True}
+            return {
+                "total_logins": 1, 
+                "first_login": True,
+                "ip_addresses": [ip_address] if ip_address else [],
+                "unique_ips": 1 if ip_address else 0
+            }
         
         total_logins = 0
+        ip_addresses = set()
+        
         with open(log_file, "r", encoding="utf-8") as f:
             for line in f:
                 try:
                     record = json.loads(line.strip())
                     if record.get("email") == user_email:
                         total_logins += 1
+                        # Collect IP addresses from previous logins
+                        if "ip_address" in record:
+                            ip_addresses.add(record["ip_address"])
                 except:
                     continue
         
+        # Add current IP if provided
+        if ip_address:
+            ip_addresses.add(ip_address)
+        
         return {
             "total_logins": total_logins + 1,  # +1 for current login
-            "first_login": total_logins == 0
+            "first_login": total_logins == 0,
+            "ip_addresses": list(ip_addresses),
+            "unique_ips": len(ip_addresses)
         }
     except:
-        return {"total_logins": 1, "first_login": True}
+        return {
+            "total_logins": 1, 
+            "first_login": True,
+            "ip_addresses": [ip_address] if ip_address else [],
+            "unique_ips": 1 if ip_address else 0
+        }
 
 
 from google.cloud import storage
