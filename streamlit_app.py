@@ -181,7 +181,7 @@ def show_login_analytics():
         st.metric("Unique Users", unique_users)
     
     with col3:
-        today = datetime.utcnow().date().isoformat()
+        today = pd.Timestamp.now('UTC').date().isoformat()
         today_logins = len([r for r in records if r.get('date') == today])
         st.metric("Logins Today", today_logins)
     
@@ -210,7 +210,7 @@ def show_login_analytics():
         st.download_button(
             "📥 Download Full Log CSV",
             csv,
-            f"user_logins_{datetime.now().strftime('%Y%m%d')}.csv",
+            f"user_logins_{pd.Timestamp.now('UTC').strftime('%Y%m%d')}.csv",
             "text/csv"
         )
         if st.button("Upload Logs to Cloud"):
