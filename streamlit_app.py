@@ -134,6 +134,7 @@ def upload_logs_to_gcs():
             file_content = f.read()
         
         # Upload using file connection
+        print('here')
         conn.fs.upload(blob_path, file_content)
         
         return True
