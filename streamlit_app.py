@@ -146,52 +146,50 @@ def upload_logs_to_gcs():
 def login_page():
     st.markdown("### Secure Access Portal")
     
-    col1, col2 = st.columns([1, 2])
+
+    st.markdown("""
+    Welcome to the Swiss Solar Dashboard. This platform provides:
     
-    with col1:
-        st.markdown("""
-        Welcome to the Swiss Solar Dashboard. This platform provides:
+    - ☀️ **Real-time solar generation forecasts**
+    - 📊 **Interactive data visualizations** 
+    - 🗺️ **Geographic power plant mapping**
+    - 🌦️ **Weather forecast integration**
+    
+    Please log in to access the dashboard.
+    """)
+    
+    st.info("Use the sidebar to authenticate with your Google account.")
+    
+    if user_is_logged_in():
+        user_email = user_name()
         
-        - ☀️ **Real-time solar generation forecasts**
-        - 📊 **Interactive data visualizations** 
-        - 🗺️ **Geographic power plant mapping**
-        - 🌦️ **Weather forecast integration**
-        
-        Please log in to access the dashboard.
-        """)
-        
-        st.info("Use the sidebar to authenticate with your Google account.")
-        
-        if user_is_logged_in():
-            user_email = user_name()
+        # Only log once per session
+        if not st.session_state.get('login_logged', False):
             
-            # Only log once per session
-            if not st.session_state.get('login_logged', False):
+            # Simple, fast logging
+            if log_user_signin_simple(user_email):
+                st.session_state.login_logged = True
                 
-                # Simple, fast logging
-                if log_user_signin_simple(user_email):
-                    st.session_state.login_logged = True
-                    
-                    # Get user stats
-                    stats = get_user_stats(user_email)
-                    
-                    # Show welcome message
-                    if stats["first_login"]:
-                        st.sidebar.success("🎉 Welcome to Solar Dashboard!")
-                    else:
-                        st.sidebar.success(f"Welcome back! Visit #{stats['total_logins']}")
-                    
-                    # Upload to cloud in background (optional)
-                    # This runs async and doesn't slow down the app
-                    if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
-                        upload_logs_to_gcs()
-            
-            st.success(f"✅ Logged in as: {user_email}")
-            st.balloons()
-            
-            # Auto-redirect to home after successful login
-            st.session_state.page = "home"
-            st.rerun()
+                # Get user stats
+                stats = get_user_stats(user_email)
+                
+                # Show welcome message
+                if stats["first_login"]:
+                    st.sidebar.success("🎉 Welcome to Solar Dashboard!")
+                else:
+                    st.sidebar.success(f"Welcome back! Visit #{stats['total_logins']}")
+                
+                # Upload to cloud in background (optional)
+                # This runs async and doesn't slow down the app
+                if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
+                    upload_logs_to_gcs()
+        
+        st.success(f"✅ Logged in as: {user_email}")
+        st.balloons()
+        
+        # Auto-redirect to home after successful login
+        st.session_state.page = "home"
+        st.rerun()
 
 
 
