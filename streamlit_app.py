@@ -244,6 +244,7 @@ def download_logs_from_gcs(date_filter=None):
         
         # Create local directory if it doesn't exist
         local_dir = Path("downloaded_logs")
+        local_dir = Path("user_logins")
         local_dir.mkdir(exist_ok=True)
         
         # Create local filename with timestamp
@@ -252,7 +253,8 @@ def download_logs_from_gcs(date_filter=None):
         else:
             timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
             local_filename = f"logins_{timestamp}.jsonl"
-            
+            local_filename = 'user_logins.jsonl'  # Always save as user_logins.jsonl for consistency
+
         local_path = local_dir / local_filename
         
         # Download the file
