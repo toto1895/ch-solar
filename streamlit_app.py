@@ -144,7 +144,7 @@ def upload_logs_to_gcs():
         print(f"Log file size: {log_file.stat().st_size} bytes")
             
         # Create blob name with date structure
-        blob_name = f"user_logins/{pd.Timestamp.now('UTC').strftime('%Y/%m/%d')}/logins.jsonl"
+        blob_name = f"user_logins/{pd.Timestamp.now('UTC').strftime('%Y_%m_%d')}/logins.jsonl"
         print(f"Blob name: {blob_name}")
         
         print("Getting service account credentials...")
@@ -308,7 +308,7 @@ def login_page():
                     
                     # Upload to cloud in background (optional)
                     #if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
-                    #upload_logs_to_gcs()
+                    upload_logs_to_gcs()
                     
                     #st.balloons()
                     st.info("🔄 Redirecting to dashboard...")
@@ -974,7 +974,7 @@ def main():
                     
                     # Upload to cloud in background (optional)
                     #if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
-                    #upload_logs_to_gcs()
+                    upload_logs_to_gcs()
             except Exception as e:
                 print(f"Logging error: {e}")
         
