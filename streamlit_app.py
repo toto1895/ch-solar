@@ -810,10 +810,7 @@ def main():
     # Authentication section
     st.sidebar.markdown("### 🔐 Authentication")
         # Show login page if not authenticated
-    if not user_is_logged_in():
-        login_page()
-        return
-    
+
     if user_is_logged_in():
         st.sidebar.success(f"Logged in as: {user_name()}")
         if st.sidebar.button("🚪 Logout"):
@@ -825,6 +822,11 @@ def main():
         if st.sidebar.button("🔑 Login with Google"):
             st.login("google")
             st.rerun()
+    
+    if not user_is_logged_in():
+        login_page()
+        return
+    
     
 
         
