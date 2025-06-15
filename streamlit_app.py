@@ -90,6 +90,7 @@ def log_user_signin_simple(user_email):
         login_record = {
             "timestamp": pd.Timestamp.now('UTC').isoformat(),
             "email": user_email,
+            "ip_addresses": get_user_ip(),
             "session_id": st.session_state.get('session_id', 'unknown'),
             "date": pd.Timestamp.now('UTC').date().isoformat()
         }
