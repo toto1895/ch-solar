@@ -62,47 +62,63 @@ def get_user_ip_() -> str:
 
 def get_user_ip() -> str:
     """
-    Get user's IP address from Streamlit's request context.
+    Get user's IP address with multiple fallback methods.
+    Tries multiple approaches to ensure IP detection works in various environments.
     
     Returns:
         str: The user's IP address, or "Unknown" if unable to determine
     """
+    
+    # Method 1: Try Streamlit's internal session info (works in some deployments)
     try:
-        # Get the current script run context
+        from streamlit.runtime.scriptrunner import get_script_run_ctx
+        from streamlit.web.server.websocket_headers import _get_websocket_headers
+        
+        ctx = get_script_run_ctx()
+        if ctx is not None:
+            headers = _get_websocket_headers()
+            if headers:
+                # Check common forwarded IP headers (in order of preference)
+                forwarded_headers = [
+                    'x-forwarded-for',
+                    'x-real-ip',
+                    'cf-connecting-ip',  # Cloudflare
+                    'x-client-ip',
+                    'true-client-ip',    # Cloudflare Enterprise
+                    'x-cluster-client-ip'
+                ]
+                
+                for header in forwarded_headers:
+                    ip_value = headers.get(header)
+                    if ip_value:
+                        # X-Forwarded-For can contain multiple IPs, take the first
+                        return ip_value.split(',')[0].strip()
+    except Exception:
+        pass
+    
+    # Method 2: Try alternative Streamlit session approach
+    try:
         from streamlit.runtime.scriptrunner import get_script_run_ctx
         ctx = get_script_run_ctx()
         
-        if ctx is None:
-            return "Unknown"
-        
-        # Get session info from context
-        session_info = ctx.session_info
-        if session_info and hasattr(session_info, 'client'):
-            # Check for forwarded headers first (proxy/load balancer)
-            headers = getattr(session_info, 'headers', {})
-            if headers:
-                # Common forwarded IP headers
-                forwarded_ips = [
-                    headers.get('x-forwarded-for'),
-                    headers.get('x-real-ip'),
-                    headers.get('cf-connecting-ip'),  # Cloudflare
-                    headers.get('x-client-ip')
-                ]
-                
-                for ip_header in forwarded_ips:
-                    if ip_header:
-                        # X-Forwarded-For can have multiple IPs, take the first
-                        return ip_header.split(',')[0].strip()
+        if ctx and hasattr(ctx, 'session_info'):
+            session_info = ctx.session_info
             
-            # Fallback to direct client IP
-            client_ip = getattr(session_info.client, 'address', None)
-            if client_ip:
-                return client_ip
-        
-        return "Unknown"
-        
+            # Try to get headers from session
+            if hasattr(session_info, 'headers'):
+                headers = session_info.headers
+                for header_name in ['x-forwarded-for', 'x-real-ip', 'cf-connecting-ip']:
+                    if header_name in headers:
+                        ip = headers[header_name]
+                        if ',' in ip:
+                            ip = ip.split(',')[0]
+                        return ip.strip()
+            
+            # Try direct client address
+            if hasattr(session_info, 'client') and hasattr(session_info.client, 'address'):
+                return session_info.client.address
     except Exception:
-        return "Unknown"
+        pass
 
 
 
