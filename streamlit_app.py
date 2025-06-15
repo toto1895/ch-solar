@@ -109,34 +109,32 @@ def get_user_stats(user_email):
     except:
         return {"total_logins": 1, "first_login": True}
 
+
+from google.cloud import storage
 def upload_logs_to_gcs():
-    """Upload local logs to Google Cloud Storage using Streamlit file connection"""
+    """Upload local logs to Google Cloud Storage"""
     try:
-        # Get bucket name from secrets
+        # Get bucket name
         bucket_name = "ch-solar-dash-logs"
         
         if not bucket_name:
             return False
-        
-        # Create GCS connection using Streamlit's file connection
-        conn = get_connection()
         
         # Check if log file exists
         log_file = Path("user_logs/user_logins.jsonl")
         if not log_file.exists():
             return False
         
-        # Create blob path with date structure
-        blob_path = f"gs://{bucket_name}/user_logins/{datetime.utcnow().strftime('%Y/%m/%d')}/logins.jsonl"
+        # Create blob name with date structure
+        blob_name = f"user_logins/{datetime.utcnow().strftime('%Y/%m/%d')}/logins.jsonl"
         
-        # Read local file content
-        with open(log_file, "rb") as f:
-            file_content = f.read()
+        # Upload using Google Cloud Storage client
+        client = storage.Client()
+        bucket = client.bucket(bucket_name)
+        blob = bucket.blob(blob_name)
+        blob.upload_from_filename(str(log_file))
         
-        # Upload using file connection
-        print('here')
-        conn.fs.upload(blob_path, file_content)
-        
+        print(f"Successfully uploaded to gs://{bucket_name}/{blob_name}")
         return True
         
     except Exception as e:
