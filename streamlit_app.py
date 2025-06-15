@@ -122,11 +122,10 @@ def upload_logs_to_gcs():
         log_file = Path("user_logs/user_logins.jsonl")
         if not log_file.exists():
             print('pas de logs à uploader')
-            return False
         # Create blob name with date structure
         blob_name = f"user_logins/{pd.Timestamp.now('UTC').strftime('%Y/%m/%d')}/logins.jsonl"
         
-        
+
         # Upload using Google Cloud Storage client
         client = storage.Client(project_id=st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"),
                                 credentials=st.secrets.get("connection.gcs"))
@@ -135,12 +134,10 @@ def upload_logs_to_gcs():
         blob.content_type = 'application/jsonl'
         blob.upload_from_filename(str(log_file))
         print(f"Successfully uploaded to gs://{bucket_name}/{blob_name}")
-        return True
         
     except Exception as e:
         # Fail silently for cloud upload - local logging still works
         print(f"Cloud upload failed: {e}")
-        return False
 
 def show_login_analytics():
     """Simple analytics from local log files"""
