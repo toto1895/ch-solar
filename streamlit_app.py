@@ -194,10 +194,9 @@ def show_login_analytics():
     if recent_records:
         df = pd.DataFrame(recent_records)
         try:
-            df['timestamp'] = pd.to_datetime(df['timestamp']).dt.strftime('%Y-%m-%d %H:%M:%S')
+            df['timestamp'] = pd.to_datetime(df['timestamp'],format='ISO8601').dt.strftime('%Y-%m-%d %H:%M:%S')
         except Exception as e:
             st.error(f"Error formatting timestamps: {e}")
-            return
         
         # Display table
         st.dataframe(
