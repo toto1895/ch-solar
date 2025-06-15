@@ -114,44 +114,75 @@ from google.cloud import storage
 
 def upload_logs_to_gcs():
     """Upload local logs to Google Cloud Storage"""
+    print("=== Starting upload_logs_to_gcs function ===")
+    
     try:
         import json
         import pandas as pd
         from pathlib import Path
         from google.cloud import storage
-  
+        from google.oauth2 import service_account
+        import streamlit as st
+        
+        print("Imports successful")
         
         # Get bucket name
         bucket_name = "ch-solar-dash-logs"
+        print(f"Bucket name: {bucket_name}")
  
         # Check if log file exists
         log_file = Path("user_logs/user_logins.jsonl")
+        print(f"Checking for log file: {log_file}")
+        print(f"Log file exists: {log_file.exists()}")
+        print(f"Current working directory: {Path.cwd()}")
+        
         if not log_file.exists():
             print('pas de logs à uploader')
-            return  # Add this return statement
+            st.warning("No log file found to upload")
+            return
+            
+        print(f"Log file size: {log_file.stat().st_size} bytes")
             
         # Create blob name with date structure
         blob_name = f"user_logins/{pd.Timestamp.now('UTC').strftime('%Y/%m/%d')}/logins.jsonl"
+        print(f"Blob name: {blob_name}")
         
+        print("Getting service account credentials...")
         service_account_json = st.secrets["service_account_json"]
-        # Parse the JSON string into a dictionary
         service_account_info = json.loads(service_account_json)
+        print("Service account info parsed successfully")
 
         # Create credentials object properly
         credentials = service_account.Credentials.from_service_account_info(service_account_info)
+        print("Credentials created successfully")
 
         # Upload using Google Cloud Storage client
+        print("Creating GCS client...")
         client = storage.Client(project=st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"),
                                credentials=credentials)
+        
+        print("Getting bucket...")
         bucket = client.bucket(bucket_name)
+        
+        print("Creating blob...")
         blob = bucket.blob(blob_name)
         blob.content_type = 'application/jsonl'
+        
+        print("Starting upload...")
         blob.upload_from_filename(str(log_file))
-        print(f"Successfully uploaded to gs://{bucket_name}/{blob_name}")
+        
+        success_msg = f"Successfully uploaded to gs://{bucket_name}/{blob_name}"
+        print(success_msg)
+        st.success(success_msg)
         
     except Exception as e:
-        # Fail silently for cloud upload - local logging still works
-        print(f"Cloud upload failed: {e}")
+        error_msg = f"Cloud upload failed: {str(e)}"
+        print(error_msg)
+        st.error(error_msg)
+        # Print the full traceback for debugging
+        import traceback
+        print("Full traceback:")
+        print(traceback.format_exc())
 
 
 def show_login_analytics():
