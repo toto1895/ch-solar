@@ -127,6 +127,7 @@ def get_user_ip() -> str:
                 ip_value = headers.get(header)
                 if ip_value:
                     # X-Forwarded-For can contain multiple IPs, take the first
+                    print(f"Found header {header}: {ip_value}")
                     return ip_value.split(',')[0].strip()
     except Exception as e:
         print(e)
@@ -151,6 +152,7 @@ def get_user_ip() -> str:
             
             # Try direct client address
             if hasattr(session_info, 'client') and hasattr(session_info.client, 'address'):
+                print(f"Found client address: {session_info.client.address}")
                 return session_info.client.address
     except Exception as e:
         print(e)
@@ -163,7 +165,7 @@ def get_user_ip() -> str:
         s.connect(("8.8.8.8", 80))
         local_ip = s.getsockname()[0]
         s.close()
-        
+        print(f"Local IP detected: {local_ip}")
         # Only return local IP if it's not a private IP
         if not _is_private_ip(local_ip):
             return local_ip
