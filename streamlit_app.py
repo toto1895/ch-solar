@@ -110,33 +110,34 @@ def get_user_stats(user_email):
         return {"total_logins": 1, "first_login": True}
 
 def upload_logs_to_gcs():
-    """Upload local logs to Google Cloud Storage (optional, async)"""
+    """Upload local logs to Google Cloud Storage using Streamlit file connection"""
     try:
-        from google.cloud import storage
-        
-        # Get project ID from secrets
-        project_id = st.secrets.get("GOOGLE_CLOUD_PROJECT_ID")
+        # Get bucket name from secrets
         bucket_name = st.secrets.get("GCS_BUCKET_NAME")
         
-        if not project_id or not bucket_name:
+        if not bucket_name:
             return False
         
-        # Initialize storage client
-        client = storage.Client(project=project_id)
-        bucket = client.bucket(bucket_name)
+        # Create GCS connection using Streamlit's file connection
+        conn = st.connection('gcs', type=st.connections.FilesConnection)
         
-        # Upload log file
+        # Check if log file exists
         log_file = Path("user_logs/user_logins.jsonl")
-        if log_file.exists():
-            blob_name = f"user_logins/{datetime.utcnow().strftime('%Y/%m/%d')}/logins.jsonl"
-            blob = bucket.blob(blob_name)
-            
-            # Read and append to cloud storage
-            with open(log_file, "rb") as f:
-                blob.upload_from_file(f)
-            
-            return True
-            
+        if not log_file.exists():
+            return False
+        
+        # Create blob path with date structure
+        blob_path = f"gs://{bucket_name}/user_logins/{datetime.utcnow().strftime('%Y/%m/%d')}/logins.jsonl"
+        
+        # Read local file content
+        with open(log_file, "rb") as f:
+            file_content = f.read()
+        
+        # Upload using file connection
+        conn.fs.upload(blob_path, file_content)
+        
+        return True
+        
     except Exception as e:
         # Fail silently for cloud upload - local logging still works
         print(f"Cloud upload failed: {e}")
@@ -256,7 +257,7 @@ def login_page():
                     
                     # Upload to cloud in background (optional)
                     #if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
-                    #upload_logs_to_gcs()
+                    upload_logs_to_gcs()
                     
                     st.balloons()
                     st.info("🔄 Redirecting to dashboard...")
