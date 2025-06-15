@@ -127,7 +127,8 @@ def upload_logs_to_gcs():
         blob_name = f"user_logins/{pd.Timestamp.now('UTC').strftime('%Y/%m/%d')}/logins.jsonl"
         
         # Upload using Google Cloud Storage client
-        client = storage.Client()
+        client = storage.Client(project_id=st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"),
+                                credentials=st.secrets.get("connection.gcs"))
         bucket = client.bucket(bucket_name)
         blob = bucket.blob(blob_name)
         blob.content_type = 'application/jsonl'
