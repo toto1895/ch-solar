@@ -62,11 +62,12 @@ from google.cloud import logging as cloud_logging
 import datetime
 import hashlib
 import json
-
+import time
 # Initialize Google Cloud services
 def init_google_cloud():
     """Initialize Google Cloud Firestore and Logging clients"""
     try:
+        st_time = time.time()
         # Initialize Firestore client
         project_id = 'gridalert-c48ee'
         db = firestore.Client(project=project_id)
@@ -74,6 +75,8 @@ def init_google_cloud():
         # Initialize Cloud Logging client
         logging_client = cloud_logging.Client(project=project_id)
         logging_client.setup_logging()
+
+        print(time.time()-st_time)
         
         return db, logging_client
     except Exception as e:
