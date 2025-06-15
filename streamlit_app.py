@@ -10,7 +10,8 @@ from google.oauth2 import service_account
 from st_files_connection import FilesConnection
 import gc
 import io
-import os
+import json
+from pathlib import Path
 
 # ——— Page setup & state ———
 st.set_page_config(
@@ -55,9 +56,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-from pathlib import Path
-#import streamlit as st
-# Simple local logging first - then we'll add cloud storage
+# ——— User Logging Functions ———
 def log_user_signin_simple(user_email):
     """Simple, fast user login tracking"""
     try:
@@ -70,10 +69,10 @@ def log_user_signin_simple(user_email):
         
         # Create login record
         login_record = {
-            "timestamp": datetime.datetime.utcnow().isoformat(),
+            "timestamp": datetime.utcnow().isoformat(),
             "email": user_email,
             "session_id": st.session_state.get('session_id', 'unknown'),
-            "date": datetime.datetime.utcnow().date().isoformat()
+            "date": datetime.utcnow().date().isoformat()
         }
         
         # Append to log file (JSONL format - one JSON per line)
@@ -86,7 +85,6 @@ def log_user_signin_simple(user_email):
         st.error(f"Logging failed: {e}")
         return False
 
-import json
 def get_user_stats(user_email):
     """Get user login statistics"""
     try:
@@ -120,7 +118,7 @@ def upload_logs_to_gcs():
         project_id = st.secrets.get("GOOGLE_CLOUD_PROJECT_ID")
         bucket_name = st.secrets.get("GCS_BUCKET_NAME")
         
-        if not project_id:
+        if not project_id or not bucket_name:
             return False
         
         # Initialize storage client
@@ -130,7 +128,7 @@ def upload_logs_to_gcs():
         # Upload log file
         log_file = Path("user_logs/user_logins.jsonl")
         if log_file.exists():
-            blob_name = f"user_logins/{datetime.datetime.utcnow().strftime('%Y/%m/%d')}/logins.jsonl"
+            blob_name = f"user_logins/{datetime.utcnow().strftime('%Y/%m/%d')}/logins.jsonl"
             blob = bucket.blob(blob_name)
             
             # Read and append to cloud storage
@@ -144,10 +142,82 @@ def upload_logs_to_gcs():
         print(f"Cloud upload failed: {e}")
         return False
 
+def show_login_analytics():
+    """Simple analytics from local log files"""
+    st.title("📊 User Login Analytics")
+    
+    log_file = Path("user_logs/user_logins.jsonl")
+    
+    if not log_file.exists():
+        st.info("No login data available yet.")
+        return
+    
+    # Read all login records
+    records = []
+    try:
+        with open(log_file, "r", encoding="utf-8") as f:
+            for line in f:
+                try:
+                    record = json.loads(line.strip())
+                    records.append(record)
+                except:
+                    continue
+    except Exception as e:
+        st.error(f"Error reading log file: {e}")
+        return
+    
+    if not records:
+        st.info("No valid login records found.")
+        return
+    
+    # Basic statistics
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        total_logins = len(records)
+        st.metric("Total Logins", total_logins)
+    
+    with col2:
+        unique_users = len(set(r['email'] for r in records))
+        st.metric("Unique Users", unique_users)
+    
+    with col3:
+        today = datetime.utcnow().date().isoformat()
+        today_logins = len([r for r in records if r.get('date') == today])
+        st.metric("Logins Today", today_logins)
+    
+    # Recent logins table
+    st.subheader("Recent Logins")
+    
+    # Show last 20 logins
+    recent_records = records[-20:]
+    recent_records.reverse()  # Show newest first
+    
+    if recent_records:
+        df = pd.DataFrame(recent_records)
+        df['timestamp'] = pd.to_datetime(df['timestamp']).dt.strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Display table
+        st.dataframe(
+            df[['timestamp', 'email']].rename(columns={
+                'timestamp': 'Login Time',
+                'email': 'User Email'
+            }),
+            use_container_width=True
+        )
+        
+        # Download option
+        csv = df.to_csv(index=False)
+        st.download_button(
+            "📥 Download Full Log CSV",
+            csv,
+            f"user_logins_{datetime.now().strftime('%Y%m%d')}.csv",
+            "text/csv"
+        )
+
 def login_page():
     st.markdown("### Secure Access Portal")
     
-
     st.markdown("""
     Welcome to the Swiss Solar Dashboard. This platform provides:
     
@@ -162,17 +232,17 @@ def login_page():
     st.info("Use the sidebar to authenticate with your Google account.")
     
     if user_is_logged_in():
-        user_email = user_name()
+        user_email_str = user_name()
         
         # Only log once per session
         if not st.session_state.get('login_logged', False):
             
             # Simple, fast logging
-            if log_user_signin_simple(user_email):
+            if log_user_signin_simple(user_email_str):
                 st.session_state.login_logged = True
                 
                 # Get user stats
-                stats = get_user_stats(user_email)
+                stats = get_user_stats(user_email_str)
                 
                 # Show welcome message
                 if stats["first_login"]:
@@ -185,15 +255,12 @@ def login_page():
                 if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
                     upload_logs_to_gcs()
         
-        st.success(f"✅ Logged in as: {user_email}")
+        st.success(f"✅ Logged in as: {user_email_str}")
         st.balloons()
         
         # Auto-redirect to home after successful login
         st.session_state.page = "home"
         st.rerun()
-
-
-
 
 # ——— Original Functions (unchanged) ———
 def get_connection():
@@ -520,7 +587,7 @@ def home_page():
         forecast_files, _ = get_forecast_files(selected_model, selected_cluster, conn)
     
     if not forecast_files:
-        st.warning(f"No forecast files found for {selected_model}/{selected_cluster}")
+        st.warning(f"No forecast files found for {selected_model}")
         return
     
     selected_file = st.selectbox(
@@ -723,7 +790,7 @@ def home_page():
                 fig.add_trace(go.Bar(
                     x=full_capa.index,
                     y=full_capa.values/1000,
-                    name='Added Cap a'
+                    name='Added Capacity'
                 ))
                 st.plotly_chart(fig, use_container_width=True)
 
@@ -795,13 +862,27 @@ def about_page():
     **Last Updated:** January 2025
     """)
 
-# Import animation functions (assuming these exist in your project)
-from satAnimation import generate_sat_rad_anim
-from satAnimation_icon import display_png_ch1, display_png_ch2
+# Check if animation modules exist and import safely
+try:
+    from satAnimation import generate_sat_rad_anim
+    from satAnimation_icon import display_png_ch1, display_png_ch2
+    ANIMATION_AVAILABLE = True
+except ImportError:
+    ANIMATION_AVAILABLE = False
+    st.warning("Animation modules not found. Weather animation features will be disabled.")
 
 def sat_anim():
-    fig_anim = generate_sat_rad_anim()
-    st.plotly_chart(fig_anim, use_container_width=True, theme=None)
+    """Satellite animation function"""
+    if ANIMATION_AVAILABLE:
+        fig_anim = generate_sat_rad_anim()
+        st.plotly_chart(fig_anim, use_container_width=True, theme=None)
+    else:
+        st.error("Satellite animation module not available")
+
+def is_admin_user():
+    """Check if current user is admin"""
+    admin_emails = ["admin@yourcompany.com", "aminedev1895@gmail.com"]  # Configure admin emails
+    return user_name() in admin_emails or user_email() in admin_emails
 
 # ——— Main function with authentication ———
 def main():
@@ -810,8 +891,7 @@ def main():
     
     # Authentication section
     st.sidebar.markdown("### 🔐 Authentication")
-        # Show login page if not authenticated
-
+    
     if user_is_logged_in():
         st.sidebar.success(f"Logged in as: {user_name()}")
         if st.sidebar.button("🚪 Logout"):
@@ -828,13 +908,23 @@ def main():
         login_page()
         return
     
+    # Admin section (only for admin users)
+    if is_admin_user():
+        st.sidebar.markdown("### 👨‍💼 Admin")
+        if st.sidebar.button("📊 View Login Analytics"):
+            st.session_state.page = "admin"
+            st.rerun()
     
-
-        
-    
-
     # Navigation menu (only shown when logged in)
-    #st.sidebar.markdown("### 📊 Navigation")
+    st.sidebar.markdown("### 📊 Navigation")
+    
+    # Handle admin page routing
+    if st.session_state.get('page') == 'admin':
+        show_login_analytics()
+        if st.button("← Back to Dashboard"):
+            st.session_state.page = "home"
+            st.rerun()
+        return
     
     page_choice = st.sidebar.radio("Select Page:", [
         "Home",
@@ -848,24 +938,34 @@ def main():
     if page_choice == "Home":
         home_page()
     elif page_choice == 'Weather Near-Realtime (MeteoSat 5km)':
-        sat_anim()
+        if ANIMATION_AVAILABLE:
+            sat_anim()
+        else:
+            st.error("Weather animation feature is not available. Please check if satAnimation module is installed.")
     elif page_choice == "Weather Forecast (ICON-CH1 1km)":
-        selected = st.selectbox(
-            "Weather parameter:",
-            options=['solar','precipitation','cloud','temperature'],
-            index=0
-        )
-        with st.spinner("Downloading ..."):
-            display_png_ch1(selected)
+        if ANIMATION_AVAILABLE:
+            selected = st.selectbox(
+                "Weather parameter:",
+                options=['solar','precipitation','cloud','temperature'],
+                index=0
+            )
+            with st.spinner("Downloading ..."):
+                display_png_ch1(selected)
+        else:
+            st.error("Weather forecast feature is not available. Please check if satAnimation_icon module is installed.")
     elif page_choice == "Weather Forecast (ICON-CH2 2.1km)":
-        selected = st.selectbox(
-            "Weather parameter:",
-            options=['solar','precipitation','cloud','temperature'],
-            index=0
-        )
-        with st.spinner("Downloading ..."):
-            display_png_ch2(selected)
-
+        if ANIMATION_AVAILABLE:
+            selected = st.selectbox(
+                "Weather parameter:",
+                options=['solar','precipitation','cloud','temperature'],
+                index=0
+            )
+            with st.spinner("Downloading ..."):
+                display_png_ch2(selected)
+        else:
+            st.error("Weather forecast feature is not available. Please check if satAnimation_icon module is installed.")
+    elif page_choice == "About":
+        about_page()
 
 if __name__ == "__main__":
     main()
