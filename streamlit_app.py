@@ -234,34 +234,43 @@ def login_page():
     if user_is_logged_in():
         user_email_str = user_name()
         
+        # Show immediate login success
+        st.success(f"✅ Logged in as: {user_email_str}")
+        
         # Only log once per session
         if not st.session_state.get('login_logged', False):
             
             # Simple, fast logging
-            if log_user_signin_simple(user_email_str):
-                st.session_state.login_logged = True
-                
-                # Get user stats
-                stats = get_user_stats(user_email_str)
-                
-                # Show welcome message
-                if stats["first_login"]:
-                    st.sidebar.success("🎉 Welcome to Solar Dashboard!")
-                else:
-                    st.sidebar.success(f"Welcome back! Visit #{stats['total_logins']}")
-                
-                # Upload to cloud in background (optional)
-                # This runs async and doesn't slow down the app
-                if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
-                    print('ok')
-                    upload_logs_to_gcs()
-        
-        st.success(f"✅ Logged in as: {user_email_str}")
-        st.balloons()
+            try:
+                if log_user_signin_simple(user_email_str):
+                    st.session_state.login_logged = True
+                    
+                    # Get user stats
+                    stats = get_user_stats(user_email_str)
+                    
+                    # Show welcome message
+                    if stats["first_login"]:
+                        st.sidebar.success("🎉 Welcome to Solar Dashboard!")
+                    else:
+                        st.sidebar.success(f"Welcome back! Visit #{stats['total_logins']}")
+                    
+                    # Upload to cloud in background (optional)
+                    if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
+                        upload_logs_to_gcs()
+                    
+                    st.balloons()
+                    st.info("🔄 Redirecting to dashboard...")
+                    # Small delay to ensure logging completes
+                    import time
+                    time.sleep(1)
+                    
+            except Exception as e:
+                st.error(f"Logging error: {e}")
         
         # Auto-redirect to home after successful login
-        st.session_state.page = "home"
-        #st.rerun()
+        if st.button("Continue to Dashboard") or st.session_state.get('login_logged', False):
+            st.session_state.page = "home"
+            st.rerun()
 
 # ——— Original Functions (unchanged) ———
 def get_connection():
@@ -895,7 +904,32 @@ def main():
     
     if user_is_logged_in():
         st.sidebar.success(f"Logged in as: {user_name()}")
+        
+        # Log user signin if not already logged in this session
+        if not st.session_state.get('login_logged', False):
+            try:
+                user_email_str = user_name()
+                if log_user_signin_simple(user_email_str):
+                    st.session_state.login_logged = True
+                    
+                    # Get user stats
+                    stats = get_user_stats(user_email_str)
+                    
+                    # Show welcome message
+                    if stats["first_login"]:
+                        st.sidebar.info("🎉 Welcome to Solar Dashboard!")
+                    else:
+                        st.sidebar.info(f"Welcome back! Visit #{stats['total_logins']}")
+                    
+                    # Upload to cloud in background (optional)
+                    if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
+                        upload_logs_to_gcs()
+            except Exception as e:
+                print(f"Logging error: {e}")
+        
         if st.sidebar.button("🚪 Logout"):
+            # Clear login session state
+            st.session_state.login_logged = False
             st.logout()
             st.session_state.page = "login"
             st.rerun()
@@ -905,7 +939,10 @@ def main():
             st.login("google")
             st.rerun()
     
+    # Show login page if not authenticated
     if not user_is_logged_in():
+        # Reset page to login if user is not logged in
+        st.session_state.page = "login"
         login_page()
         return
     
@@ -927,6 +964,11 @@ def main():
             st.rerun()
         return
     
+    # Handle login page routing
+    if st.session_state.get('page') == 'login':
+        login_page()
+        return
+    
     page_choice = st.sidebar.radio("Select Page:", [
         "Home",
         "Weather Near-Realtime (MeteoSat 5km)",
@@ -934,6 +976,17 @@ def main():
         "Weather Forecast (ICON-CH2 2.1km)",
         "About"
     ])
+    
+    # Update page state based on selection
+    page_mapping = {
+        "Home": "home",
+        "Weather Near-Realtime (MeteoSat 5km)": "sat_anim",
+        "Weather Forecast (ICON-CH1 1km)": "icon_ch1",
+        "Weather Forecast (ICON-CH2 2.1km)": "icon_ch2",
+        "About": "about"
+    }
+    
+    st.session_state.page = page_mapping.get(page_choice, "home")
     
     # Page routing
     if page_choice == "Home":
