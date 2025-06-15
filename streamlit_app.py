@@ -118,7 +118,7 @@ def upload_logs_to_gcs():
         
         # Get project ID from secrets
         project_id = st.secrets.get("GOOGLE_CLOUD_PROJECT_ID")
-        bucket_name = st.secrets.get("GCS_BUCKET_NAME", f"{project_id}-user-logs")
+        bucket_name = st.secrets.get("GCS_BUCKET_NAME")
         
         if not project_id:
             return False
