@@ -115,6 +115,12 @@ from google.cloud import storage
 def upload_logs_to_gcs():
     """Upload local logs to Google Cloud Storage"""
     try:
+        import json
+        import pandas as pd
+        from pathlib import Path
+        from google.cloud import storage
+  
+        
         # Get bucket name
         bucket_name = "ch-solar-dash-logs"
  
@@ -122,6 +128,8 @@ def upload_logs_to_gcs():
         log_file = Path("user_logs/user_logins.jsonl")
         if not log_file.exists():
             print('pas de logs à uploader')
+            return  # Add this return statement
+            
         # Create blob name with date structure
         blob_name = f"user_logins/{pd.Timestamp.now('UTC').strftime('%Y/%m/%d')}/logins.jsonl"
         
@@ -129,9 +137,12 @@ def upload_logs_to_gcs():
         # Parse the JSON string into a dictionary
         service_account_info = json.loads(service_account_json)
 
+        # Create credentials object properly
+        credentials = service_account.Credentials.from_service_account_info(service_account_info)
+
         # Upload using Google Cloud Storage client
-        client = storage.Client(project_id=st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"),
-                                credentials=service_account_info)
+        client = storage.Client(project=st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"),
+                               credentials=credentials)
         bucket = client.bucket(bucket_name)
         blob = bucket.blob(blob_name)
         blob.content_type = 'application/jsonl'
@@ -141,6 +152,7 @@ def upload_logs_to_gcs():
     except Exception as e:
         # Fail silently for cloud upload - local logging still works
         print(f"Cloud upload failed: {e}")
+
 
 def show_login_analytics():
     """Simple analytics from local log files"""
