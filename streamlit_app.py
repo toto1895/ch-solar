@@ -44,6 +44,41 @@ def user_email() -> str:
     return getattr(u, "email", "") if u else ""
 
 
+
+
+def _is_private_ip(ip: str) -> bool:
+    """
+    Check if an IP address is private (RFC 1918).
+    
+    Args:
+        ip: IP address to check
+        
+    Returns:
+        bool: True if IP is private
+    """
+    try:
+        parts = [int(part) for part in ip.split('.')]
+        
+        # 10.0.0.0/8
+        if parts[0] == 10:
+            return True
+        
+        # 172.16.0.0/12
+        if parts[0] == 172 and 16 <= parts[1] <= 31:
+            return True
+        
+        # 192.168.0.0/16
+        if parts[0] == 192 and parts[1] == 168:
+            return True
+        
+        # 127.0.0.0/8 (loopback)
+        if parts[0] == 127:
+            return True
+        
+        return False
+    except:
+        return True
+
 import socket
 
 def get_user_ip() -> str:
@@ -101,6 +136,22 @@ def get_user_ip() -> str:
     except Exception:
         pass
 
+    try:
+        # This gets the local IP that connects to the internet
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(0.1)
+        # Connect to a public DNS server
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+        
+        # Only return local IP if it's not a private IP
+        if not _is_private_ip(local_ip):
+            return local_ip
+    except Exception:
+        pass
+    
+    return "Unknown"
 
 
 # Set dark theme for the app
