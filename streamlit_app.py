@@ -44,7 +44,7 @@ def user_email() -> str:
     return getattr(u, "email", "") if u else ""
 
 import requests
-def get_user_ip() -> str:
+def get_user_ip_() -> str:
     """
     Simplified IP getter using external service.
     Use this if the above method doesn't work in your environment.
@@ -58,6 +58,50 @@ def get_user_ip() -> str:
             return response.text.strip()
         return "Unknown"
     except:
+        return "Unknown"
+
+def get_user_ip() -> str:
+    """
+    Get user's IP address from Streamlit's request context.
+    
+    Returns:
+        str: The user's IP address, or "Unknown" if unable to determine
+    """
+    try:
+        # Get the current script run context
+        from streamlit.runtime.scriptrunner import get_script_run_ctx
+        ctx = get_script_run_ctx()
+        
+        if ctx is None:
+            return "Unknown"
+        
+        # Get session info from context
+        session_info = ctx.session_info
+        if session_info and hasattr(session_info, 'client'):
+            # Check for forwarded headers first (proxy/load balancer)
+            headers = getattr(session_info, 'headers', {})
+            if headers:
+                # Common forwarded IP headers
+                forwarded_ips = [
+                    headers.get('x-forwarded-for'),
+                    headers.get('x-real-ip'),
+                    headers.get('cf-connecting-ip'),  # Cloudflare
+                    headers.get('x-client-ip')
+                ]
+                
+                for ip_header in forwarded_ips:
+                    if ip_header:
+                        # X-Forwarded-For can have multiple IPs, take the first
+                        return ip_header.split(',')[0].strip()
+            
+            # Fallback to direct client IP
+            client_ip = getattr(session_info.client, 'address', None)
+            if client_ip:
+                return client_ip
+        
+        return "Unknown"
+        
+    except Exception:
         return "Unknown"
 
 
