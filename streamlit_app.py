@@ -932,7 +932,7 @@ def main():
             st.session_state.login_logged = False
             st.logout()
             st.session_state.page = "login"
-            st.rerun()
+            #st.rerun()
     else:
         st.sidebar.info("Please log in to access the dashboard")
         if st.sidebar.button("🔑 Login with Google"):
