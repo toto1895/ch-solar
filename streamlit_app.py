@@ -113,13 +113,13 @@ def upload_logs_to_gcs():
     """Upload local logs to Google Cloud Storage using Streamlit file connection"""
     try:
         # Get bucket name from secrets
-        bucket_name = st.secrets.get("GCS_BUCKET_NAME")
+        bucket_name = "ch-solar-dash-logs"
         
         if not bucket_name:
             return False
         
         # Create GCS connection using Streamlit's file connection
-        conn = st.connection('gcs', type=st.connections.FilesConnection)
+        conn = get_connection()
         
         # Check if log file exists
         log_file = Path("user_logs/user_logins.jsonl")
@@ -926,7 +926,7 @@ def main():
                     
                     # Upload to cloud in background (optional)
                     #if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
-                    #    upload_logs_to_gcs()
+                    upload_logs_to_gcs()
             except Exception as e:
                 print(f"Logging error: {e}")
         
