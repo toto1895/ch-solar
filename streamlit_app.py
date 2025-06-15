@@ -209,8 +209,7 @@ def download_logs_from_gcs(date_filter=None):
         bucket_name = "ch-solar-dash-logs"
         
         # Setup credentials
-        service_account_json = st.secrets["service_account_json"]
-        service_account_json = service_account_json.replace('\\n', '\n')
+        service_account_json = st.secrets.secrets.service_account_json
         service_account_info = json.loads(service_account_json)
         credentials = service_account.Credentials.from_service_account_info(service_account_info)
         
