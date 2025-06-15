@@ -148,12 +148,12 @@ def upload_logs_to_gcs():
         print(f"Blob name: {blob_name}")
         
         print("Getting service account credentials...")
-        service_account_json = st.secrets["service_account_json"]
-        service_account_json = service_account_json.replace('\\n', '\n')
+        service_account_json = st.secrets.secrets.service_account_json
+        #service_account_json = service_account_json.replace('\\n', '\n')
 
         service_account_info = json.loads(service_account_json)
         import os
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = service_account_info
+        #os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = service_account_info
         print("Service account info parsed successfully")
 
         # Create credentials object properly
