@@ -111,18 +111,17 @@ def get_user_stats(user_email):
 
 
 from google.cloud import storage
+
 def upload_logs_to_gcs():
     """Upload local logs to Google Cloud Storage"""
     try:
         # Get bucket name
         bucket_name = "ch-solar-dash-logs"
-        
-        if not bucket_name:
-            return False
-        
+ 
         # Check if log file exists
         log_file = Path("user_logs/user_logins.jsonl")
         if not log_file.exists():
+            print('pas de logs à uploader')
             return False
         # Create blob name with date structure
         blob_name = f"user_logins/{pd.Timestamp.now('UTC').strftime('%Y/%m/%d')}/logins.jsonl"
