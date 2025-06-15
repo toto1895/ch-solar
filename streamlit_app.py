@@ -157,6 +157,7 @@ def get_user_ip() -> str:
     except Exception as e:
         print(e)
 
+
     try:
         # This gets the local IP that connects to the internet
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
