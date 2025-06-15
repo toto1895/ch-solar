@@ -69,10 +69,10 @@ def log_user_signin_simple(user_email):
         
         # Create login record
         login_record = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": pd.Timestamp.now('UTC').isoformat(),
             "email": user_email,
             "session_id": st.session_state.get('session_id', 'unknown'),
-            "date": datetime.utcnow().date().isoformat()
+            "date": pd.Timestamp.now('UTC').date().isoformat()
         }
         
         # Append to log file (JSONL format - one JSON per line)
