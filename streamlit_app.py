@@ -68,10 +68,11 @@ def init_google_cloud():
     """Initialize Google Cloud Firestore and Logging clients"""
     try:
         # Initialize Firestore client
-        db = firestore.Client()
+        project_id = 'gridalert-c48ee'
+        db = firestore.Client(project=project_id)
         
         # Initialize Cloud Logging client
-        logging_client = cloud_logging.Client()
+        logging_client = cloud_logging.Client(project=project_id)
         logging_client.setup_logging()
         
         return db, logging_client
@@ -187,53 +188,53 @@ def login_page():
     # Initialize Google Cloud services
     db, logging_client = init_google_cloud()
     
-    col1, col2 = st.columns([1, 2])
+    #col1, col2 = st.columns([1, 2])
     
-    with col1:
-        st.markdown("""
-        Welcome to the Swiss Solar Dashboard. This platform provides:
+    #with col1:
+    st.markdown("""
+    Welcome to the Swiss Solar Dashboard. This platform provides:
+    
+    - ☀️ **Real-time solar generation forecasts**
+    - 📊 **Interactive data visualizations**
+    - 🗺️ **Geographic power plant mapping**
+    - 🌦️ **Weather forecast integration**
+    
+    Please log in to access the dashboard.
+    """)
+    
+    st.info("Use the sidebar to authenticate with your Google account.")
+    
+    if user_is_logged_in():
+        user_email = user_name()
         
-        - ☀️ **Real-time solar generation forecasts**
-        - 📊 **Interactive data visualizations**
-        - 🗺️ **Geographic power plant mapping**
-        - 🌦️ **Weather forecast integration**
-        
-        Please log in to access the dashboard.
-        """)
-        
-        st.info("Use the sidebar to authenticate with your Google account.")
-        
-        if user_is_logged_in():
-            user_email = user_name()
+        # Check if this login was already recorded in this session
+        if not st.session_state.get('login_recorded', False):
             
-            # Check if this login was already recorded in this session
-            if not st.session_state.get('login_recorded', False):
+            # Get user information
+            user_info = get_user_info()
+            
+            # Log the successful sign-in
+            if db and logging_client:
+                log_user_signin(db, logging_client, user_info)
                 
-                # Get user information
-                user_info = get_user_info()
+                # Get user analytics for display
+                analytics = get_user_analytics(db, user_email)
                 
-                # Log the successful sign-in
-                if db and logging_client:
-                    log_user_signin(db, logging_client, user_info)
-                    
-                    # Get user analytics for display
-                    analytics = get_user_analytics(db, user_email)
-                    
-                    # Mark login as recorded for this session
-                    st.session_state.login_recorded = True
-                    
-                    # Display user analytics
-                    if analytics:
-                        st.sidebar.success(f"Welcome back! Login #{analytics['total_logins']}")
-                        if analytics['total_logins'] > 1:
-                            st.sidebar.info(f"Last visit: {analytics['last_login'].strftime('%Y-%m-%d %H:%M UTC')}")
-            
-            st.success(f"✅ Logged in as: {user_email}")
-            st.balloons()
-            
-            # Auto-redirect to home after successful login
-            st.session_state.page = "home"
-            st.rerun()
+                # Mark login as recorded for this session
+                st.session_state.login_recorded = True
+                
+                # Display user analytics
+                if analytics:
+                    st.sidebar.success(f"Welcome back! Login #{analytics['total_logins']}")
+                    if analytics['total_logins'] > 1:
+                        st.sidebar.info(f"Last visit: {analytics['last_login'].strftime('%Y-%m-%d %H:%M UTC')}")
+        
+        st.success(f"✅ Logged in as: {user_email}")
+        st.balloons()
+        
+        # Auto-redirect to home after successful login
+        st.session_state.page = "home"
+        st.rerun()
 
 
 
