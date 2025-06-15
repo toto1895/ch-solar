@@ -44,8 +44,6 @@ def user_email() -> str:
     return getattr(u, "email", "") if u else ""
 
 
-
-
 def _is_private_ip(ip: str) -> bool:
     """
     Check if an IP address is private (RFC 1918).
