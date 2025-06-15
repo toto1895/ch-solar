@@ -43,62 +43,19 @@ def user_email() -> str:
     u = user_obj()
     return getattr(u, "email", "") if u else ""
 
-
-def _is_private_ip(ip: str) -> bool:
-    """
-    Check if an IP address is private (RFC 1918).
-    
-    Args:
-        ip: IP address to check
-        
-    Returns:
-        bool: True if IP is private
-    """
-    try:
-        parts = [int(part) for part in ip.split('.')]
-        
-        # 10.0.0.0/8
-        if parts[0] == 10:
-            return True
-        
-        # 172.16.0.0/12
-        if parts[0] == 172 and 16 <= parts[1] <= 31:
-            return True
-        
-        # 192.168.0.0/16
-        if parts[0] == 192 and parts[1] == 168:
-            return True
-        
-        # 127.0.0.0/8 (loopback)
-        if parts[0] == 127:
-            return True
-        
-        return False
-    except:
-        return True
-
-def _is_valid_ip(ip: str) -> bool:
-    """
-    Validate if a string is a valid IP address.
-    
-    Args:
-        ip: String to validate
-        
-    Returns:
-        bool: True if valid IP address
-    """
-    try:
-        parts = ip.split('.')
-        if len(parts) != 4:
-            return False
-        for part in parts:
-            if not 0 <= int(part) <= 255:
-                return False
-        return True
-    except:
-        return False
-
 import socket
+def _is_private_ip(ip: str) -> bool:
+    """Check if an IP address is private/local"""
+    private_ranges = [
+        '10.',
+        '172.16.', '172.17.', '172.18.', '172.19.',
+        '172.20.', '172.21.', '172.22.', '172.23.',
+        '172.24.', '172.25.', '172.26.', '172.27.',
+        '172.28.', '172.29.', '172.30.', '172.31.',
+        '192.168.',
+        '127.'
+    ]
+    return any(ip.startswith(range) for range in private_ranges)
 
 def get_user_ip() -> str:
     """
@@ -113,6 +70,8 @@ def get_user_ip() -> str:
     try:
         headers = st.context.headers
         if headers:
+            print(f"Headers found: {dict(headers)}")  # Debug: print all headers
+            
             # Check common forwarded IP headers (in order of preference)
             forwarded_headers = [
                 'x-forwarded-for',
@@ -128,51 +87,52 @@ def get_user_ip() -> str:
                 if ip_value:
                     # X-Forwarded-For can contain multiple IPs, take the first
                     print(f"Found header {header}: {ip_value}")
-                    return ip_value.split(',')[0].strip()
+                    ip = ip_value.split(',')[0].strip()
+                    if not _is_private_ip(ip):
+                        return ip
+        else:
+            print("No headers found in st.context")
     except Exception as e:
-        print(e)
+        print(f"Error in method 1: {e}")
     
     # Method 2: Try alternative Streamlit session approach
     try:
         from streamlit.runtime.scriptrunner import get_script_run_ctx
         ctx = get_script_run_ctx()
         
-        if ctx and hasattr(ctx, 'session_info'):
-            session_info = ctx.session_info
+        if ctx and hasattr(ctx, 'session_id'):
+            print(f"Found session context with ID: {ctx.session_id}")
             
-            # Try to get headers from session
-            if hasattr(session_info, 'headers'):
-                headers = session_info.headers
-                for header_name in ['x-forwarded-for', 'x-real-ip', 'cf-connecting-ip']:
-                    if header_name in headers:
-                        ip = headers[header_name]
-                        if ',' in ip:
-                            ip = ip.split(',')[0]
-                        return ip.strip()
-            
-            # Try direct client address
-            if hasattr(session_info, 'client') and hasattr(session_info.client, 'address'):
-                print(f"Found client address: {session_info.client.address}")
-                return session_info.client.address
+            # Try to get session info
+            from streamlit.runtime import get_instance
+            runtime = get_instance()
+            if runtime:
+                session_info = runtime._session_mgr.get_session_info(ctx.session_id)
+                if session_info and hasattr(session_info, 'client'):
+                    client = session_info.client
+                    if hasattr(client, 'request'):
+                        request = client.request
+                        if hasattr(request, 'headers'):
+                            print(f"Found request headers: {dict(request.headers)}")
+                            for header in ['x-forwarded-for', 'x-real-ip']:
+                                if header in request.headers:
+                                    ip = request.headers[header].split(',')[0].strip()
+                                    if not _is_private_ip(ip):
+                                        return ip
     except Exception as e:
-        print(e)
+        print(f"Error in method 2: {e}")
 
-
+    # Method 3: Socket approach (usually returns local IP)
     try:
-        # This gets the local IP that connects to the internet
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.settimeout(0.1)
-        # Connect to a public DNS server
         s.connect(("8.8.8.8", 80))
         local_ip = s.getsockname()[0]
         s.close()
-        print(f"Local IP detected: {local_ip}")
-        # Only return local IP if it's not a private IP
-        if not _is_private_ip(local_ip):
-            return local_ip
+        print(f"Socket method returned: {local_ip}")
+        # This will almost always be a private IP
     except Exception as e:
-        print(e)
-        pass
+        print(f"Error in socket method: {e}")
     
     return "Unknown"
 
