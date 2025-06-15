@@ -864,15 +864,16 @@ def main():
             st.session_state.page = "login"
             st.rerun()
     else:
-        # Show login page if not authenticated
-        if not user_is_logged_in():
-            login_page()
-            return
-        
         st.sidebar.info("Please log in to access the dashboard")
         if st.sidebar.button("🔑 Login with Google"):
             st.login("google")
             st.rerun()
+    
+    # Show login page if not authenticated
+    if not user_is_logged_in():
+        login_page()
+        return
+        
     
 
     # Navigation menu (only shown when logged in)
