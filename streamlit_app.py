@@ -744,10 +744,10 @@ def home_page():
     col1, col2 = st.columns([3, 1])
     with col1:
         st.title("Swiss Solar Forecasts")
-    with col2:
-        st.markdown(f"**User:** {user_name()}")
-        if user_email():
-            st.caption(user_email())
+    #with col2:
+    #    st.markdown(f"**User:** {user_name()}")
+    #    if user_email():
+    #        st.caption(user_email())
     
     # Initialize connection
     conn = get_connection()
