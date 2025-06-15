@@ -216,6 +216,8 @@ def show_login_analytics():
             f"user_logins_{datetime.now().strftime('%Y%m%d')}.csv",
             "text/csv"
         )
+        if st.button("Upload Logs to Cloud"):
+            upload_logs_to_gcs
 
 def login_page():
     st.markdown("### Secure Access Portal")
@@ -258,9 +260,9 @@ def login_page():
                     
                     # Upload to cloud in background (optional)
                     #if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
-                    upload_logs_to_gcs()
+                    #upload_logs_to_gcs()
                     
-                    st.balloons()
+                    #st.balloons()
                     st.info("🔄 Redirecting to dashboard...")
                     # Small delay to ensure logging completes
 
@@ -927,7 +929,7 @@ def main():
                     
                     # Upload to cloud in background (optional)
                     #if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
-                    upload_logs_to_gcs()
+                    #upload_logs_to_gcs()
             except Exception as e:
                 print(f"Logging error: {e}")
         
