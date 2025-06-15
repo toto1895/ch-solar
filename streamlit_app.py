@@ -357,6 +357,8 @@ def show_login_analytics():
     """Simple analytics from local log files"""
     st.title("📊 User Login Analytics")
 
+    st.info(get_user_ip)
+
     download_logs_from_gcs()
     
     log_file = Path("user_logs/user_logins.jsonl")
