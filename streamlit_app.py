@@ -177,7 +177,7 @@ def upload_logs_to_gcs():
         
         success_msg = f"Successfully uploaded to gs://{bucket_name}/{blob_name}"
         print(success_msg)
-        st.success(success_msg)
+        #st.success(success_msg)
         
     except Exception as e:
         error_msg = f"Cloud upload failed: {str(e)}"
