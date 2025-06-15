@@ -937,7 +937,7 @@ def main():
         st.sidebar.info("Please log in to access the dashboard")
         if st.sidebar.button("🔑 Login with Google"):
             st.login("google")
-            st.rerun()
+            #st.rerun()
     
     # Show login page if not authenticated
     if not user_is_logged_in():
@@ -951,7 +951,7 @@ def main():
         st.sidebar.markdown("### 👨‍💼 Admin")
         if st.sidebar.button("📊 View Login Analytics"):
             st.session_state.page = "admin"
-            st.rerun()
+            #st.rerun()
     
     # Navigation menu (only shown when logged in)
     st.sidebar.markdown("### 📊 Navigation")
@@ -961,7 +961,7 @@ def main():
         show_login_analytics()
         if st.button("← Back to Dashboard"):
             st.session_state.page = "home"
-            st.rerun()
+            #st.rerun()
         return
     
     # Handle login page routing
