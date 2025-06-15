@@ -77,6 +77,27 @@ def _is_private_ip(ip: str) -> bool:
     except:
         return True
 
+def _is_valid_ip(ip: str) -> bool:
+    """
+    Validate if a string is a valid IP address.
+    
+    Args:
+        ip: String to validate
+        
+    Returns:
+        bool: True if valid IP address
+    """
+    try:
+        parts = ip.split('.')
+        if len(parts) != 4:
+            return False
+        for part in parts:
+            if not 0 <= int(part) <= 255:
+                return False
+        return True
+    except:
+        return False
+
 import socket
 
 def get_user_ip() -> str:
