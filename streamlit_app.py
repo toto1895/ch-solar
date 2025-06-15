@@ -1149,7 +1149,7 @@ def main():
     
     page_choice = st.sidebar.radio("Select Page:", [
         "Home",
-        "Weather Near-Realtime (MeteoSat 5km)",
+        "Weather Realtime (MeteoSat 5km)",
         "Weather Forecast (ICON-CH1 1km)",
         "Weather Forecast (ICON-CH2 2.1km)",
         "About"
@@ -1158,7 +1158,7 @@ def main():
     # Update page state based on selection
     page_mapping = {
         "Home": "home",
-        "Weather Near-Realtime (MeteoSat 5km)": "sat_anim",
+        "Weather Realtime (MeteoSat 5km)": "sat_anim",
         "Weather Forecast (ICON-CH1 1km)": "icon_ch1",
         "Weather Forecast (ICON-CH2 2.1km)": "icon_ch2",
         "About": "about"
@@ -1169,7 +1169,7 @@ def main():
     # Page routing
     if page_choice == "Home":
         home_page()
-    elif page_choice == 'Weather Near-Realtime (MeteoSat 5km)':
+    elif page_choice == 'Weather Realtime (MeteoSat 5km)':
         if ANIMATION_AVAILABLE:
             sat_anim()
         else:
