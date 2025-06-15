@@ -55,9 +55,137 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ——— Login Page ———
+
+#import streamlit as st
+from google.cloud import firestore
+from google.cloud import logging as cloud_logging
+import datetime
+import hashlib
+import json
+
+# Initialize Google Cloud services
+def init_google_cloud():
+    """Initialize Google Cloud Firestore and Logging clients"""
+    try:
+        # Initialize Firestore client
+        db = firestore.Client()
+        
+        # Initialize Cloud Logging client
+        logging_client = cloud_logging.Client()
+        logging_client.setup_logging()
+        
+        return db, logging_client
+    except Exception as e:
+        st.error(f"Failed to initialize Google Cloud services: {e}")
+        return None, None
+
+def get_user_info():
+    """Extract comprehensive user information for logging"""
+    user_info = {
+        'email': user_name(),  # Your existing function
+        'timestamp': datetime.datetime.utcnow(),
+        'session_id': st.session_state.get('session_id', generate_session_id()),
+        'user_agent': st.context.headers.get('User-Agent', 'Unknown') if hasattr(st, 'context') else 'Unknown',
+        'ip_hash': hash_ip_address(),  # Privacy-friendly IP logging
+    }
+    return user_info
+
+def generate_session_id():
+    """Generate a unique session ID"""
+    import uuid
+    session_id = str(uuid.uuid4())
+    st.session_state.session_id = session_id
+    return session_id
+
+def hash_ip_address():
+    """Hash IP address for privacy compliance"""
+    try:
+        # Get IP from headers (works with most deployments)
+        ip = st.context.headers.get('X-Forwarded-For', 
+             st.context.headers.get('X-Real-IP', 'unknown')).split(',')[0].strip()
+        
+        # Hash the IP for privacy
+        return hashlib.sha256(f"{ip}_salt_key".encode()).hexdigest()[:16]
+    except:
+        return "unknown"
+
+def log_user_signin(db, logging_client, user_info):
+    """Log user sign-in to both Firestore and Cloud Logging"""
+    
+    # 1. Store in Firestore for structured queries and analytics
+    try:
+        # Create user document in 'user_logins' collection
+        doc_ref = db.collection('user_logins').document()
+        
+        # Prepare data for Firestore
+        firestore_data = {
+            'email': user_info['email'],
+            'timestamp': user_info['timestamp'],
+            'session_id': user_info['session_id'],
+            'user_agent': user_info['user_agent'],
+            'ip_hash': user_info['ip_hash'],
+            'app_version': '1.0',  # Add your app version
+            'platform': 'streamlit_web'
+        }
+        
+        doc_ref.set(firestore_data)
+        
+        # Update user profile with last login
+        user_profile_ref = db.collection('user_profiles').document(user_info['email'])
+        user_profile_ref.set({
+            'email': user_info['email'],
+            'last_login': user_info['timestamp'],
+            'total_logins': firestore.Increment(1),
+            'last_session_id': user_info['session_id']
+        }, merge=True)
+        
+    except Exception as e:
+        st.error(f"Firestore logging failed: {e}")
+    
+    # 2. Log to Cloud Logging for monitoring and alerts
+    try:
+        import logging
+        logger = logging.getLogger('solar_dashboard_auth')
+        
+        log_entry = {
+            'event_type': 'user_signin_success',
+            'user_email': user_info['email'],
+            'session_id': user_info['session_id'],
+            'timestamp': user_info['timestamp'].isoformat(),
+            'ip_hash': user_info['ip_hash']
+        }
+        
+        logger.info(f"User sign-in successful", extra={
+            'json_fields': log_entry,
+            'labels': {
+                'component': 'authentication',
+                'severity': 'INFO'
+            }
+        })
+        
+    except Exception as e:
+        st.error(f"Cloud Logging failed: {e}")
+
+def get_user_analytics(db, email):
+    """Get user analytics from Firestore"""
+    try:
+        user_doc = db.collection('user_profiles').document(email).get()
+        if user_doc.exists:
+            data = user_doc.to_dict()
+            return {
+                'total_logins': data.get('total_logins', 1),
+                'last_login': data.get('last_login'),
+                'first_seen': data.get('first_seen', datetime.datetime.utcnow())
+            }
+    except Exception as e:
+        st.error(f"Failed to get user analytics: {e}")
+    return None
+
 def login_page():
     st.markdown("### Secure Access Portal")
+    
+    # Initialize Google Cloud services
+    db, logging_client = init_google_cloud()
     
     col1, col2 = st.columns([1, 2])
     
@@ -76,11 +204,38 @@ def login_page():
         st.info("Use the sidebar to authenticate with your Google account.")
         
         if user_is_logged_in():
-            st.success(f"✅ Logged in as: {user_name()}")
+            user_email = user_name()
+            
+            # Check if this login was already recorded in this session
+            if not st.session_state.get('login_recorded', False):
+                
+                # Get user information
+                user_info = get_user_info()
+                
+                # Log the successful sign-in
+                if db and logging_client:
+                    log_user_signin(db, logging_client, user_info)
+                    
+                    # Get user analytics for display
+                    analytics = get_user_analytics(db, user_email)
+                    
+                    # Mark login as recorded for this session
+                    st.session_state.login_recorded = True
+                    
+                    # Display user analytics
+                    if analytics:
+                        st.sidebar.success(f"Welcome back! Login #{analytics['total_logins']}")
+                        if analytics['total_logins'] > 1:
+                            st.sidebar.info(f"Last visit: {analytics['last_login'].strftime('%Y-%m-%d %H:%M UTC')}")
+            
+            st.success(f"✅ Logged in as: {user_email}")
             st.balloons()
+            
             # Auto-redirect to home after successful login
             st.session_state.page = "home"
             st.rerun()
+
+
 
 # ——— Original Functions (unchanged) ———
 def get_connection():

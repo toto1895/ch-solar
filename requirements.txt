@@ -14,3 +14,5 @@ xarray
 matplotlib
 cartopy
 Authlib
+google-cloud-firestore 
+google-cloud-logging
