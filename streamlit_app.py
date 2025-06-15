@@ -922,8 +922,8 @@ def main():
                         st.sidebar.info(f"Welcome back! Visit #{stats['total_logins']}")
                     
                     # Upload to cloud in background (optional)
-                    if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
-                        upload_logs_to_gcs()
+                    #if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
+                    #    upload_logs_to_gcs()
             except Exception as e:
                 print(f"Logging error: {e}")
         
