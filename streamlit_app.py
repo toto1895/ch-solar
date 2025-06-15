@@ -43,51 +43,24 @@ def user_email() -> str:
     u = user_obj()
     return getattr(u, "email", "") if u else ""
 
-
+import requests
 def get_user_ip() -> str:
     """
-    Get the user's IP address. 
+    Simplified IP getter using external service.
+    Use this if the above method doesn't work in your environment.
     
     Returns:
         str: The user's IP address, or "Unknown" if unable to determine
     """
     try:
-        # Method 1: Check Streamlit's session context for forwarded headers
-        # This works when behind a proxy/load balancer
-        if hasattr(st, 'context') and hasattr(st.context, 'headers'):
-            headers = st.context.headers
-            # Check common forwarded IP headers
-            forwarded_ips = [
-                headers.get('X-Forwarded-For'),
-                headers.get('X-Real-IP'),
-                headers.get('CF-Connecting-IP'),  # Cloudflare
-                headers.get('X-Client-IP')
-            ]
-            
-            for ip in forwarded_ips:
-                if ip:
-                    # X-Forwarded-For can contain multiple IPs, take the first one
-                    return ip.split(',')[0].strip()
-        
-        # Method 2: For local development or direct connections
-        # This gets the IP from Streamlit's internal session info
-        if hasattr(st, 'session_state') and hasattr(st, '_get_session_info'):
-            session_info = st._get_session_info()
-            if session_info and hasattr(session_info, 'client'):
-                return getattr(session_info.client, 'address', 'Unknown')
-        
-        # Method 3: Fallback - use external service (use sparingly in production)
-        # Uncomment if needed, but be aware of rate limits and privacy implications
-        # response = requests.get('https://api.ipify.org?format=text', timeout=5)
-        # if response.status_code == 200:
-        #     return response.text.strip()
-        
+        response = requests.get('https://api.ipify.org?format=text', timeout=3)
+        if response.status_code == 200:
+            return response.text.strip()
         return "Unknown"
-        
-    except Exception as e:
-        # Log the error if you have logging set up
-        # st.error(f"Error getting IP address: {e}")
+    except:
         return "Unknown"
+
+
 
 # Set dark theme for the app
 st.markdown(
