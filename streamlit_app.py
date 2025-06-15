@@ -876,13 +876,10 @@ def about_page():
     """)
 
 # Check if animation modules exist and import safely
-try:
-    from satAnimation import generate_sat_rad_anim
-    from satAnimation_icon import display_png_ch1, display_png_ch2
-    ANIMATION_AVAILABLE = True
-except ImportError:
-    ANIMATION_AVAILABLE = False
-    st.warning("Animation modules not found. Weather animation features will be disabled.")
+from satAnimation import generate_sat_rad_anim
+from satAnimation_icon import display_png_ch1, display_png_ch2
+ANIMATION_AVAILABLE = True
+
 
 def sat_anim():
     """Satellite animation function"""
