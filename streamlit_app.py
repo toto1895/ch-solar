@@ -256,7 +256,7 @@ def login_page():
                     
                     # Upload to cloud in background (optional)
                     #if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
-                    upload_logs_to_gcs()
+                    #upload_logs_to_gcs()
                     
                     #st.balloons()
                     st.info("🔄 Redirecting to dashboard...")
