@@ -468,7 +468,8 @@ def login_page():
                     
                     print(get_user_ip())
                     # Get user stats
-                    stats = get_user_stats(user_email_str, get_user_ip())
+                    ip=get_user_ip()
+                    stats = get_user_stats(user_email_str, ip)
                     
                     # Show welcome message
                     if stats["first_login"]:
@@ -1134,7 +1135,8 @@ def main():
                     st.session_state.login_logged = True
                     print(get_user_ip())
                     # Get user stats
-                    stats = get_user_stats(user_email_str, get_user_ip())
+                    ip=get_user_ip()
+                    stats = get_user_stats(user_email_str,ip )
                     
                     # Show welcome message
                     if stats["first_login"]:
