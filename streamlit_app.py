@@ -86,6 +86,7 @@ def log_user_signin_simple(user_email):
         st.error(f"Logging failed: {e}")
         return False
 
+import json
 def get_user_stats(user_email):
     """Get user login statistics"""
     try:
