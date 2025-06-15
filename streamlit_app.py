@@ -43,8 +43,7 @@ def user_email() -> str:
     u = user_obj()
     return getattr(u, "email", "") if u else ""
 
-import requests
-from typing import Optional
+
 import socket
 
 def get_user_ip() -> str:
@@ -56,30 +55,25 @@ def get_user_ip() -> str:
         str: The user's IP address, or "Unknown" if unable to determine
     """
     
-    # Method 1: Try Streamlit's internal session info (works in some deployments)
+    # Method 1: Try Streamlit's context headers (current API)
     try:
-        from streamlit.runtime.scriptrunner import get_script_run_ctx
-        from streamlit.web.server.websocket_headers import _get_websocket_headers
-        
-        ctx = get_script_run_ctx()
-        if ctx is not None:
-            headers = _get_websocket_headers()
-            if headers:
-                # Check common forwarded IP headers (in order of preference)
-                forwarded_headers = [
-                    'x-forwarded-for',
-                    'x-real-ip',
-                    'cf-connecting-ip',  # Cloudflare
-                    'x-client-ip',
-                    'true-client-ip',    # Cloudflare Enterprise
-                    'x-cluster-client-ip'
-                ]
-                
-                for header in forwarded_headers:
-                    ip_value = headers.get(header)
-                    if ip_value:
-                        # X-Forwarded-For can contain multiple IPs, take the first
-                        return ip_value.split(',')[0].strip()
+        headers = st.context.headers
+        if headers:
+            # Check common forwarded IP headers (in order of preference)
+            forwarded_headers = [
+                'x-forwarded-for',
+                'x-real-ip',
+                'cf-connecting-ip',  # Cloudflare
+                'x-client-ip',
+                'true-client-ip',    # Cloudflare Enterprise
+                'x-cluster-client-ip'
+            ]
+            
+            for header in forwarded_headers:
+                ip_value = headers.get(header)
+                if ip_value:
+                    # X-Forwarded-For can contain multiple IPs, take the first
+                    return ip_value.split(',')[0].strip()
     except Exception:
         pass
     
