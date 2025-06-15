@@ -124,7 +124,6 @@ def upload_logs_to_gcs():
         log_file = Path("user_logs/user_logins.jsonl")
         if not log_file.exists():
             return False
-        
         # Create blob name with date structure
         blob_name = f"user_logins/{pd.Timestamp.now('UTC').strftime('%Y/%m/%d')}/logins.jsonl"
         
