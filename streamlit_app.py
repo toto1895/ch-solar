@@ -132,7 +132,6 @@ def upload_logs_to_gcs():
         blob = bucket.blob(blob_name)
         blob.content_type = 'application/jsonl'
         blob.upload_from_filename(str(log_file))
-        
         print(f"Successfully uploaded to gs://{bucket_name}/{blob_name}")
         return True
         
