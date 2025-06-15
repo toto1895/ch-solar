@@ -255,18 +255,18 @@ def login_page():
                         st.sidebar.success(f"Welcome back! Visit #{stats['total_logins']}")
                     
                     # Upload to cloud in background (optional)
-                    if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
-                        upload_logs_to_gcs()
+                    #if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
+                    upload_logs_to_gcs()
                     
-                    st.balloons()
+                    #st.balloons()
                     st.info("🔄 Redirecting to dashboard...")
                     # Small delay to ensure logging completes
-                    import time
-                    time.sleep(1)
-                    
+
             except Exception as e:
                 st.error(f"Logging error: {e}")
-        
+        import time
+        time.sleep(2)
+                    
         # Auto-redirect to home after successful login
         if st.button("Continue to Dashboard") or st.session_state.get('login_logged', False):
             st.session_state.page = "home"
