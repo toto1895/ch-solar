@@ -213,7 +213,7 @@ def show_login_analytics():
             "text/csv"
         )
         if st.button("Upload Logs to Cloud"):
-            upload_logs_to_gcs
+            upload_logs_to_gcs()
 
 def login_page():
     st.markdown("### Secure Access Portal")
