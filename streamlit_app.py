@@ -782,25 +782,25 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
             x=df['datetime'],
             y=df['p0.5_operator'],
             mode='lines',
-            name=f'{name} - Median (P50)',
+            name=f'{name} ',
             line=line_style
         ))
         
-        fig.add_trace(go.Scatter(
-            x=df['datetime'],
-            y=df['p0.1_operator'],
-            mode='lines',
-            name=f'{name} - Lower Bound (P10)',
-            line=dash_style
-        ))
+        #fig.add_trace(go.Scatter(
+        #    x=df['datetime'],
+        #    y=df['p0.1_operator'],
+        #    mode='lines',
+        #    name=f'{name} - Lower Bound (P10)',
+        #    line=dash_style
+        #))
         
-        fig.add_trace(go.Scatter(
-            x=df['datetime'],
-            y=df['p0.9_operator'],
-            mode='lines',
-            name=f'{name} - Upper Bound (P90)',
-            line=dash_style
-        ))
+        #fig.add_trace(go.Scatter(
+         #   x=df['datetime'],
+         #   y=df['p0.9_operator'],
+         #   mode='lines',
+         #   name=f'{name} - Upper Bound (P90)',
+         #   line=dash_style
+        #))
     except:
         try:
             df.set_index('datetime', inplace=True)
