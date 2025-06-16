@@ -782,7 +782,7 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
             x=df['datetime'],
             y=df['p0.5_operator'],
             mode='lines',
-            name=f'{name} ',
+            name=f'{name} forecast',
             line=line_style
         ))
         
