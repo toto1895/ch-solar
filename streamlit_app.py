@@ -492,6 +492,7 @@ def show_login_analytics():
         except Exception as e:
             st.error(f"Error formatting timestamps: {e}")
         
+        df = df.loc[df.email !='aminedev1895@gmail.com',:]
         # Display table
         st.dataframe(
             df[['timestamp', 'email','ip_addresses']].rename(columns={
