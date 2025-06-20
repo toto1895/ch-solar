@@ -501,7 +501,6 @@ def show_login_analytics():
             }),
             use_container_width=True
         )
-        
         # Download option
         csv = df.to_csv(index=False)
         st.download_button(
