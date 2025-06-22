@@ -753,7 +753,7 @@ def create_forecast_chart(filtered_df, pronovo_f, nowcast, stationprod, filter_t
                 'SolarProduction':'sum'
             })
 
-    add_forecast_traces(fig, total_df, "Total", color='red')
+    add_forecast_traces(fig, total_df.round(1, "Total", color='red')
     try:
         add_forecast_traces(fig, canton_now.round(1), "Nowcast", color='white')
     except:
