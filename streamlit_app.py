@@ -765,8 +765,7 @@ def create_forecast_chart(filtered_df, pronovo_f, nowcast, stationprod, filter_t
         r = r.tz_convert('UTC')
         add_forecast_traces(fig, r, "Nowcast", color='darkgreen')
     except Exception as e:
-        print('here')
-        print(e)
+        st.write(e)
 
     add_forecast_traces(fig, pronovo_now, "Pronovo", color='white')
     
