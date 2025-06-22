@@ -755,7 +755,7 @@ def create_forecast_chart(filtered_df, pronovo_f, nowcast, stationprod, filter_t
 
     add_forecast_traces(fig, total_df, "Total", color='red')
     try:
-        add_forecast_traces(fig, canton_now, "Nowcast", color='white')
+        add_forecast_traces(fig, canton_now.round(1), "Nowcast", color='white')
     except:
         pass
 
@@ -765,7 +765,7 @@ def create_forecast_chart(filtered_df, pronovo_f, nowcast, stationprod, filter_t
         #r = r.tz_convert('UTC')
         r = r.resample('15min').mean()
         r['datetime'] = r.index
-        add_forecast_traces(fig, r, "Nowcast", color='green',line_width=2)
+        add_forecast_traces(fig, r.round(1), "Nowcast", color='green',line_width=2)
     except Exception as e:
         st.write(e)
 
