@@ -763,6 +763,7 @@ def create_forecast_chart(filtered_df, pronovo_f, nowcast, stationprod, filter_t
         r = stationprod.sum(axis=1).to_frame('Solar')
         r.index = pd.to_datetime(r.index)
         r = r.tz_convert('UTC')
+        r = r.resample('15min').mean()
         r['datetime'] = r.index
         add_forecast_traces(fig, r, "Nowcast", color='darkgreen')
     except Exception as e:
