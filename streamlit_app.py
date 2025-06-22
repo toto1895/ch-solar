@@ -765,7 +765,7 @@ def create_forecast_chart(filtered_df, pronovo_f, nowcast, stationprod, filter_t
         #r = r.tz_convert('UTC')
         r = r.resample('15min').mean()
         r['datetime'] = r.index
-        add_forecast_traces(fig, r, "Nowcast", color='darkgreen')
+        add_forecast_traces(fig, r, "Nowcast", color='green',line_width=3)
     except Exception as e:
         st.write(e)
 
@@ -833,7 +833,7 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
                     y=df['Solar'],
                     mode='lines',
                     name=f'{name} - Ground Station',
-                    line=dash_style
+                    line=line_style
                 ))
 
 def create_heatmap(merged_plants):
