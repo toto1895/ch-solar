@@ -607,8 +607,10 @@ def get_latest_parquet_file(conn, prefix = "oracle_predictions/swiss_solar/datas
     if not files:
         return None
     
-    date_pattern = re.compile(r'(\d{4}-\d{2})\.parquet$')
-    return sorted(files, key=lambda x: date_pattern.search(x).group(1), reverse=True)[0]
+    date_pattern = re.compile(pattern)
+    matching_files = [f for f in files if date_pattern.search(f)]
+
+    return sorted(matching_files, key=lambda x: date_pattern.search(x).group(1), reverse=True)[0]
 
 def load_data(file_path, input_format, conn):
     """Load data from a file using the connection"""
@@ -988,7 +990,8 @@ def home_page():
             selected_cantons = []
             selected_operators = []
 
-            stationprod = get_latest_parquet_file(conn, prefix = "icon-ch/groundstations/ch-prod", pattern = r'cantons_(\d{8})\.parquet$')
+            stationprod = get_latest_parquet_file(conn, prefix = "icon-ch/groundstations/ch-prod",
+                                                   pattern = r'cantons_(\d{8})\.parquet$')
             
             with filter_col2:
                 filtered_df = merged_df.copy()
