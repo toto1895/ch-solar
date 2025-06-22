@@ -992,12 +992,14 @@ def home_page():
 
             stationprod = get_latest_parquet_file(conn, prefix = "icon-ch/groundstations/ch-prod",
                                                    pattern = r'cantons_(\d{8})\.parquet$')
+            stationprod =load_data(stationprod, 'parquet', conn)
             
             with filter_col2:
                 filtered_df = merged_df.copy()
                 
                 if filter_type == "Canton":
                     stationprod = get_latest_parquet_file(conn, prefix = "icon-ch/groundstations/ch-prod", pattern = r'cantons_(\d{8})\.parquet$')
+                    stationprod =load_data(stationprod, 'parquet', conn)
                     all_cantons = sorted(merged_df["Canton"].unique().tolist())
                     
                     selected_cantons = st.multiselect(
@@ -1029,6 +1031,7 @@ def home_page():
                         stationprod = get_latest_parquet_file(conn,
                                                                prefix = "icon-ch/groundstations/ch-prod",
                                                                pattern = r'operators_(\d{8})\.parquet$')
+                        stationprod =load_data(stationprod, 'parquet', conn)
 
                         
                         if selected_operators:
@@ -1047,7 +1050,7 @@ def home_page():
                             full_capa = full_capa[full_capa["operator"].isin(selected_operators)]
                     else:
                         st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
-            st.write(stationprod)
+            st.dataframe(stationprod)
             del merged_df
             gc.collect()
             
