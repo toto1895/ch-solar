@@ -598,9 +598,12 @@ def get_latest_parquet_file(conn, prefix = "oracle_predictions/swiss_solar/datas
     """Get the latest parquet file with format %Y-%m.parquet"""
     #prefix = "oracle_predictions/swiss_solar/datasets/capa_timeseries"
     #pattern = r'(\d{4}-\d{2})\.parquet$'
-    
-    files = fetch_files(conn, prefix, pattern)
-    
+    try:
+        files = fetch_files(conn, prefix, pattern)
+    except:
+        st.error("Error fetching files from GCS")
+        return None
+
     if not files:
         return None
     
