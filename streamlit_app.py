@@ -1047,7 +1047,7 @@ def home_page():
                             full_capa = full_capa[full_capa["operator"].isin(selected_operators)]
                     else:
                         st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
-            
+            st.dataframe(stationprod)
             del merged_df
             gc.collect()
             
