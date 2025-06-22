@@ -594,10 +594,10 @@ def fetch_files(conn, prefix, pattern=None):
         st.error(f"Error listing files: {e}")
         return []
 
-def get_latest_parquet_file(conn):
+def get_latest_parquet_file(conn, prefix = "oracle_predictions/swiss_solar/datasets/capa_timeseries",pattern = r'(\d{4}-\d{2})\.parquet$'):
     """Get the latest parquet file with format %Y-%m.parquet"""
-    prefix = "oracle_predictions/swiss_solar/datasets/capa_timeseries"
-    pattern = r'(\d{4}-\d{2})\.parquet$'
+    #prefix = "oracle_predictions/swiss_solar/datasets/capa_timeseries"
+    #pattern = r'(\d{4}-\d{2})\.parquet$'
     
     files = fetch_files(conn, prefix, pattern)
     
@@ -657,7 +657,7 @@ def load_and_concat_parquet_files(conn, date_str, time_str=None):
     concatenated_df = pd.concat(dataframes)
     return concatenated_df
 
-def create_forecast_chart(filtered_df, pronovo_f, nowcast, filter_type, selected_cantons=None, selected_operators=None):
+def create_forecast_chart(filtered_df, pronovo_f, nowcast, stationprod, filter_type, selected_cantons=None, selected_operators=None):
     """Create a forecast chart based on filtered data"""
     fig = go.Figure()
     plot_df = filtered_df.copy()
@@ -753,6 +753,16 @@ def create_forecast_chart(filtered_df, pronovo_f, nowcast, filter_type, selected
         add_forecast_traces(fig, canton_now, "Nowcast", color='white')
     except:
         pass
+
+    try:
+        r = stationprod.sum(axis=1).to_frame('Solar')
+        r.index = pd.to_datetime(r.index)
+        r = r.tz_convert('UTC')
+       
+        add_forecast_traces(fig, r, "Nowcast", color='darkgreen')
+    except:
+        pass
+
     add_forecast_traces(fig, pronovo_now, "Pronovo", color='white')
     
     fig.update_layout(
@@ -787,21 +797,6 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
             line=line_style
         ))
         
-        #fig.add_trace(go.Scatter(
-        #    x=df['datetime'],
-        #    y=df['p0.1_operator'],
-        #    mode='lines',
-        #    name=f'{name} - Lower Bound (P10)',
-        #    line=dash_style
-        #))
-        
-        #fig.add_trace(go.Scatter(
-         #   x=df['datetime'],
-         #   y=df['p0.9_operator'],
-         #   mode='lines',
-         #   name=f'{name} - Upper Bound (P90)',
-         #   line=dash_style
-        #))
     except:
         try:
             df.set_index('datetime', inplace=True)
@@ -817,13 +812,23 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
                 line=line_style
             ))
         except:
-            fig.add_trace(go.Scatter(
-                x=df['datetime'],
-                y=df['Pronovo_f'],
-                mode='lines',
-                name=f'{name} - Actual',
-                line=dash_style
-            ))
+            try:
+                fig.add_trace(go.Scatter(
+                    x=df['datetime'],
+                    y=df['Pronovo_f'],
+                    mode='lines',
+                    name=f'{name} - Actual',
+                    line=dash_style
+                ))
+            except:
+                
+                fig.add_trace(go.Scatter(
+                    x=df['datetime'],
+                    y=df['Solar'],
+                    mode='lines',
+                    name=f'{name} - Ground Station',
+                    line=dash_style
+                ))
 
 def create_heatmap(merged_plants):
     """Create a heatmap visualization for plant locations"""
@@ -980,11 +985,14 @@ def home_page():
             
             selected_cantons = []
             selected_operators = []
+
+            stationprod = get_latest_parquet_file(conn, prefix = "icon-ch/groundstations/ch-prod", pattern = r'cantons_(\d{8})\.parquet$')
             
             with filter_col2:
                 filtered_df = merged_df.copy()
                 
                 if filter_type == "Canton":
+                    stationprod = get_latest_parquet_file(conn, prefix = "icon-ch/groundstations/ch-prod", pattern = r'cantons_(\d{8})\.parquet$')
                     all_cantons = sorted(merged_df["Canton"].unique().tolist())
                     
                     selected_cantons = st.multiselect(
@@ -999,6 +1007,11 @@ def home_page():
                             nowcast = nowcast[nowcast["Canton"].isin(selected_cantons)]
                         except:
                             pass
+
+                        try:
+                            stationprod = stationprod[selected_cantons]
+                        except:
+                            pass
                     
                 elif filter_type == "Operator":
                     if 'operator' in merged_df.columns:
@@ -1008,10 +1021,19 @@ def home_page():
                             "Select Operators:",
                             options=all_operators
                         )
+                        stationprod = get_latest_parquet_file(conn,
+                                                               prefix = "icon-ch/groundstations/ch-prod",
+                                                               pattern = r'operators_(\d{8})\.parquet$')
+
                         
                         if selected_operators:
                             filtered_df = merged_df[merged_df["operator"].isin(selected_operators)]
-                            
+
+                            try:
+                                stationprod = stationprod[selected_operators]
+                            except:
+                                pass
+
                             try:
                                 nowcast = nowcast[nowcast["operator"].isin(selected_operators)]
                             except:
@@ -1091,7 +1113,7 @@ def home_page():
             )
             
             if chart_type == "Forecast Chart":
-                fig = create_forecast_chart(filtered_df,pronovo_f,nowcast, filter_type, selected_cantons, selected_operators)
+                fig = create_forecast_chart(filtered_df,pronovo_f,nowcast,stationprod, filter_type, selected_cantons, selected_operators)
                 st.plotly_chart(fig, use_container_width=True)
             
             elif chart_type =='Monthly installed capacity':
