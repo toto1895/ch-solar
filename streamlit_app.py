@@ -1030,6 +1030,7 @@ def home_page():
                             "Select Operators:",
                             options=all_operators
                         )
+                        
                         stationprod = get_latest_parquet_file(get_connection(),
                                                                prefix = "icon-ch/groundstations/ch-prod",
                                                                pattern = r'operators_(\d{8})\.parquet$')
