@@ -870,6 +870,13 @@ def create_heatmap(merged_plants):
     
     return fig
 
+def download_tmp_parquet(blob_name):
+    client = storage.Client()
+    bucket = client.bucket('icon-ch')
+    blob = bucket.blob(blob_name)
+    blob.download_to_filename('tmp.parquet')
+
+
 # ——— Modified home_page with user info ———
 def home_page():
     # Display user info in header
@@ -994,7 +1001,11 @@ def home_page():
 
             stationprod = get_latest_parquet_file(conn, prefix = "icon-ch/groundstations/ch-prod",
                                                    pattern = r'cantons_(\d{8})\.parquet$')
-            stationprod = load_data(stationprod, 'parquet', get_connection())
+            #stationprod = load_data(stationprod, 'parquet', get_connection())
+            
+            download_tmp_parquet(stationprod.split('icon-ch/')[1])
+            stationprod = pd.read_parquet('tmp.parquet')
+            
             
             with filter_col2:
                 filtered_df = merged_df.copy()
@@ -1030,7 +1041,7 @@ def home_page():
                             "Select Operators:",
                             options=all_operators
                         )
-                        
+
                         stationprod = get_latest_parquet_file(get_connection(),
                                                                prefix = "icon-ch/groundstations/ch-prod",
                                                                pattern = r'operators_(\d{8})\.parquet$')
