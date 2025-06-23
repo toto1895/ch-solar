@@ -764,7 +764,7 @@ def create_forecast_chart(filtered_df, pronovo_f, nowcast, stationprod, filter_t
         r.index = pd.to_datetime(r.index)
         #r = r.tz_convert('UTC')
         r = r.resample('15min').mean()
-        r['datetime'] = r.index -pd.Timedelta(minutes= 15)
+        r['datetime'] = r.index - pd.Timedelta(minutes= 15)
         add_forecast_traces(fig, r.round(1), "Nowcast", color='green',line_width=2)
     except Exception as e:
         st.write(e)
@@ -994,13 +994,13 @@ def home_page():
 
             stationprod = get_latest_parquet_file(conn, prefix = "icon-ch/groundstations/ch-prod",
                                                    pattern = r'cantons_(\d{8})\.parquet$')
-            stationprod =load_data(stationprod, 'parquet', conn)
+            stationprod = load_data(stationprod, 'parquet', get_connection())
             
             with filter_col2:
                 filtered_df = merged_df.copy()
                 
                 if filter_type == "Canton":
-                    stationprod = get_latest_parquet_file(conn, prefix = "icon-ch/groundstations/ch-prod", pattern = r'cantons_(\d{8})\.parquet$')
+                    stationprod = get_latest_parquet_file(get_connection(), prefix = "icon-ch/groundstations/ch-prod", pattern = r'cantons_(\d{8})\.parquet$')
                     stationprod =load_data(stationprod, 'parquet', conn)
                     all_cantons = sorted(merged_df["Canton"].unique().tolist())
                     
@@ -1030,7 +1030,7 @@ def home_page():
                             "Select Operators:",
                             options=all_operators
                         )
-                        stationprod = get_latest_parquet_file(conn,
+                        stationprod = get_latest_parquet_file(get_connection(),
                                                                prefix = "icon-ch/groundstations/ch-prod",
                                                                pattern = r'operators_(\d{8})\.parquet$')
                         stationprod =load_data(stationprod, 'parquet', conn)
