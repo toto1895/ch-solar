@@ -1034,7 +1034,6 @@ def home_page():
                                                                prefix = "icon-ch/groundstations/ch-prod",
                                                                pattern = r'operators_(\d{8})\.parquet$')
                         stationprod =load_data(stationprod, 'parquet', conn)
-
                         
                         if selected_operators:
                             filtered_df = merged_df[merged_df["operator"].isin(selected_operators)]
