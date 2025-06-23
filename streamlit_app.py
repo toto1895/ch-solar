@@ -879,6 +879,19 @@ def download_tmp_parquet(blob_name):
 
 # ——— Modified home_page with user info ———
 def home_page():
+    service_account_json = st.secrets.secrets.service_account_json
+    #service_account_json = service_account_json.replace('\\n', '\n')
+
+    service_account_info = json.loads(service_account_json)
+    import os
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = service_account_info
+    print("Service account info parsed successfully")
+
+    # Create credentials object properly
+    credentials = service_account.Credentials.from_service_account_info(service_account_info)
+    print("Credentials created successfully")
+
+    
     # Display user info in header
     col1, col2 = st.columns([3, 1])
     with col1:
