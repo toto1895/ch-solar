@@ -870,8 +870,8 @@ def create_heatmap(merged_plants):
     
     return fig
 
-def download_tmp_parquet(blob_name):
-    client = storage.Client()
+def download_tmp_parquet(blob_name, credentials=credentials):
+    client = storage.Client(project="gridalert-c48ee", credentials=credentials)
     bucket = client.bucket('icon-ch')
     blob = bucket.blob(blob_name)
     blob.download_to_filename('tmp.parquet')
@@ -879,18 +879,14 @@ def download_tmp_parquet(blob_name):
 
 # ——— Modified home_page with user info ———
 def home_page():
+
     service_account_json = st.secrets.secrets.service_account_json
     #service_account_json = service_account_json.replace('\\n', '\n')
-
     service_account_info = json.loads(service_account_json)
     import os
-    
     print("Service account info parsed successfully")
-
-    # Create credentials object properly
     credentials = service_account.Credentials.from_service_account_info(service_account_info)
     print("Credentials created successfully")
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials
 
 
     # Display user info in header
@@ -1017,7 +1013,7 @@ def home_page():
                                                    pattern = r'cantons_(\d{8})\.parquet$')
             #stationprod = load_data(stationprod, 'parquet', get_connection())
             
-            download_tmp_parquet(stationprod.split('icon-ch/')[1])
+            download_tmp_parquet(stationprod.split('icon-ch/')[1], credentials=credentials)
             stationprod = pd.read_parquet('tmp.parquet')
             
             
@@ -1027,7 +1023,7 @@ def home_page():
                 if filter_type == "Canton":
                     stationprod = get_latest_parquet_file(get_connection(), prefix = "icon-ch/groundstations/ch-prod", pattern = r'cantons_(\d{8})\.parquet$')
                     #stationprod =load_data(stationprod, 'parquet', conn)
-                    download_tmp_parquet(stationprod.split('icon-ch/')[1])
+                    download_tmp_parquet(stationprod.split('icon-ch/')[1], credentials=credentials)
                     stationprod = pd.read_parquet('tmp.parquet')
                     
                     
@@ -1064,7 +1060,7 @@ def home_page():
                                                                prefix = "icon-ch/groundstations/ch-prod",
                                                                pattern = r'operators_(\d{8})\.parquet$')
                         #stationprod =load_data(stationprod, 'parquet', conn)
-                        download_tmp_parquet(stationprod.split('icon-ch/')[1])
+                        download_tmp_parquet(stationprod.split('icon-ch/')[1], credentials=credentials)
                         stationprod = pd.read_parquet('tmp.parquet')
                         
                         if selected_operators:
