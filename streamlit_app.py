@@ -1012,7 +1012,11 @@ def home_page():
                 
                 if filter_type == "Canton":
                     stationprod = get_latest_parquet_file(get_connection(), prefix = "icon-ch/groundstations/ch-prod", pattern = r'cantons_(\d{8})\.parquet$')
-                    stationprod =load_data(stationprod, 'parquet', conn)
+                    #stationprod =load_data(stationprod, 'parquet', conn)
+                    download_tmp_parquet(stationprod.split('icon-ch/')[1])
+                    stationprod = pd.read_parquet('tmp.parquet')
+                    
+                    
                     all_cantons = sorted(merged_df["Canton"].unique().tolist())
                     
                     selected_cantons = st.multiselect(
@@ -1045,7 +1049,9 @@ def home_page():
                         stationprod = get_latest_parquet_file(get_connection(),
                                                                prefix = "icon-ch/groundstations/ch-prod",
                                                                pattern = r'operators_(\d{8})\.parquet$')
-                        stationprod =load_data(stationprod, 'parquet', conn)
+                        #stationprod =load_data(stationprod, 'parquet', conn)
+                        download_tmp_parquet(stationprod.split('icon-ch/')[1])
+                        stationprod = pd.read_parquet('tmp.parquet')
                         
                         if selected_operators:
                             filtered_df = merged_df[merged_df["operator"].isin(selected_operators)]
