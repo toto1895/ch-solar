@@ -870,7 +870,7 @@ def create_heatmap(merged_plants):
     
     return fig
 
-def download_tmp_parquet(blob_name, credentials=credentials):
+def download_tmp_parquet(blob_name, credentials=None):
     client = storage.Client(project="gridalert-c48ee", credentials=credentials)
     bucket = client.bucket('icon-ch')
     blob = bucket.blob(blob_name)
