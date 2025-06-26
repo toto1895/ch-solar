@@ -988,7 +988,7 @@ def home_page():
             
             h = []
 
-            for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=4):
+            for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=5):
                 try:
                     nowcast = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"))
                     h.append(nowcast)
@@ -1014,7 +1014,7 @@ def home_page():
             selected_operators = []
 
             h = []
-            for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=4):
+            for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=5):
                 try:
                     stationprod = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"),
                                                             prefix = "icon-ch/groundstations/ch-prod",
@@ -1042,7 +1042,7 @@ def home_page():
                     #stationprod = pd.read_parquet('tmp.parquet')
 
                     h = []
-                    for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=4):
+                    for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=5):
                         try:
                             stationprod = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"),
                                                                     prefix = "icon-ch/groundstations/ch-prod",
@@ -1083,7 +1083,7 @@ def home_page():
                         )
 
                         h = []
-                        for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=4):
+                        for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=5):
                             try:
                                 stationprod = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"),
                                                                         prefix = "icon-ch/groundstations/ch-prod",
