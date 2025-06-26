@@ -628,18 +628,21 @@ def get_forecast_files(model, cluster, conn):
         prefix = f"oracle_predictions/swiss_solar/canton_forecasts_factor/{model}/{cluster}"
     return fetch_files(conn, prefix, r'\.parquet$'), conn
 
-def load_and_concat_parquet_files(conn, date_str, time_str=None):
+def load_and_concat_parquet_files(conn, date_str, time_str=None, prefix = "dwd-solar-sat/daily_agg_asset_level_prod/", pattern=None):
     """Load and concatenate parquet files from a specific date and optional time"""
-    prefix = "dwd-solar-sat/daily_agg_asset_level_prod/"
+    #prefix = "dwd-solar-sat/daily_agg_asset_level_prod/"
     
-    if time_str:
-        if isinstance(time_str, list):
-            time_patterns = '|'.join([f"{date_str}{t}" for t in time_str])
-            pattern = f"({time_patterns})\.parquet$"
+    if pattern is None:
+        if time_str:
+            if isinstance(time_str, list):
+                time_patterns = '|'.join([f"{date_str}{t}" for t in time_str])
+                pattern = f"({time_patterns})\.parquet$"
+            else:
+                pattern = f"{date_str}{time_str}\.parquet$"
         else:
-            pattern = f"{date_str}{time_str}\.parquet$"
+            pattern = f"{date_str}\.parquet$"
     else:
-        pattern = f"{date_str}\.parquet$"
+        pattern = f"{pattern}_{date_str}\.parquet$"
     
     files = fetch_files(conn, prefix, pattern)
     
@@ -984,6 +987,7 @@ def home_page():
             dt = merged_df['datetime'].min().tz_convert('CET')
             
             h = []
+
             for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=4):
                 try:
                     nowcast = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"))
@@ -1009,22 +1013,44 @@ def home_page():
             selected_cantons = []
             selected_operators = []
 
-            stationprod = get_latest_parquet_file(conn, prefix = "icon-ch/groundstations/ch-prod",
-                                                   pattern = r'cantons_(\d{8})\.parquet$')
+            h = []
+            for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=4):
+                try:
+                    stationprod = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"),
+                                                            prefix = "icon-ch/groundstations/ch-prod",
+                                                            pattern = 'cantons')
+                    h.append(stationprod)
+                except:
+                    stationprod = pd.DataFrame()
+            stationprod = pd.concat(h)
+
+            #stationprod = get_latest_parquet_file(conn, prefix = "icon-ch/groundstations/ch-prod",
+            #                                       pattern = r'cantons_(\d{8})\.parquet$')
             #stationprod = load_data(stationprod, 'parquet', get_connection())
             
-            download_tmp_parquet(stationprod.split('icon-ch/')[1], credentials=credentials)
-            stationprod = pd.read_parquet('tmp.parquet')
+            #download_tmp_parquet(stationprod.split('icon-ch/')[1], credentials=credentials)
+            #stationprod = pd.read_parquet('tmp.parquet')
             
             
             with filter_col2:
                 filtered_df = merged_df.copy()
                 
                 if filter_type == "Canton":
-                    stationprod = get_latest_parquet_file(get_connection(), prefix = "icon-ch/groundstations/ch-prod", pattern = r'cantons_(\d{8})\.parquet$')
+                    #stationprod = get_latest_parquet_file(get_connection(), prefix = "icon-ch/groundstations/ch-prod", pattern = r'cantons_(\d{8})\.parquet$')
                     #stationprod =load_data(stationprod, 'parquet', conn)
-                    download_tmp_parquet(stationprod.split('icon-ch/')[1], credentials=credentials)
-                    stationprod = pd.read_parquet('tmp.parquet')
+                    #download_tmp_parquet(stationprod.split('icon-ch/')[1], credentials=credentials)
+                    #stationprod = pd.read_parquet('tmp.parquet')
+
+                    h = []
+                    for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=4):
+                        try:
+                            stationprod = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"),
+                                                                    prefix = "icon-ch/groundstations/ch-prod",
+                                                                    pattern = r'cantons')
+                            h.append(stationprod)
+                        except:
+                            stationprod = pd.DataFrame()
+                    stationprod = pd.concat(h)
                     
                     
                     all_cantons = sorted(merged_df["Canton"].unique().tolist())
@@ -1056,12 +1082,23 @@ def home_page():
                             options=all_operators
                         )
 
-                        stationprod = get_latest_parquet_file(get_connection(),
-                                                               prefix = "icon-ch/groundstations/ch-prod",
-                                                               pattern = r'operators_(\d{8})\.parquet$')
+                        h = []
+                        for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=4):
+                            try:
+                                stationprod = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"),
+                                                                        prefix = "icon-ch/groundstations/ch-prod",
+                                                                        pattern = r'operators')
+                                h.append(stationprod)
+                            except:
+                                stationprod = pd.DataFrame()
+                        stationprod = pd.concat(h)
+
+                        #stationprod = get_latest_parquet_file(get_connection(),
+                        #                                       prefix = "icon-ch/groundstations/ch-prod",
+                        #                                      pattern = r'operators_(\d{8})\.parquet$')
                         #stationprod =load_data(stationprod, 'parquet', conn)
-                        download_tmp_parquet(stationprod.split('icon-ch/')[1], credentials=credentials)
-                        stationprod = pd.read_parquet('tmp.parquet')
+                        #download_tmp_parquet(stationprod.split('icon-ch/')[1], credentials=credentials)
+                        #stationprod = pd.read_parquet('tmp.parquet')
                         
                         if selected_operators:
                             filtered_df = merged_df[merged_df["operator"].isin(selected_operators)]
