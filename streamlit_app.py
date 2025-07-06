@@ -1275,6 +1275,11 @@ def data_api_page():
     """Simple analytics from local log files"""
     st.title("📊 API page")
 
+    if st.button("← Back to Dashboard"):
+            st.session_state.page = "home"
+            #st.rerun()
+            return
+
 
 # Check if animation modules exist and import safely
 from satAnimation import generate_sat_rad_anim
@@ -1355,8 +1360,6 @@ def main():
         if st.sidebar.button("📊 View Login Analytics"):
             st.session_state.page = "admin"
             #st.rerun()
-
-        st.sidebar.markdown("---")
         if st.sidebar.button("API"):
             st.session_state.page = "dataApi"
             #st.rerun()
@@ -1368,13 +1371,9 @@ def main():
     if st.session_state.get('page') == 'admin':
         show_login_analytics()
         
-        
     if st.session_state.get('page') == 'dataApi':
         data_api_page()
-        if st.button("← Back to Dashboard"):
-            st.session_state.page = "home"
-            #st.rerun()
-            return
+
     
     # Handle login page routing
     if st.session_state.get('page') == 'login':
