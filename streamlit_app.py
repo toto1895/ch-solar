@@ -1295,7 +1295,6 @@ def data_api_page():
         param_id = "test"
         version_id = email.replace('@','-arobase-').replace('.','_')  # You'll need to specify a version ID
 
-        
         # JSON content
         data_dict = {"email": email}
         data_json = json.dumps(data_dict)
