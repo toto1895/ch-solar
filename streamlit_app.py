@@ -1270,10 +1270,44 @@ def about_page():
     """)
 
 
-
+from google.cloud import parametermanager
 def data_api_page():
     """Simple analytics from local log files"""
     st.title("📊 API page")
+
+    if st.button('create API key'):
+        
+        client = parametermanager.ParameterManagerClient()
+        parent = "projects/gridalert-c48ee/locations/global"
+        param_id = "test"
+        param_name = f"{parent}/parameters/{param_id}"
+
+        username=user_name()
+        # JSON content
+        data_dict = {"username": username, "enabled": True, "version": username.replace('@','-arobase-').replace('.','_')}
+        data_json = json.dumps(data_dict)
+
+        # Create parameter (if not exists)
+        try:
+            client.create_parameter(
+                parent=parent,
+                parameter_id=param_id,
+                parameter=parametermanager.Parameter(
+                    data_type=parametermanager.Parameter.DataType.JSON,
+                ),
+            )
+        except Exception:
+            st.write(f"{user_name()} already exist")
+
+        # Add new version with JSON data
+        client.create_parameter_version(
+            parent=param_name,
+            parameter_version=parametermanager.ParameterVersion(
+                data=data_json.encode("utf-8"),
+            ),
+            
+        )
+
 
     if st.button("← Back to Dashboard"):
             st.session_state.page = "home"
