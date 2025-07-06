@@ -1093,13 +1093,7 @@ def home_page():
                                 stationprod = pd.DataFrame()
                         stationprod = pd.concat(h)
 
-                        #stationprod = get_latest_parquet_file(get_connection(),
-                        #                                       prefix = "icon-ch/groundstations/ch-prod",
-                        #                                      pattern = r'operators_(\d{8})\.parquet$')
-                        #stationprod =load_data(stationprod, 'parquet', conn)
-                        #download_tmp_parquet(stationprod.split('icon-ch/')[1], credentials=credentials)
-                        #stationprod = pd.read_parquet('tmp.parquet')
-                        
+
                         if selected_operators:
                             filtered_df = merged_df[merged_df["operator"].isin(selected_operators)]
 
@@ -1270,6 +1264,13 @@ def about_page():
     **Last Updated:** January 2025
     """)
 
+
+
+def data_api_page():
+    """Simple analytics from local log files"""
+    st.title("📊 API page")
+
+
 # Check if animation modules exist and import safely
 from satAnimation import generate_sat_rad_anim
 from satAnimation_icon import display_png_ch1, display_png_ch2
@@ -1286,7 +1287,7 @@ def sat_anim():
 
 def is_admin_user():
     """Check if current user is admin"""
-    admin_emails = ["admin@yourcompany.com", "aminedev1895@gmail.com"]  # Configure admin emails
+    admin_emails = ["aminedev1895@gmail.com"]  # Configure admin emails
     return user_name() in admin_emails or user_email() in admin_emails
 
 # ——— Main function with authentication ———
@@ -1348,6 +1349,9 @@ def main():
         if st.sidebar.button("📊 View Login Analytics"):
             st.session_state.page = "admin"
             #st.rerun()
+        if st.sidebar.button("API"):
+            st.session_state.page = "data-api"
+            #st.rerun()
     
     # Navigation menu (only shown when logged in)
     st.sidebar.markdown("### 📊 Navigation")
@@ -1359,6 +1363,11 @@ def main():
             st.session_state.page = "home"
             #st.rerun()
         return
+    if st.session_state.get('page') == 'data-api':
+        show_login_analytics()
+        if st.button("← Back to Dashboard"):
+            st.session_state.page = "home"
+            #st.rerun()
     
     # Handle login page routing
     if st.session_state.get('page') == 'login':
