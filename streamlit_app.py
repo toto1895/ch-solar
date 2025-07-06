@@ -1277,6 +1277,7 @@ from satAnimation_icon import display_png_ch1, display_png_ch2
 ANIMATION_AVAILABLE = True
 
 
+
 def sat_anim():
     """Satellite animation function"""
     if ANIMATION_AVAILABLE:
