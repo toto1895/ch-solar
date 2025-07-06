@@ -1288,32 +1288,20 @@ def data_api_page():
         # credentials = service_account.Credentials.from_service_account_info(
         #     json.loads(os.environ["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
         #)
+        email = user_email()
     
         client = parametermanager_v1.ParameterManagerClient(credentials=credentials)
         project_id = "gridalert-c48ee"
         param_id = "test"
-        version_id = "v1"  # You'll need to specify a version ID
+        version_id = email.replace('@','-arobase-').replace('.','_')  # You'll need to specify a version ID
 
-        email = user_email()
+        
         # JSON content
-        data_dict = {"username": email, "enabled": True, "version": email.replace('@','-arobase-').replace('.','_')}
+        data_dict = {"email": email}
         data_json = json.dumps(data_dict)
 
         # Build the resource name of the parameter
         parent = client.parameter_path(project_id, "global", param_id)
-
-        # Create parameter (if not exists)
-        try:
-            client.create_parameter(
-                parent=f"projects/{project_id}/locations/global",
-                parameter_id=param_id,
-                parameter=parametermanager.Parameter(
-                    data_type=parametermanager.Parameter.DataType.JSON,
-                ),
-            )
-        except Exception as e:
-            print(e)
-            st.write(f"{email} already exist")
 
         # Create parameter version request
         request = parametermanager.CreateParameterVersionRequest(
