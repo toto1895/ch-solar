@@ -1300,8 +1300,6 @@ def is_admin_user():
     """Check if current user is admin"""
     admin_emails = ["aminedev1895@gmail.com"]  # Configure admin emails
     return user_name() in admin_emails or user_email() in admin_emails
-
-# ——— Main function with authentication ———
 def main():
     # Sidebar navigation
     st.sidebar.title("☀️ Swiss Solar Dashboard")
@@ -1320,8 +1318,8 @@ def main():
                     st.session_state.login_logged = True
                     print(get_user_ip())
                     # Get user stats
-                    ip=get_user_ip()
-                    stats = get_user_stats(user_email_str,ip )
+                    ip = get_user_ip()
+                    stats = get_user_stats(user_email_str, ip)
                     
                     # Show welcome message
                     if stats["first_login"]:
@@ -1330,7 +1328,6 @@ def main():
                         st.sidebar.info(f"Welcome back! Visit #{stats['total_logins']}")
                     
                     # Upload to cloud in background (optional)
-                    #if st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"):
                     upload_logs_to_gcs()
             except Exception as e:
                 print(f"Logging error: {e}")
@@ -1340,16 +1337,14 @@ def main():
             st.session_state.login_logged = False
             st.logout()
             st.session_state.page = "login"
-            #st.rerun()
+            return
     else:
         st.sidebar.info("Please log in to access the dashboard")
         if st.sidebar.button("🔑 Login with Google"):
             st.login("google")
-            #st.rerun()
     
     # Show login page if not authenticated
     if not user_is_logged_in():
-        # Reset page to login if user is not logged in
         st.session_state.page = "login"
         login_page()
         return
@@ -1359,26 +1354,27 @@ def main():
         st.sidebar.markdown("### 👨‍💼 Admin")
         if st.sidebar.button("📊 View Login Analytics"):
             st.session_state.page = "admin"
-            #st.rerun()
+            st.rerun()
         if st.sidebar.button("API"):
             st.session_state.page = "dataApi"
-            #st.rerun()
+            st.rerun()
     
-    # Navigation menu (only shown when logged in)
-    st.sidebar.markdown("### 📊 Navigation")
-    
-    # Handle admin page routing
+    # Handle admin pages first (before navigation menu)
     if st.session_state.get('page') == 'admin':
         show_login_analytics()
+        return
         
     if st.session_state.get('page') == 'dataApi':
         data_api_page()
-
+        return
     
     # Handle login page routing
     if st.session_state.get('page') == 'login':
         login_page()
         return
+    
+    # Navigation menu (only shown when not on admin pages)
+    st.sidebar.markdown("### 📊 Navigation")
     
     page_choice = st.sidebar.radio("Select Page:", [
         "Home",
