@@ -1350,10 +1350,12 @@ def main():
         if st.sidebar.button("📊 View Login Analytics"):
             st.session_state.page = "admin"
             #st.rerun()
+            return 
         st.sidebar.markdown("---")
         if st.sidebar.button("API"):
             st.session_state.page = "dataApi"
             #st.rerun()
+            return 
     
     # Navigation menu (only shown when logged in)
     st.sidebar.markdown("### 📊 Navigation")
