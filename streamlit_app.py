@@ -512,6 +512,11 @@ def show_login_analytics():
         )
         if st.button("Upload Logs to Cloud"):
             upload_logs_to_gcs()
+        
+        if st.button("← Back to Dashboard"):
+            st.session_state.page = "home"
+            #st.rerun()
+            return
 
 def login_page():
     st.markdown("### Secure Access Portal")
@@ -1362,10 +1367,7 @@ def main():
     # Handle admin page routing
     if st.session_state.get('page') == 'admin':
         show_login_analytics()
-        if st.button("← Back to Dashboard"):
-            st.session_state.page = "home"
-            #st.rerun()
-            return
+        
         
     if st.session_state.get('page') == 'dataApi':
         data_api_page()
