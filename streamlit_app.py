@@ -1319,10 +1319,10 @@ def data_api_page():
         st.write(f"Created parameter version: {response.name}")
 
 
-        if st.button("← Back to Dashboard"):
-                st.session_state.page = "home"
-                #st.rerun()
-                return
+    if st.button("← Back to Dashboard"):
+            st.session_state.page = "home"
+            #st.rerun()
+            return
 
 
 # Check if animation modules exist and import safely
