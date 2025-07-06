@@ -1278,28 +1278,51 @@ def data_api_page():
     if st.button('create API key'):
         
         client = parametermanager.ParameterManagerClient()
-        parent = "projects/gridalert-c48ee/locations/global"
+        project_id = "gridalert-c48ee"
         param_id = "test"
-        param_name = f"{parent}/parameters/{param_id}"
+        version_id = "v1"  # You'll need to specify a version ID
 
-        email=user_email()
+        email = user_email()
         # JSON content
         data_dict = {"username": email, "enabled": True, "version": email.replace('@','-arobase-').replace('.','_')}
         data_json = json.dumps(data_dict)
 
-        # Add new version with JSON data
-        client.create_parameter_version(
-        parent=param_name,
-        parameter_version={
-            "payload": data_json.encode("utf-8")
-        }
+        # Build the resource name of the parameter
+        parent = client.parameter_path(project_id, "global", param_id)
+
+        # Create parameter (if not exists)
+        try:
+            client.create_parameter(
+                parent=f"projects/{project_id}/locations/global",
+                parameter_id=param_id,
+                parameter=parametermanager.Parameter(
+                    data_type=parametermanager.Parameter.DataType.JSON,
+                ),
+            )
+        except Exception as e:
+            print(e)
+            st.write(f"{email} already exist")
+
+        # Create parameter version request
+        request = parametermanager.CreateParameterVersionRequest(
+            parent=parent,
+            parameter_version_id=version_id,
+            parameter_version=parametermanager.ParameterVersion(
+                payload=parametermanager.ParameterVersionPayload(
+                    data=data_json.encode("utf-8")
+                )
+            ),
         )
 
+        # Create the parameter version
+        response = client.create_parameter_version(request=request)
+        st.write(f"Created parameter version: {response.name}")
 
-    if st.button("← Back to Dashboard"):
-            st.session_state.page = "home"
-            #st.rerun()
-            return
+
+        if st.button("← Back to Dashboard"):
+                st.session_state.page = "home"
+                #st.rerun()
+                return
 
 
 # Check if animation modules exist and import safely
