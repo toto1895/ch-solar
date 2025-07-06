@@ -1282,7 +1282,7 @@ def data_api_page():
         param_id = "test"
         param_name = f"{parent}/parameters/{param_id}"
 
-        username=user_name()
+        username=user_email()
         # JSON content
         data_dict = {"username": username, "enabled": True, "version": username.replace('@','-arobase-').replace('.','_')}
         data_json = json.dumps(data_dict)
