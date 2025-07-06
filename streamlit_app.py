@@ -1351,7 +1351,7 @@ def main():
             st.session_state.page = "admin"
             #st.rerun()
         if st.sidebar.button("API"):
-            st.session_state.page = "data-api"
+            st.session_state.page = "dataApi"
             #st.rerun()
     
     # Navigation menu (only shown when logged in)
@@ -1364,8 +1364,8 @@ def main():
             st.session_state.page = "home"
             #st.rerun()
         return
-    if st.session_state.get('page') == 'data-api':
-        show_login_analytics()
+    if st.session_state.get('page') == 'dataApi':
+        data_api_page()
         if st.button("← Back to Dashboard"):
             st.session_state.page = "home"
             #st.rerun()
