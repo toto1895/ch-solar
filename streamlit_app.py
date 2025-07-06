@@ -1302,11 +1302,10 @@ def data_api_page():
 
         # Add new version with JSON data
         client.create_parameter_version(
-            parent=param_name,
-            parameter_version=parametermanager.ParameterVersion(
-                data=data_json.encode("utf-8"),
-            ),
-            
+        parent=param_name,
+        parameter_version=parametermanager.ParameterVersion(
+            payload=data_json.encode("utf-8"),  # Changed from 'data' to 'payload'
+        ),
         )
 
 
