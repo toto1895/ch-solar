@@ -1363,7 +1363,7 @@ def main():
         if st.button("← Back to Dashboard"):
             st.session_state.page = "home"
             #st.rerun()
-        return
+        
     if st.session_state.get('page') == 'dataApi':
         data_api_page()
         if st.button("← Back to Dashboard"):
