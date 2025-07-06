@@ -1269,15 +1269,27 @@ def about_page():
     **Last Updated:** January 2025
     """)
 
-
+from google.cloud import parametermanager_v1
 from google.cloud import parametermanager
+import os
+
 def data_api_page():
     """Simple analytics from local log files"""
     st.title("📊 API page")
 
     if st.button('create API key'):
         
-        client = parametermanager.ParameterManagerClient()
+        service_account_json = st.secrets.secrets.service_account_json
+        #service_account_json = service_account_json.replace('\\n', '\n')
+        service_account_info = json.loads(service_account_json)
+        print("Service account info parsed successfully")
+        credentials = service_account.Credentials.from_service_account_info(service_account_info)
+        # Option C: From environment variable
+        # credentials = service_account.Credentials.from_service_account_info(
+        #     json.loads(os.environ["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
+        #)
+    
+        client = parametermanager_v1.ParameterManagerClient(credentials=credentials)
         project_id = "gridalert-c48ee"
         param_id = "test"
         version_id = "v1"  # You'll need to specify a version ID
