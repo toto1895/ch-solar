@@ -1282,9 +1282,9 @@ def data_api_page():
         param_id = "test"
         param_name = f"{parent}/parameters/{param_id}"
 
-        username=user_email()
+        email=user_email()
         # JSON content
-        data_dict = {"username": username, "enabled": True, "version": username.replace('@','-arobase-').replace('.','_')}
+        data_dict = {"username": email, "enabled": True, "version": email.replace('@','-arobase-').replace('.','_')}
         data_json = json.dumps(data_dict)
 
         # Create parameter (if not exists)
@@ -1296,8 +1296,9 @@ def data_api_page():
                     data_type=parametermanager.Parameter.DataType.JSON,
                 ),
             )
-        except Exception:
-            st.write(f"{user_name()} already exist")
+        except Exception as e:
+            print(e)
+            st.write(f"{email} already exist")
 
         # Add new version with JSON data
         client.create_parameter_version(
