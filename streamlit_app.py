@@ -1289,7 +1289,7 @@ def data_api_page():
 
     email = user_email()
     version_id = email.replace('@','-arobase-').replace('.','_')
-    param_id = "test"
+    param_id = "solar-dashboard-users"
     project_id = "gridalert-c48ee"
     client = parametermanager_v1.ParameterManagerClient(credentials=credentials)
     parent = client.parameter_path(project_id, "global", param_id)
