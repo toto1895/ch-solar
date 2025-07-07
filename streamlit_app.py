@@ -1284,11 +1284,10 @@ def data_api_page():
 
     service_account_json = st.secrets.secrets.service_account_json
     service_account_info = json.loads(service_account_json)
-    print("Service account info parsed successfully")
     credentials = service_account.Credentials.from_service_account_info(service_account_info)
 
     email = user_email()
-    version_id = email.replace('@','-arobase-').replace('.','_')
+    version_id = email.replace('@', '-arobase-').replace('.', '_')
     param_id = "test"
     project_id = "gridalert-c48ee"
     client = parametermanager_v1.ParameterManagerClient(credentials=credentials)
@@ -1300,7 +1299,10 @@ def data_api_page():
 
     if existing_version:
         data = json.loads(existing_version.payload.data.decode("utf-8"))
-        st.text(f"API Key: {data.get('uuid')}")
+        if st.checkbox("Show API Key"):
+            st.code(data.get("uuid"), language="text")
+        else:
+            st.text("API Key is hidden")
     else:
         if st.button("Create API Key"):
             data_dict = {"email": email, "uuid": str(uuid.uuid4())}
@@ -1315,13 +1317,12 @@ def data_api_page():
                 ),
             )
             client.create_parameter_version(request=request)
-            st.text(f"API Key: {data_dict.get('uuid')}")
-
+            st.success("API key created. Refresh to view.")
 
     if st.button("← Back to Dashboard"):
-            st.session_state.page = "home"
-            #st.rerun()
-            return
+        st.session_state.page = "home"
+        return
+
 
 
 # Check if animation modules exist and import safely
