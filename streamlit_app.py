@@ -1275,47 +1275,42 @@ import os
 
 def data_api_page():
     """Simple analytics from local log files"""
-    st.title("📊 API page")
+    def get_version(client, parent, version_id):
+        try:
+            return client.get_parameter_version(name=f"{parent}/versions/{version_id}")
+        except Exception:
+            return None
 
-    if st.button('create API key'):
-        
-        service_account_json = st.secrets.secrets.service_account_json
-        #service_account_json = service_account_json.replace('\\n', '\n')
-        service_account_info = json.loads(service_account_json)
-        print("Service account info parsed successfully")
-        credentials = service_account.Credentials.from_service_account_info(service_account_info)
-        # Option C: From environment variable
-        # credentials = service_account.Credentials.from_service_account_info(
-        #     json.loads(os.environ["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
-        #)
-        email = user_email()
-    
-        client = parametermanager_v1.ParameterManagerClient(credentials=credentials)
-        project_id = "gridalert-c48ee"
-        param_id = "test"
-        version_id = email.replace('@','-arobase-').replace('.','_')  # You'll need to specify a version ID
+    service_account_info = json.loads(st.secrets.service_account_json)
+    credentials = service_account.Credentials.from_service_account_info(service_account_info)
 
-        # JSON content
-        data_dict = {"email": email}
-        data_json = json.dumps(data_dict)
+    email = get_email()
+    version_id = email.replace('@','-arobase-').replace('.','_')
+    param_id = "test"
+    project_id = "gridalert-c48ee"
+    client = parametermanager_v1.ParameterManagerClient(credentials=credentials)
+    parent = client.parameter_path(project_id, "global", param_id)
 
-        # Build the resource name of the parameter
-        parent = client.parameter_path(project_id, "global", param_id)
+    existing_version = get_version(client, parent, version_id)
 
-        # Create parameter version request
-        request = parametermanager.CreateParameterVersionRequest(
-            parent=parent,
-            parameter_version_id=version_id,
-            parameter_version=parametermanager.ParameterVersion(
-                payload=parametermanager.ParameterVersionPayload(
-                    data=data_json.encode("utf-8")
-                )
-            ),
-        )
-
-        # Create the parameter version
-        response = client.create_parameter_version(request=request)
-        st.write(f"Created parameter version: {response.name}")
+    if existing_version:
+        data = json.loads(existing_version.payload.data.decode("utf-8"))
+        st.text(f"API Key: {data.get('uuid')}")
+    else:
+        if st.button("Create API Key"):
+            data_dict = {"email": email, "uuid": str(uuid.uuid4())}
+            data_json = json.dumps(data_dict)
+            request = parametermanager_v1.CreateParameterVersionRequest(
+                parent=parent,
+                parameter_version_id=version_id,
+                parameter_version=parametermanager_v1.ParameterVersion(
+                    payload=parametermanager_v1.ParameterVersionPayload(
+                        data=data_json.encode("utf-8")
+                    )
+                ),
+            )
+            client.create_parameter_version(request=request)
+            st.success("API key created. Refresh to view.")
 
 
     if st.button("← Back to Dashboard"):
