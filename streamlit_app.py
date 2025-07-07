@@ -1296,6 +1296,8 @@ def data_api_page():
 
     existing_version = get_version(client, parent, version_id)
 
+    st.title("📊 API page")
+
     if existing_version:
         data = json.loads(existing_version.payload.data.decode("utf-8"))
         st.text(f"API Key: {data.get('uuid')}")
@@ -1313,7 +1315,7 @@ def data_api_page():
                 ),
             )
             client.create_parameter_version(request=request)
-            st.success("API key created. Refresh to view.")
+            st.text(f"API Key: {data_dict.get('uuid')}")
 
 
     if st.button("← Back to Dashboard"):
