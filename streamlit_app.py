@@ -1284,10 +1284,11 @@ def data_api_page():
 
     service_account_json = st.secrets.secrets.service_account_json
     service_account_info = json.loads(service_account_json)
+    print("Service account info parsed successfully")
     credentials = service_account.Credentials.from_service_account_info(service_account_info)
 
     email = user_email()
-    version_id = email.replace('@', '-arobase-').replace('.', '_')
+    version_id = email.replace('@','-arobase-').replace('.','_')
     param_id = "test"
     project_id = "gridalert-c48ee"
     client = parametermanager_v1.ParameterManagerClient(credentials=credentials)
@@ -1297,12 +1298,32 @@ def data_api_page():
 
     st.title("📊 API page")
 
+    # Initialize session state for show/hide toggle if not exists
+    if 'show_api_key' not in st.session_state:
+        st.session_state.show_api_key = False
+
     if existing_version:
         data = json.loads(existing_version.payload.data.decode("utf-8"))
-        if st.checkbox("Show API Key"):
-            st.code(data.get("uuid"), language="text")
-        else:
-            st.text("API Key is hidden")
+        api_key = data.get('uuid')
+        
+        # Create columns for the API key display and toggle button
+        col1, col2 = st.columns([3, 1])
+        
+        with col1:
+            if st.session_state.show_api_key:
+                st.text(f"credits: {data.get('credits')}")
+                st.text(f"API Key: {api_key}")
+            else:
+                # Show masked version
+                masked_key = api_key[:8] + "..." + api_key[-4:] if len(api_key) > 12 else "****"
+                st.text(f"API Key: {masked_key}")
+        
+        with col2:
+            # Toggle button
+            if st.button("👁️ " + ("Hide" if st.session_state.show_api_key else "Show")):
+                st.session_state.show_api_key = not st.session_state.show_api_key
+                st.rerun()
+                
     else:
         if st.button("Create API Key"):
             data_dict = {"email": email, "uuid": str(uuid.uuid4()), "credits":100}
@@ -1317,10 +1338,22 @@ def data_api_page():
                 ),
             )
             client.create_parameter_version(request=request)
-            st.success("API key created. Refresh to view.")
+            
+            # Show the newly created API key
+            st.session_state.show_api_key = True
+            api_key = data_dict.get('uuid')
+            
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.text(f"API Key: {api_key}")
+            with col2:
+                if st.button("👁️ Hide"):
+                    st.session_state.show_api_key = False
+                    st.rerun()
 
     if st.button("← Back to Dashboard"):
         st.session_state.page = "home"
+        #st.rerun()
         return
 
 
