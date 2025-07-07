@@ -1310,11 +1310,10 @@ def data_api_page():
         col1, col2 = st.columns([3, 1])
         
         with col1:
-            st.text(f"credits: {data.get('credits')}")
+            st.text(f"Credits: {data.get('credits')}")
             if st.session_state.show_api_key:
-                
-                st.code(f"API key: {api_key}", language="text")
-                #st.text(f"API Key: {api_key}")
+                st.text(f"API Key:")
+                st.code(f"{api_key}", language="text")
             else:
                 # Show masked version
                 masked_key = api_key[:8] + "..." + api_key[-4:] if len(api_key) > 12 else "****"
