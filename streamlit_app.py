@@ -1305,7 +1305,7 @@ def data_api_page():
             st.text("API Key is hidden")
     else:
         if st.button("Create API Key"):
-            data_dict = {"email": email, "uuid": str(uuid.uuid4())}
+            data_dict = {"email": email, "uuid": str(uuid.uuid4()), "credits":100}
             data_json = json.dumps(data_dict)
             request = parametermanager_v1.CreateParameterVersionRequest(
                 parent=parent,
