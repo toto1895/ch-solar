@@ -1272,6 +1272,7 @@ def about_page():
 from google.cloud import parametermanager_v1
 from google.cloud import parametermanager
 import os
+import uuid
 
 def data_api_page():
     """Simple analytics from local log files"""
@@ -1281,10 +1282,12 @@ def data_api_page():
         except Exception:
             return None
 
-    service_account_info = json.loads(st.secrets.service_account_json)
+    service_account_json = st.secrets.secrets.service_account_json
+    service_account_info = json.loads(service_account_json)
+    print("Service account info parsed successfully")
     credentials = service_account.Credentials.from_service_account_info(service_account_info)
 
-    email = get_email()
+    email = user_email()
     version_id = email.replace('@','-arobase-').replace('.','_')
     param_id = "test"
     project_id = "gridalert-c48ee"
