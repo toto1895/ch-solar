@@ -1410,6 +1410,9 @@ def data_api_page():
 
             data_df = pd.DataFrame([data_dict])
 
+            data_df['datetime'] = pd.Timestamp.now('CET').round('1min')
+            data_df['action'] = 'key_created'
+
             upload_df_to_gcs(data_df, api_key + '.csv')
             
             col1, col2 = st.columns([3, 1])
