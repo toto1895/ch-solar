@@ -1503,6 +1503,7 @@ def main():
         if st.sidebar.button("📊 View Login Analytics"):
             st.session_state.page = "admin"
             st.rerun()
+
             
     if st.sidebar.button("DATA API Access"):
         st.session_state.page = "dataApi"
