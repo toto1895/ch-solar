@@ -1360,7 +1360,7 @@ def data_api_page():
     
     existing_version = get_version(client, parent, version_id)
 
-    st.title("📊 API page")
+    st.title("📊 Data API page")
 
     # Initialize session state for show/hide toggle if not exists
     if 'show_api_key' not in st.session_state:
@@ -1374,7 +1374,6 @@ def data_api_page():
         col1, col2 = st.columns([3, 1])
         
         with col1:
-            st.text(f"Credits: {data.get('credits')}")
             if st.session_state.show_api_key:
                 st.text(f"API Key:")
                 st.code(f"{api_key}", language="text")
@@ -1504,9 +1503,10 @@ def main():
         if st.sidebar.button("📊 View Login Analytics"):
             st.session_state.page = "admin"
             st.rerun()
-        if st.sidebar.button("API"):
-            st.session_state.page = "dataApi"
-            st.rerun()
+            
+    if st.sidebar.button("DATA API Access"):
+        st.session_state.page = "dataApi"
+        st.rerun()
     
     # Handle admin pages first (before navigation menu)
     if st.session_state.get('page') == 'admin':
