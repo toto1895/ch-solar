@@ -304,6 +304,68 @@ def upload_logs_to_gcs():
         print("Full traceback:")
         print(traceback.format_exc())
 
+
+def upload_df_to_gcs(df, filename="uuid.csv"):
+    try:
+        import json
+        import pandas as pd
+        from io import StringIO
+        from google.cloud import storage
+        from google.oauth2 import service_account
+        import streamlit as st
+
+        # Get bucket name
+        bucket_name = "solar-api-user"
+        print(f"Bucket name: {bucket_name}")
+        
+        blob_name = filename
+        print(f"Blob name: {blob_name}")
+        
+        print("Getting service account credentials...")
+        service_account_json = st.secrets.secrets.service_account_json
+        
+        service_account_info = json.loads(service_account_json)
+        print("Service account info parsed successfully")
+
+        # Create credentials object
+        credentials = service_account.Credentials.from_service_account_info(service_account_info)
+        print("Credentials created successfully")
+
+        # Upload using Google Cloud Storage client
+        print("Creating GCS client...")
+        client = storage.Client(project=st.secrets.get("GOOGLE_CLOUD_PROJECT_ID"),
+                               credentials=credentials)
+        
+        print("Getting bucket...")
+        bucket = client.bucket(bucket_name)
+        
+        print("Creating blob...")
+        blob = bucket.blob(blob_name)
+        blob.content_type = 'text/csv'
+        
+        print("Converting DataFrame to CSV...")
+        # Convert DataFrame to CSV string
+        csv_string = df.to_csv(index=False)
+        
+        print("Starting upload...")
+        # Upload CSV string directly
+        blob.upload_from_string(csv_string, content_type='text/csv')
+        
+        success_msg = f"Successfully uploaded DataFrame to gs://{bucket_name}/{blob_name}"
+        print(success_msg)
+        #st.success(success_msg)
+        
+    except Exception as e:
+        error_msg = f"Cloud upload failed: {str(e)}"
+        print(error_msg)
+        st.error(error_msg)
+        # Print the full traceback for debugging
+        import traceback
+        print("Full traceback:")
+        print(traceback.format_exc())
+
+
+
 def download_logs_from_gcs(date_filter=None):
     """Download logs from Google Cloud Storage
     
@@ -1287,13 +1349,15 @@ def data_api_page():
     print("Service account info parsed successfully")
     credentials = service_account.Credentials.from_service_account_info(service_account_info)
 
-    email = user_email()
-    version_id = email.replace('@','-arobase-').replace('.','_')
+    
     param_id = "solar-dashboard-users"
     project_id = "gridalert-c48ee"
     client = parametermanager_v1.ParameterManagerClient(credentials=credentials)
     parent = client.parameter_path(project_id, "global", param_id)
 
+    email = user_email()
+    version_id = email.replace('@','-arobase-').replace('.','_')
+    
     existing_version = get_version(client, parent, version_id)
 
     st.title("📊 API page")
@@ -1343,6 +1407,10 @@ def data_api_page():
             # Show the newly created API key
             st.session_state.show_api_key = True
             api_key = data_dict.get('uuid')
+
+            data_df = pd.DataFrame([data_dict])
+
+            upload_df_to_gcs(data_df, api_key + '.csv')
             
             col1, col2 = st.columns([3, 1])
             with col1:
