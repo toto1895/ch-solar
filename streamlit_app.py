@@ -1371,7 +1371,7 @@ def data_api_page():
 
     st.title("📊 Data API page")
     st.markdown('Endpoint')
-    st.code("https://ch-solar-api-59139140460.europe-west1.run.app/docs/", language="text")
+    st.link_button("https://ch-solar-api-59139140460.europe-west1.run.app/docs/")
 
     # Initialize session state for show/hide toggle if not exists
     if 'show_api_key' not in st.session_state:
