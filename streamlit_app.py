@@ -1089,8 +1089,10 @@ def home_page():
                     h.append(stationprod)
                 except:
                     stationprod = pd.DataFrame()
-            stationprod = pd.concat(h)
-
+            try:
+                stationprod = pd.concat(h)
+            except Exception as e:
+                stationprod = pd.DataFrame()
             #stationprod = get_latest_parquet_file(conn, prefix = "icon-ch/groundstations/ch-prod",
             #                                       pattern = r'cantons_(\d{8})\.parquet$')
             #stationprod = load_data(stationprod, 'parquet', get_connection())
@@ -1361,6 +1363,8 @@ def data_api_page():
     existing_version = get_version(client, parent, version_id)
 
     st.title("📊 Data API page")
+    st.markdown('Endpoint')
+    st.code("https://ch-solar-api-59139140460.europe-west1.run.app/", language="text")
 
     # Initialize session state for show/hide toggle if not exists
     if 'show_api_key' not in st.session_state:
