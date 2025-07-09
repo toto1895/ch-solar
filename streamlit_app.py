@@ -1119,7 +1119,10 @@ def home_page():
                             h.append(stationprod)
                         except:
                             stationprod = pd.DataFrame()
-                    stationprod = pd.concat(h)
+                    try:
+                        stationprod = pd.concat(h)
+                    except Exception as e:
+                        stationprod = pd.DataFrame()
                     
                     
                     all_cantons = sorted(merged_df["Canton"].unique().tolist())
@@ -1160,7 +1163,11 @@ def home_page():
                                 h.append(stationprod)
                             except:
                                 stationprod = pd.DataFrame()
-                        stationprod = pd.concat(h)
+                        
+                        try:
+                            stationprod = pd.concat(h)
+                        except Exception as e:
+                            stationprod = pd.DataFrame()
 
 
                         if selected_operators:
