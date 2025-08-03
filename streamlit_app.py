@@ -691,6 +691,8 @@ def get_forecast_files(model, cluster, conn):
     """Get list of available forecast files for the selected model and cluster"""
     if model in ['ICON-CH1','ICON-CH2']:
         prefix = f"icon-ch/ch{model.replace('ICON-CH','')}/ch-prod"
+        if model =='FastCloud':
+            prefix = f"icon-ch/cloud-rad/ch-prod"
     else:
         prefix = f"oracle_predictions/swiss_solar/canton_forecasts_factor/{model}/{cluster}"
     return fetch_files(conn, prefix, r'\.parquet$'), conn
@@ -972,7 +974,7 @@ def home_page():
     conn = get_connection()
 
     # Define available models and clusters
-    available_models = ["ICON-CH1","ICON-CH2"]
+    available_models = ["ICON-CH1","ICON-CH2","FastCloud"]
     available_clusters = ["cluster0", "cluster1", "cluster2"]
     
     # Create selection widgets in columns
@@ -985,7 +987,7 @@ def home_page():
             index=0
         )
     
-    if selected_model in ['ICON-CH1','ICON-CH2']:
+    if selected_model in ['ICON-CH1','ICON-CH2','FastCloud']:
         forecast_files, _ = get_forecast_files(selected_model, '', conn)
     else:
         with col2:
