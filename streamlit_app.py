@@ -984,7 +984,7 @@ def home_page():
         selected_model = st.selectbox(
             "Select Model:",
             options=available_models,
-            index=0
+            index=2
         )
     
     if selected_model in ['ICON-CH1','ICON-CH2','FastCloud']:
