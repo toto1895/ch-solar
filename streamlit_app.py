@@ -974,7 +974,7 @@ def home_page():
     conn = get_connection()
 
     # Define available models and clusters
-    available_models = ["ICON-CH1","ICON-CH2","FastCloud"]
+    available_models = ["FastCloud","ICON-CH1","ICON-CH2"]
     available_clusters = ["cluster0", "cluster1", "cluster2"]
     
     # Create selection widgets in columns
@@ -984,7 +984,7 @@ def home_page():
         selected_model = st.selectbox(
             "Select Model:",
             options=available_models,
-            index=2
+            index=0
         )
     
     if selected_model in ['ICON-CH1','ICON-CH2','FastCloud']:
