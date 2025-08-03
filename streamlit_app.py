@@ -705,13 +705,13 @@ def load_and_concat_parquet_files(conn, date_str, time_str=None, prefix = "dwd-s
         if time_str:
             if isinstance(time_str, list):
                 time_patterns = '|'.join([f"{date_str}{t}" for t in time_str])
-                pattern = f"({time_patterns})\.parquet$"
+                pattern = rf"({time_patterns})\.parquet$"
             else:
-                pattern = f"{date_str}{time_str}\.parquet$"
+                pattern = rf"{date_str}{time_str}\.parquet$"
         else:
-            pattern = f"{date_str}\.parquet$"
+            pattern = rf"{date_str}\.parquet$"
     else:
-        pattern = f"{pattern}_{date_str}\.parquet$"
+        pattern = rf"{pattern}_{date_str}\.parquet$"
     
     files = fetch_files(conn, prefix, pattern)
     
