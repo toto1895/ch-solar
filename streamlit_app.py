@@ -875,9 +875,11 @@ def add_forecast_traces(selected_model,fig, df, name, line_width=2, color=None):
     if color:
         line_style['color'] = color
         dash_style['color'] = color
+    try:
+        df.loc[:,'datetime']= pd.to_datetime(df['datetime']).tz_convert('CET')
+    except:
+        df.loc[:,'datetime']= pd.to_datetime(df['datetime'],utc=True).tz_convert('CET')
 
-    df['datetime']= pd.to_datetime(df['datetime']).tz_convert('CET')
-                                       
     try:
         fig.add_trace(go.Scatter(
             x=df['datetime'],
