@@ -823,16 +823,13 @@ def create_forecast_chart(selected_model,filtered_df, pronovo_f, nowcast, statio
 
         total_df['datetime'] = pd.to_datetime(total_df['datetime'], utc=True).tz_convert('CET')
 
-        if selected_model in ['ICON-CH1','ICON-CH2']:
-            total_df['datetime'] = total_df['datetime'].resample('15min').bfill(limit=4)
-
         canton_now = nowcast.groupby(['datetime']).agg({
                 'SolarProduction':'sum'
             })
 
-    add_forecast_traces(fig, total_df.round(1), "Total", color='red')
+    add_forecast_traces(selected_model,fig, total_df.round(1), "Total", color='red')
     try:
-        add_forecast_traces(fig, canton_now.round(1), "Nowcast", color='white')
+        add_forecast_traces(selected_model,fig, canton_now.round(1), "Nowcast", color='white')
     except:
         pass
 
@@ -844,11 +841,11 @@ def create_forecast_chart(selected_model,filtered_df, pronovo_f, nowcast, statio
         r = r.resample('15min').mean()
         #r['datetime'] = r.index - pd.Timedelta(minutes=15)
         r['datetime'] = r.index 
-        add_forecast_traces(fig, r.round(1), "Nowcast", color='green',line_width=2)
+        add_forecast_traces(selected_model,fig, r.round(1), "Nowcast", color='green',line_width=2)
     except Exception as e:
         st.write(e)
 
-    add_forecast_traces(fig, pronovo_now, "Pronovo", color='white')
+    add_forecast_traces(selected_model,fig, pronovo_now, "Pronovo", color='white')
     
     fig.update_layout(
         title="Solar Generation Forecast",
@@ -862,7 +859,7 @@ def create_forecast_chart(selected_model,filtered_df, pronovo_f, nowcast, statio
     
     return fig
 
-def add_forecast_traces(fig, df, name, line_width=2, color=None):
+def add_forecast_traces(selected_model,fig, df, name, line_width=2, color=None):
     """Add forecast traces to the figure"""
     line_style = dict(width=line_width)
     dash_style = dict(width=max(1, line_width-1), dash='dash')
@@ -871,8 +868,12 @@ def add_forecast_traces(fig, df, name, line_width=2, color=None):
         line_style['color'] = color
         dash_style['color'] = color
 
-    df['datetime']= pd.to_datetime(df['datetime'])
-
+    if selected_model in ['ICON-CH1','ICON-CH2']:
+        df.set_index('datetime', inplace=True)
+        df = df.resample('15min').bfill(limit=4)
+        df.index.name = 'datetime'
+        df.reset_index(inplace=True)
+                                       
     try:
         fig.add_trace(go.Scatter(
             x=df['datetime'],
