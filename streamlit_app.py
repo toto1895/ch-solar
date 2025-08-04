@@ -734,7 +734,7 @@ def load_and_concat_parquet_files(conn, date_str, time_str=None, prefix = "dwd-s
     concatenated_df = pd.concat(dataframes)
     return concatenated_df
 
-def create_forecast_chart(filtered_df, pronovo_f, nowcast, stationprod, filter_type, selected_cantons=None, selected_operators=None):
+def create_forecast_chart(selected_model,filtered_df, pronovo_f, nowcast, stationprod, filter_type, selected_cantons=None, selected_operators=None):
     """Create a forecast chart based on filtered data"""
     fig = go.Figure()
     plot_df = filtered_df.copy()
@@ -822,6 +822,9 @@ def create_forecast_chart(filtered_df, pronovo_f, nowcast, stationprod, filter_t
         }).reset_index()
 
         total_df['datetime'] = pd.to_datetime(total_df['datetime'], utc=True).tz_convert('CET')
+
+        if selected_model in ['ICON-CH1','ICON-CH2']:
+            total_df['datetime'] = total_df['datetime'].resample('15min').bfill(limit=4)
 
         canton_now = nowcast.groupby(['datetime']).agg({
                 'SolarProduction':'sum'
@@ -1264,7 +1267,7 @@ def home_page():
             )
             
             if chart_type == "Forecast Chart":
-                fig = create_forecast_chart(filtered_df,pronovo_f,nowcast,stationprod, filter_type, selected_cantons, selected_operators)
+                fig = create_forecast_chart(selected_model,filtered_df,pronovo_f,nowcast,stationprod, filter_type, selected_cantons, selected_operators)
                 st.plotly_chart(fig, use_container_width=True)
             
             elif chart_type =='Monthly installed capacity':
