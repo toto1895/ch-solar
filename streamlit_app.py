@@ -821,11 +821,16 @@ def create_forecast_chart(selected_model,filtered_df, pronovo_f, nowcast, statio
             'p0.9_operator': 'sum'
         }).reset_index()
 
-        total_df['datetime'] = pd.to_datetime(total_df['datetime'], utc=True).tz_convert('CET')
-
         canton_now = nowcast.groupby(['datetime']).agg({
                 'SolarProduction':'sum'
             })
+
+    total_df['datetime'] = pd.to_datetime(total_df['datetime'], utc=True).tz_convert('CET')
+    canton_now['datetime'] = pd.to_datetime(canton_now['datetime'], utc=True).tz_convert('CET')
+
+    if selected_model in ['ICON-CH1','ICON-CH2']:
+        total_df['datetime'] = pd.to_datetime(total_df['datetime']) - pd.Timedelta(hours=1)
+
 
     add_forecast_traces(selected_model,fig, total_df.round(1), "Total", color='red')
     try:
@@ -871,16 +876,7 @@ def add_forecast_traces(selected_model,fig, df, name, line_width=2, color=None):
         line_style['color'] = color
         dash_style['color'] = color
 
-    if selected_model in ['ICON-CH1','ICON-CH2']:
-        #df.set_index('datetime', inplace=True)
-        #df = df.resample('15min').interpolate(limit=4)
-        #df.index.name = 'datetime'
-        
-        #df['datetime'] = df.index
-        #df.reset_index(drop=True)
-        df['datetime']= pd.to_datetime(df['datetime'])-pd.Timedelta(hours=1)
-    else:
-        df['datetime']= pd.to_datetime(df['datetime'])
+    df['datetime']= pd.to_datetime(df['datetime'])
                                        
     try:
         fig.add_trace(go.Scatter(
