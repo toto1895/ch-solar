@@ -845,7 +845,10 @@ def create_forecast_chart(selected_model,filtered_df, pronovo_f, nowcast, statio
     except Exception as e:
         st.write(e)
 
-    add_forecast_traces(selected_model,fig, pronovo_now, "Pronovo", color='white')
+    try:
+        add_forecast_traces(selected_model,fig, pronovo_now, "Pronovo", color='white')
+    except Exception as e:
+        pass
     
     fig.update_layout(
         title="Solar Generation Forecast",
