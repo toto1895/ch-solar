@@ -875,6 +875,8 @@ def add_forecast_traces(selected_model,fig, df, name, line_width=2, color=None):
         
         df['datetime'] = df.index
         df.reset_index(drop=True)
+    else:
+        df['datetime']= pd.to_datetime(df['datetime'])
                                        
     try:
         fig.add_trace(go.Scatter(
