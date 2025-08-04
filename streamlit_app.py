@@ -872,12 +872,13 @@ def add_forecast_traces(selected_model,fig, df, name, line_width=2, color=None):
         dash_style['color'] = color
 
     if selected_model in ['ICON-CH1','ICON-CH2']:
-        df.set_index('datetime', inplace=True)
-        df = df.resample('15min').interpolate(limit=4)
-        df.index.name = 'datetime'
+        #df.set_index('datetime', inplace=True)
+        #df = df.resample('15min').interpolate(limit=4)
+        #df.index.name = 'datetime'
         
-        df['datetime'] = df.index
-        df.reset_index(drop=True)
+        #df['datetime'] = df.index
+        #df.reset_index(drop=True)
+        df['datetime']= pd.to_datetime(df['datetime'])-pd.Timedelta(hours=1)
     else:
         df['datetime']= pd.to_datetime(df['datetime'])
                                        
