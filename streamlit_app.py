@@ -821,7 +821,7 @@ def create_forecast_chart(filtered_df, pronovo_f, nowcast, stationprod, filter_t
             'p0.9_operator': 'sum'
         }).reset_index()
 
-        total_df['datetime'] = pd.to_datetime(total_df['datetime'], utc=True).dt.tz_convert('CET')
+        total_df['datetime'] = pd.to_datetime(total_df['datetime'], utc=True).tz_convert('CET')
 
         canton_now = nowcast.groupby(['datetime']).agg({
                 'SolarProduction':'sum'
@@ -836,7 +836,7 @@ def create_forecast_chart(filtered_df, pronovo_f, nowcast, stationprod, filter_t
     try:
         r = stationprod.sum(axis=1).to_frame('Solar')
         #r.index = pd.to_datetime(r.index) + pd.Timedelta(minutes=5)
-        r.index = pd.to_datetime(r.index,utc=True).dt.tz_convert('CET')
+        r.index = pd.to_datetime(r.index,utc=True).tz_convert('CET')
         #r = r.tz_convert('UTC')
         r = r.resample('15min').mean()
         #r['datetime'] = r.index - pd.Timedelta(minutes=15)
