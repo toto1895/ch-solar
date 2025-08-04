@@ -873,7 +873,7 @@ def add_forecast_traces(selected_model,fig, df, name, line_width=2, color=None):
 
     if selected_model in ['ICON-CH1','ICON-CH2']:
         df.set_index('datetime', inplace=True)
-        df = df.resample('15min').bfill(limit=4)
+        df = df.resample('15min').interpolate(limit=4)
         df.index.name = 'datetime'
         
         df['datetime'] = df.index
