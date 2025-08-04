@@ -825,8 +825,8 @@ def create_forecast_chart(selected_model,filtered_df, pronovo_f, nowcast, statio
                 'SolarProduction':'sum'
             })
 
-    total_df['datetime'] = pd.to_datetime(total_df['datetime'], utc=True).tz_convert('CET')
-    canton_now['datetime'] = pd.to_datetime(canton_now['datetime'], utc=True).tz_convert('CET')
+    total_df['datetime'] = pd.to_datetime(total_df['datetime'], utc=True)
+    canton_now['datetime'] = pd.to_datetime(canton_now['datetime'], utc=True)
 
     if selected_model in ['ICON-CH1','ICON-CH2']:
         total_df['datetime'] = pd.to_datetime(total_df['datetime']) - pd.Timedelta(hours=1)
@@ -876,7 +876,7 @@ def add_forecast_traces(selected_model,fig, df, name, line_width=2, color=None):
         line_style['color'] = color
         dash_style['color'] = color
 
-    df['datetime']= pd.to_datetime(df['datetime'])
+    df['datetime']= pd.to_datetime(df['datetime']).tz_convert('CET')
                                        
     try:
         fig.add_trace(go.Scatter(
