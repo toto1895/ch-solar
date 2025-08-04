@@ -833,10 +833,12 @@ def create_forecast_chart(filtered_df, pronovo_f, nowcast, stationprod, filter_t
 
     try:
         r = stationprod.sum(axis=1).to_frame('Solar')
-        r.index = pd.to_datetime(r.index) + pd.Timedelta(minutes=5)
+        #r.index = pd.to_datetime(r.index) + pd.Timedelta(minutes=5)
+        r.index = pd.to_datetime(r.index)
         #r = r.tz_convert('UTC')
         r = r.resample('15min').mean()
-        r['datetime'] = r.index - pd.Timedelta(minutes=15)
+        #r['datetime'] = r.index - pd.Timedelta(minutes=15)
+        r['datetime'] = r.index 
         add_forecast_traces(fig, r.round(1), "Nowcast", color='green',line_width=2)
     except Exception as e:
         st.write(e)
@@ -1238,7 +1240,8 @@ def home_page():
                 filtered_df['p0.1_operator'] = np.nan 
                 filtered_df['p0.9_operator'] = np.nan 
 
-                filtered_df.loc[:,'datetime'] = filtered_df.loc[:,'datetime'] - pd.Timedelta(minutes=45) 
+                #filtered_df.loc[:,'datetime'] = filtered_df.loc[:,'datetime'] - pd.Timedelta(minutes=45) 
+                filtered_df.loc[:,'datetime'] = filtered_df.loc[:,'datetime']
             
             pronovo_long['datetime'] = pd.to_datetime(pronovo_long['datetime'])
             filtered_df['datetime'] = pd.to_datetime(filtered_df['datetime'])
