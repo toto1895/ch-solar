@@ -1225,7 +1225,7 @@ def home_page():
 
             capa_installed =filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()
                                                    ].groupby('datetime')['cum_operator'].sum().values[0]
-            st.success(f"Declared installed capacity: {round(capa_installed/1000):,.0f} MW  ( Today ~{1.15*round(capa_installed/1000):,.0f} MW) ")
+            #st.success(f"Declared installed capacity: {round(capa_installed/1000):,.0f} MW  ( Today ~{1.15*round(capa_installed/1000):,.0f} MW) ")
             
             pronovo_long = pd.melt(
                 pronovo,
