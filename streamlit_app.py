@@ -832,6 +832,7 @@ def create_forecast_chart(selected_model,filtered_df, pronovo_f, nowcast, statio
         total_df['datetime'] = pd.to_datetime(total_df['datetime']) - pd.Timedelta(hours=1)
 
 
+    total_df.loc[total_df['datetime'].dt.hour == 3, total_df.columns != 'datetime'] = 0
     add_forecast_traces(selected_model,fig, total_df.round(1), "Total", color='red')
     try:
         add_forecast_traces(selected_model,fig, canton_now.round(1), "Nowcast", color='white')
