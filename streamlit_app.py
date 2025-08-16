@@ -1056,7 +1056,7 @@ def home_page():
             forecast_df = load_data(selected_file, 'parquet', conn)
 
             if selected_model in ["FastCloudML-001"]:
-                forecast_df = forecast_df.loc[forecast_df,type == 'pred_sg'] # ['pred_sg', 'avgF_sg', 'lower50_sg', 'upper50_sg', 'lower80_sg','upper80_sg']
+                forecast_df = forecast_df.loc[forecast_df['type'] == 'pred_sg'].drop(columns='type') # ['pred_sg', 'avgF_sg', 'lower50_sg', 'upper50_sg', 'lower80_sg','upper80_sg']
             
             if forecast_df is None:
                 st.error("Failed to load forecast data")
