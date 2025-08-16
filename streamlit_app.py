@@ -1008,6 +1008,14 @@ def home_page():
     
     if selected_model in ["FastCloudML-001",'ICON-CH1','ICON-CH2','FastCloud']:
         forecast_files, _ = get_forecast_files(selected_model, '', conn)
+        if selected_model == 'FastCloudML-001':
+            with col2:
+                selected_fcml = st.selectbox(
+                    "Select value:",
+                    options=['pred_sg', 'avgF_sg', 'lower50_sg', 'upper50_sg', 'lower80_sg','upper80_sg'],
+                    index=0
+                )
+
     else:
         with col2:
             selected_cluster = st.selectbox(
@@ -1056,7 +1064,7 @@ def home_page():
             forecast_df = load_data(selected_file, 'parquet', conn)
 
             if selected_model in ["FastCloudML-001"]:
-                forecast_df = forecast_df.loc[forecast_df['type'] == 'pred_sg'].drop(columns='type') # ['pred_sg', 'avgF_sg', 'lower50_sg', 'upper50_sg', 'lower80_sg','upper80_sg']
+                forecast_df = forecast_df.loc[forecast_df['type'] == selected_fcml].drop(columns='type') # ['pred_sg', 'avgF_sg', 'lower50_sg', 'upper50_sg', 'lower80_sg','upper80_sg']
             
             if forecast_df is None:
                 st.error("Failed to load forecast data")
