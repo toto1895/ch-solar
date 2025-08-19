@@ -860,7 +860,7 @@ def create_forecast_chart(selected_model,filtered_df, pronovo_f, nowcast, statio
     except Exception as e:
         pass
     
-    now = datetime.datetime.now()
+    now = pd.Timestamp.now('utc')
     if (r['datetime'].max() - now) <= datetime.timedelta(hours=24) and \
             (now - r['datetime'].min()) <= datetime.timedelta(hours=24):
         fig.add_vline(
