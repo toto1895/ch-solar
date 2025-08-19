@@ -995,7 +995,9 @@ def home_page():
     conn = get_connection()
 
     # Define available models and clusters
-    available_models = ["ICON-d2-ruc","FastCloudML-001","FastCloud","ICON-CH1","ICON-CH2"]
+    available_models = ["ICON-d2-ruc",
+                        #"FastCloudML-001",
+                        "FastCloud","ICON-CH1","ICON-CH2"]
     available_clusters = ["cluster0", "cluster1", "cluster2"]
     
     # Create selection widgets in columns
