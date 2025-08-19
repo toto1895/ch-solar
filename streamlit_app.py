@@ -691,6 +691,8 @@ def get_forecast_files(model, cluster, conn):
     """Get list of available forecast files for the selected model and cluster"""
     if model in ["FastCloudML-001",'ICON-CH1','ICON-CH2','FastCloud']:
         prefix = f"icon-ch/ch{model.replace('ICON-CH','')}/ch-prod"
+        if model == "ICON-d2-ruc":
+            prefix = f"icon-d2-ruc/ch-prod"
         if model =='FastCloud':
             prefix = f"icon-ch/cloud-rad/ch-prod"
         elif model=='FastCloudML-001':
@@ -993,7 +995,7 @@ def home_page():
     conn = get_connection()
 
     # Define available models and clusters
-    available_models = ["FastCloudML-001","FastCloud","ICON-CH1","ICON-CH2"]
+    available_models = ["ICON-d2-ruc","FastCloudML-001","FastCloud","ICON-CH1","ICON-CH2"]
     available_clusters = ["cluster0", "cluster1", "cluster2"]
     
     # Create selection widgets in columns
@@ -1006,7 +1008,7 @@ def home_page():
             index=0
         )
     
-    if selected_model in ["FastCloudML-001",'ICON-CH1','ICON-CH2','FastCloud']:
+    if selected_model in ["ICON-d2-ruc","FastCloudML-001",'ICON-CH1','ICON-CH2','FastCloud']:
         forecast_files, _ = get_forecast_files(selected_model, '', conn)
         if selected_model == 'FastCloudML-001':
             with col2:
