@@ -689,7 +689,7 @@ def load_data(file_path, input_format, conn):
 
 def get_forecast_files(model, cluster, conn):
     """Get list of available forecast files for the selected model and cluster"""
-    if model in ["FastCloudML-001",'ICON-CH1','ICON-CH2','FastCloud']:
+    if model in ["ICON-d2-ruc","FastCloudML-001",'ICON-CH1','ICON-CH2','FastCloud']:
         prefix = f"icon-ch/ch{model.replace('ICON-CH','')}/ch-prod"
         if model == "ICON-d2-ruc":
             prefix = f"icon-d2-ruc/ch-prod"
