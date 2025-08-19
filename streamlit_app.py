@@ -860,11 +860,15 @@ def create_forecast_chart(selected_model,filtered_df, pronovo_f, nowcast, statio
     except Exception as e:
         pass
     
-    fig.add_vline(
-    x=pd.Timestamp.now('utc'),
-    line=dict(color="grey", dash="dash"),
-    name="Now"
-    )
+    now = datetime.datetime.now()
+    if (r['datetime'].max() - now) <= datetime.timedelta(hours=24) and \
+            (now - r['datetime'].min()) <= datetime.timedelta(hours=24):
+        fig.add_vline(
+            x=now,
+            line=dict(color="grey", dash="dash"),
+            #annotation_text="",
+            #annotation_position="top"
+        )
 
     fig.update_layout(
         title="Solar Generation Forecast",
