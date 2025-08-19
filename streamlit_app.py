@@ -861,8 +861,8 @@ def create_forecast_chart(selected_model,filtered_df, pronovo_f, nowcast, statio
         pass
     
     now = pd.Timestamp.now('utc')
-    if (r['datetime'].max() - now) <= datetime.timedelta(hours=24) and \
-            (now - r['datetime'].min()) <= datetime.timedelta(hours=24):
+    if (r['datetime'].max() - now) <= pd.Timedelta(hours=36) and \
+            (now - r['datetime'].min()) <= pd.Timedelta(hours=36):
         fig.add_vline(
             x=now,
             line=dict(color="grey", dash="dash"),
