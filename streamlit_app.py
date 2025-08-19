@@ -860,6 +860,12 @@ def create_forecast_chart(selected_model,filtered_df, pronovo_f, nowcast, statio
     except Exception as e:
         pass
     
+    fig.add_vline(
+    x=pd.Timestamp.now('utc'),
+    line=dict(color="grey", dash="dash"),
+    name="Now"
+    )
+
     fig.update_layout(
         title="Solar Generation Forecast",
         xaxis_title="Date and Time",
