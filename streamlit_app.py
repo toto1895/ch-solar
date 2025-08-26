@@ -1504,6 +1504,7 @@ def is_admin_user():
     """Check if current user is admin"""
     admin_emails = ["aminedev1895@gmail.com"]  # Configure admin emails
     return user_name() in admin_emails or user_email() in admin_emails
+'''
 def main():
     # Sidebar navigation
     st.sidebar.title("☀️ Swiss Solar Dashboard")
@@ -1633,6 +1634,32 @@ def main():
             st.error("Weather forecast feature is not available. Please check if satAnimation_icon module is installed.")
     elif page_choice == "About":
         about_page()
+'''
+
+def main():
+    # Sidebar navigation
+    st.sidebar.title("☀️ Swiss Solar Dashboard")
+
+    # Show maintenance message
+    st.warning("🚧 The dashboard is currently under maintenance. Please check back later.")
+    return
+
+    # ---- Original code below (commented) ----
+    """
+    # Authentication section
+    st.sidebar.markdown("### 🔐 Authentication")
+    ...
+    if page_choice == "Home":
+        home_page()
+    elif page_choice == 'Weather Realtime (MeteoSat 5km)':
+        ...
+    elif page_choice == "About":
+        about_page()
+    """
+    
+if __name__ == "__main__":
+    main()
+
 
 if __name__ == "__main__":
     main()
