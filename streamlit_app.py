@@ -1504,137 +1504,9 @@ def is_admin_user():
     """Check if current user is admin"""
     admin_emails = ["aminedev1895@gmail.com"]  # Configure admin emails
     return user_name() in admin_emails or user_email() in admin_emails
-'''
-def main():
-    # Sidebar navigation
-    st.sidebar.title("☀️ Swiss Solar Dashboard")
-    
-    # Authentication section
-    st.sidebar.markdown("### 🔐 Authentication")
-    
-    if user_is_logged_in():
-        st.sidebar.success(f"Logged in as: {user_name()}")
-        
-        # Log user signin if not already logged in this session
-        if not st.session_state.get('login_logged', False):
-            try:
-                user_email_str = user_email()
-                if log_user_signin_simple(user_email_str):
-                    st.session_state.login_logged = True
-                    print(get_user_ip())
-                    # Get user stats
-                    ip = get_user_ip()
-                    stats = get_user_stats(user_email_str, ip)
-                    
-                    # Show welcome message
-                    if stats["first_login"]:
-                        st.sidebar.info("🎉 Welcome to Solar Dashboard!")
-                    else:
-                        st.sidebar.info(f"Welcome back! Visit #{stats['total_logins']}")
-                    
-                    # Upload to cloud in background (optional)
-                    upload_logs_to_gcs()
-            except Exception as e:
-                print(f"Logging error: {e}")
-        
-        if st.sidebar.button("🚪 Logout"):
-            # Clear login session state
-            st.session_state.login_logged = False
-            st.logout()
-            st.session_state.page = "login"
-            return
-    else:
-        st.sidebar.info("Please log in to access the dashboard")
-        if st.sidebar.button("🔑 Login with Google"):
-            st.login("google")
-    
-    # Show login page if not authenticated
-    if not user_is_logged_in():
-        st.session_state.page = "login"
-        login_page()
-        return
-    
-    # Admin section (only for admin users)
-    if is_admin_user():
-        st.sidebar.markdown("### 👨‍💼 Admin")
-        if st.sidebar.button("📊 View Login Analytics"):
-            st.session_state.page = "admin"
-            st.rerun()
 
-            
-    if st.sidebar.button("DATA API Access"):
-        st.session_state.page = "dataApi"
-        st.rerun()
-    
-    # Handle admin pages first (before navigation menu)
-    if st.session_state.get('page') == 'admin':
-        show_login_analytics()
-        return
-        
-    if st.session_state.get('page') == 'dataApi':
-        data_api_page()
-        return
-    
-    # Handle login page routing
-    if st.session_state.get('page') == 'login':
-        login_page()
-        return
-    
-    # Navigation menu (only shown when not on admin pages)
-    st.sidebar.markdown("### 📊 Navigation")
-    
-    page_choice = st.sidebar.radio("Select Page:", [
-        "Home",
-        "Weather Realtime (MeteoSat 5km)",
-        "Weather Forecast (ICON-CH1 1km)",
-        "Weather Forecast (ICON-CH2 2.1km)",
-        "About"
-    ])
-    
-    # Update page state based on selection
-    page_mapping = {
-        "Home": "home",
-        "Weather Realtime (MeteoSat 5km)": "sat_anim",
-        "Weather Forecast (ICON-CH1 1km)": "icon_ch1",
-        "Weather Forecast (ICON-CH2 2.1km)": "icon_ch2",
-        "About": "about"
-    }
-    
-    st.session_state.page = page_mapping.get(page_choice, "home")
-    
-    # Page routing
-    if page_choice == "Home":
-        home_page()
-    elif page_choice == 'Weather Realtime (MeteoSat 5km)':
-        if ANIMATION_AVAILABLE:
-            sat_anim()
-        else:
-            st.error("Weather animation feature is not available. Please check if satAnimation module is installed.")
-    elif page_choice == "Weather Forecast (ICON-CH1 1km)":
-        if ANIMATION_AVAILABLE:
-            selected = st.selectbox(
-                "Weather parameter:",
-                options=['solar','precipitation','cloud','temperature'],
-                index=0
-            )
-            with st.spinner("Downloading ..."):
-                display_png_ch1(selected)
-        else:
-            st.error("Weather forecast feature is not available. Please check if satAnimation_icon module is installed.")
-    elif page_choice == "Weather Forecast (ICON-CH2 2.1km)":
-        if ANIMATION_AVAILABLE:
-            selected = st.selectbox(
-                "Weather parameter:",
-                options=['solar','precipitation','cloud','temperature'],
-                index=0
-            )
-            with st.spinner("Downloading ..."):
-                display_png_ch2(selected)
-        else:
-            st.error("Weather forecast feature is not available. Please check if satAnimation_icon module is installed.")
-    elif page_choice == "About":
-        about_page()
-'''
+
+
 
 def main():
     # Sidebar navigation
@@ -1646,15 +1518,135 @@ def main():
 
     # ---- Original code below (commented) ----
     """
-    # Authentication section
-    st.sidebar.markdown("### 🔐 Authentication")
-    ...
-    if page_choice == "Home":
-        home_page()
-    elif page_choice == 'Weather Realtime (MeteoSat 5km)':
-        ...
-    elif page_choice == "About":
-        about_page()
+    def main():
+        # Sidebar navigation
+        st.sidebar.title("☀️ Swiss Solar Dashboard")
+        
+        # Authentication section
+        st.sidebar.markdown("### 🔐 Authentication")
+        
+        if user_is_logged_in():
+            st.sidebar.success(f"Logged in as: {user_name()}")
+            
+            # Log user signin if not already logged in this session
+            if not st.session_state.get('login_logged', False):
+                try:
+                    user_email_str = user_email()
+                    if log_user_signin_simple(user_email_str):
+                        st.session_state.login_logged = True
+                        print(get_user_ip())
+                        # Get user stats
+                        ip = get_user_ip()
+                        stats = get_user_stats(user_email_str, ip)
+                        
+                        # Show welcome message
+                        if stats["first_login"]:
+                            st.sidebar.info("🎉 Welcome to Solar Dashboard!")
+                        else:
+                            st.sidebar.info(f"Welcome back! Visit #{stats['total_logins']}")
+                        
+                        # Upload to cloud in background (optional)
+                        upload_logs_to_gcs()
+                except Exception as e:
+                    print(f"Logging error: {e}")
+            
+            if st.sidebar.button("🚪 Logout"):
+                # Clear login session state
+                st.session_state.login_logged = False
+                st.logout()
+                st.session_state.page = "login"
+                return
+        else:
+            st.sidebar.info("Please log in to access the dashboard")
+            if st.sidebar.button("🔑 Login with Google"):
+                st.login("google")
+        
+        # Show login page if not authenticated
+        if not user_is_logged_in():
+            st.session_state.page = "login"
+            login_page()
+            return
+        
+        # Admin section (only for admin users)
+        if is_admin_user():
+            st.sidebar.markdown("### 👨‍💼 Admin")
+            if st.sidebar.button("📊 View Login Analytics"):
+                st.session_state.page = "admin"
+                st.rerun()
+
+                
+        if st.sidebar.button("DATA API Access"):
+            st.session_state.page = "dataApi"
+            st.rerun()
+        
+        # Handle admin pages first (before navigation menu)
+        if st.session_state.get('page') == 'admin':
+            show_login_analytics()
+            return
+            
+        if st.session_state.get('page') == 'dataApi':
+            data_api_page()
+            return
+        
+        # Handle login page routing
+        if st.session_state.get('page') == 'login':
+            login_page()
+            return
+        
+        # Navigation menu (only shown when not on admin pages)
+        st.sidebar.markdown("### 📊 Navigation")
+        
+        page_choice = st.sidebar.radio("Select Page:", [
+            "Home",
+            "Weather Realtime (MeteoSat 5km)",
+            "Weather Forecast (ICON-CH1 1km)",
+            "Weather Forecast (ICON-CH2 2.1km)",
+            "About"
+        ])
+        
+        # Update page state based on selection
+        page_mapping = {
+            "Home": "home",
+            "Weather Realtime (MeteoSat 5km)": "sat_anim",
+            "Weather Forecast (ICON-CH1 1km)": "icon_ch1",
+            "Weather Forecast (ICON-CH2 2.1km)": "icon_ch2",
+            "About": "about"
+        }
+        
+        st.session_state.page = page_mapping.get(page_choice, "home")
+        
+        # Page routing
+        if page_choice == "Home":
+            home_page()
+        elif page_choice == 'Weather Realtime (MeteoSat 5km)':
+            if ANIMATION_AVAILABLE:
+                sat_anim()
+            else:
+                st.error("Weather animation feature is not available. Please check if satAnimation module is installed.")
+        elif page_choice == "Weather Forecast (ICON-CH1 1km)":
+            if ANIMATION_AVAILABLE:
+                selected = st.selectbox(
+                    "Weather parameter:",
+                    options=['solar','precipitation','cloud','temperature'],
+                    index=0
+                )
+                with st.spinner("Downloading ..."):
+                    display_png_ch1(selected)
+            else:
+                st.error("Weather forecast feature is not available. Please check if satAnimation_icon module is installed.")
+        elif page_choice == "Weather Forecast (ICON-CH2 2.1km)":
+            if ANIMATION_AVAILABLE:
+                selected = st.selectbox(
+                    "Weather parameter:",
+                    options=['solar','precipitation','cloud','temperature'],
+                    index=0
+                )
+                with st.spinner("Downloading ..."):
+                    display_png_ch2(selected)
+            else:
+                st.error("Weather forecast feature is not available. Please check if satAnimation_icon module is installed.")
+        elif page_choice == "About":
+            about_page()
     """
     
 if __name__ == "__main__":
