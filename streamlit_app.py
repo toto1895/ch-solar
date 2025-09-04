@@ -1527,9 +1527,9 @@ def main():
         
         page_choice = st.sidebar.radio("Select Page:", [
             "Home",
-            "Weather Realtime (MeteoSat 5km)",
-            "Weather Forecast (ICON-CH1 1km)",
-            "Weather Forecast (ICON-CH2 2.1km)",
+        #    "Weather Realtime (MeteoSat 5km)",
+        #    "Weather Forecast (ICON-CH1 1km)",
+        #    "Weather Forecast (ICON-CH2 2.1km)",
             "About"
         ])
         
