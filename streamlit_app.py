@@ -1050,10 +1050,11 @@ def home_page():
             nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
 
         st.info('nowcast')
-        st.dataframe(nowcast.head(5))
+        nowcast = nowcast.groupby(['datetime']).agg({'SolarProduction':'sum'}).set_index('datetime')
 
-        st.info('stationprod')
-        st.dataframe(stationprod.head(5))
+        final = pd.concat([fcst, nowcast['SolarProduction']], axis=1)
+        st.dataframe(final.head(5))
+
 
 
         chart_type = st.radio(
