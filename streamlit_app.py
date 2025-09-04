@@ -1050,10 +1050,9 @@ def home_page():
             nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
 
         st.info('nowcast')
-        nowcast = nowcast.groupby(['datetime','operator']).agg({'SolarProduction':'sum'})
-
-        final = pd.concat([fcst, nowcast['SolarProduction']], axis=1)
-        st.dataframe(final.head(150))
+        nowcast = nowcast.groupby(['datetime','operator']).sum()
+        fcst['solar_nowcast'] = nowcast['SolarProduction']
+        st.dataframe(fcst.head(150))
 
 
 
