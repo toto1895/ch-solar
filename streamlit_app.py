@@ -1079,17 +1079,23 @@ def home_page():
             if powerplants is None:
                 st.error("Powerplant data is not available for the heatmap visualization")
                 return
-                
-            latest_datetime = filtered_df['datetime'].max()
-            latest_forecast = filtered_df[filtered_df['datetime'] == latest_datetime].copy()
             
-            merge_conditions = ["Canton", "operator"]
-            merged_plants = pd.merge(powerplants, latest_forecast, on=merge_conditions, how="inner")
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                filter_type = st.selectbox("Filter by:", options=["Canton", "Operator"])
+            with col2:
+                if filter_type == "Canton":
+                    selected_cantons = st.multiselect("Select Cantons:", options=sorted(powerplants['Canton'].dropna().unique().tolist()))
+                    selected_operators = None
+                else:
+                    selected_operators = st.multiselect("Select Operators:", options=sorted(powerplants['operator'].dropna().unique().tolist()))
+                    selected_cantons = None
+
             
             if filter_type == "Canton" and selected_cantons:
-                merged_plants = merged_plants[merged_plants['Canton'].isin(selected_cantons)]
+                merged_plants = powerplants[powerplants['Canton'].isin(selected_cantons)]
             elif filter_type == "Operator" and selected_operators:
-                merged_plants = merged_plants[merged_plants['operator'].isin(selected_operators)]
+                merged_plants = powerplants[powerplants['operator'].isin(selected_operators)]
             
             col1, col2 = st.columns(2)
             with col1:
