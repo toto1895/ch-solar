@@ -1046,6 +1046,10 @@ def home_page():
         options=forecast_files,
         index=0
     )
+
+    z = fetch_files(conn, "icon-ch/all_models_ch_prod", r'(\d{6})\.parquet$')
+    zz = load_data(z[-1], 'parquet', conn)
+    st.dataframe(zz.head(5))
     
     latest_file = get_latest_parquet_file(conn)
     
