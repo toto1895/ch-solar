@@ -991,360 +991,115 @@ def home_page():
     credentials = service_account.Credentials.from_service_account_info(service_account_info)
     print("Credentials created successfully")
 
-
     # Display user info in header
     col1, col2 = st.columns([3, 1])
     with col1:
         st.title("Swiss Solar Forecasts")
-    #with col2:
-    #    st.markdown(f"**User:** {user_name()}")
-    #    if user_email():
-    #        st.caption(user_email())
-    
-    # Initialize connection
+
     conn = get_connection()
 
-    # Define available models and clusters
-    available_models = ["ICON-d2-ruc", "FastCloud","ICON-CH1","ICON-CH2"]
-    available_clusters = ["cluster0", "cluster1", "cluster2"]
-    
-    # Create selection widgets in columns
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        selected_model = st.selectbox(
-            "Select Model:",
-            options=available_models,
-            index=0
-        )
-    
-    if selected_model in ["ICON-d2-ruc","FastCloudML-001",'ICON-CH1','ICON-CH2','FastCloud']:
-        forecast_files, _ = get_forecast_files(selected_model, '', conn)
-        if selected_model == 'FastCloudML-001':
-            with col2:
-                selected_fcml = st.selectbox(
-                    "Select value:",
-                    options=['pred_sg', 'avgF_sg', 'lower50_sg', 'upper50_sg', 'lower80_sg','upper80_sg'],
-                    index=0
-                )
-
-    else:
-        with col2:
-            selected_cluster = st.selectbox(
-                "Select Cluster:",
-                options=available_clusters,
-                index=0
-            )
-        forecast_files, _ = get_forecast_files(selected_model, selected_cluster, conn)
-    
-    if not forecast_files:
-        st.warning(f"No forecast files found for {selected_model}")
-        return
-    
-    selected_file = st.selectbox(
-        "Select Forecast File:",
-        options=forecast_files,
-        index=0
-    )
-
-    z = fetch_files(conn, "icon-ch/all_models_ch_prod", r'(\d{6})\.parquet$')
-    zz = load_data(z[-1], 'parquet', conn)
-    st.dataframe(zz.head(5))
-    
-    latest_file = get_latest_parquet_file(conn)
-    
+    fcst = fetch_files(conn, "icon-ch/all_models_ch_prod", r'(\d{6})\.parquet$')
+    fcst = load_data(fcst[-1], 'parquet', conn)
+    st.dataframe(fcst.head(5))
+  
     powerplants = load_data('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv', 'csv', conn)
-    pronovo = load_data('oracle_predictions/swiss_solar/datasets/solar_part_0.csv', 'csv', conn)
     
     if powerplants is not None:
-        powerplants = powerplants[['Canton', 'operator', 'longitude', 'latitude', 'TotalPower']]
-    
-    if not latest_file:
-        st.warning("No capacity data files found")
-        return
+        powerplants = powerplants[['BeginningOfOperation','Canton','operator', 'longitude', 'latitude', 'TotalPower']]
     
     with st.spinner("Downloading and processing capacity data..."):
-        capa_df = load_data(latest_file, 'parquet', conn)
+
+        st.warning(f"Master data latest update {powerplants['BeginningOfOperation'].max()}")
+
+        dt = zz.index.min().tz_convert('CET')
         
-        if capa_df is None:
-            st.error("Failed to load capacity data")
-            return
-            
-        latest_mastr_date = capa_df.date.max()
-        capa_df = capa_df.loc[capa_df.date == latest_mastr_date].drop(columns='date').reset_index(drop=True)
-        
-        st.warning(f"Master data latest update {latest_mastr_date.strftime('%Y-%m-%d')}")
-        full_capa = load_data('oracle_predictions/swiss_solar/datasets/capa_timeseries/full_dataset.parquet', 'parquet', conn)
-        
-        with st.spinner(f"Downloading solar forecast data from {selected_file}..."):
-            forecast_df = load_data(selected_file, 'parquet', conn)
-
-            if selected_model in ["FastCloudML-001"]:
-                forecast_df = forecast_df.loc[forecast_df['type'] == selected_fcml].drop(columns='type') # ['pred_sg', 'avgF_sg', 'lower50_sg', 'upper50_sg', 'lower80_sg','upper80_sg']
-            
-            if forecast_df is None:
-                st.error("Failed to load forecast data")
-                return
-                
-            if selected_model == 'icon_d2':
-                percentile_cols = ['p0.05', 'p0.1', 'p0.2', 'p0.3', 'p0.4', 'p0.5', 
-                                'p0.6', 'p0.7', 'p0.8', 'p0.9', 'p0.95']
-                max_idx = forecast_df.index.unique()[-1:]
-                forecast_df = forecast_df.loc[forecast_df.index != max_idx[0]]
-            
+        h = []
+        for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=5):
             try:
-                merged_df = pd.merge(forecast_df.reset_index(), capa_df, on="Canton", how="left")
-                merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
-            except Exception as e:
-                merged_df = pd.merge(forecast_df, capa_df, on=["Canton","operator"], how="left")
-                merged_df.drop_duplicates(['datetime', 'Canton', 'operator'], inplace=True)
-
-            dt = merged_df['datetime'].min().tz_convert('CET')
-            
-            h = []
-
-            for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=5):
-                try:
-                    nowcast = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"))
-                    h.append(nowcast)
-                except:
-                    nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
-            nowcast = pd.concat(h)
-
-            del forecast_df
-            gc.collect()
-            
-            st.subheader("Filter Data")
-            
-            filter_col1, filter_col2 = st.columns([1, 3])
-            
-            with filter_col1:
-                filter_type = st.selectbox(
-                    "Filter by:",
-                    options=["Canton", "Operator"],
-                    index=0
-                )
-            
-            selected_cantons = []
-            selected_operators = []
-
-            h = []
-            for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=5):
-                try:
-                    stationprod = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"),
-                                                            prefix = "icon-ch/groundstations/ch-prod",
-                                                            pattern = 'cantons')
-                    h.append(stationprod)
-                except:
-                    stationprod = pd.DataFrame()
-            try:
-                stationprod = pd.concat(h)
-            except Exception as e:
-                stationprod = pd.DataFrame()
-            #stationprod = get_latest_parquet_file(conn, prefix = "icon-ch/groundstations/ch-prod",
-            #                                       pattern = r'cantons_(\d{8})\.parquet$')
-            #stationprod = load_data(stationprod, 'parquet', get_connection())
-            
-            #download_tmp_parquet(stationprod.split('icon-ch/')[1], credentials=credentials)
-            #stationprod = pd.read_parquet('tmp.parquet')
-            
-            
-            with filter_col2:
-                filtered_df = merged_df.copy()
-                
-                if filter_type == "Canton":
-                    #stationprod = get_latest_parquet_file(get_connection(), prefix = "icon-ch/groundstations/ch-prod", pattern = r'cantons_(\d{8})\.parquet$')
-                    #stationprod =load_data(stationprod, 'parquet', conn)
-                    #download_tmp_parquet(stationprod.split('icon-ch/')[1], credentials=credentials)
-                    #stationprod = pd.read_parquet('tmp.parquet')
-
-                    h = []
-                    for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=5):
-                        try:
-                            stationprod = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"),
-                                                                    prefix = "icon-ch/groundstations/ch-prod",
-                                                                    pattern = r'cantons')
-                            h.append(stationprod)
-                        except:
-                            stationprod = pd.DataFrame()
-                    try:
-                        stationprod = pd.concat(h)
-                    except Exception as e:
-                        stationprod = pd.DataFrame()
-                    
-                    
-                    all_cantons = sorted(merged_df["Canton"].unique().tolist())
-                    
-                    selected_cantons = st.multiselect(
-                        "Select Cantons:",
-                        options=all_cantons
-                    )
-                    
-                    if selected_cantons:
-                        filtered_df = merged_df[merged_df["Canton"].isin(selected_cantons)]
-                        full_capa = full_capa[full_capa["Canton"].isin(selected_cantons)]
-                        try:
-                            nowcast = nowcast[nowcast["Canton"].isin(selected_cantons)]
-                        except:
-                            pass
-
-                        try:
-                            stationprod = stationprod[selected_cantons]
-                        except:
-                            pass
-                    
-                elif filter_type == "Operator":
-                    if 'operator' in merged_df.columns:
-                        all_operators = sorted(merged_df["operator"].unique().tolist())
-                        
-                        selected_operators = st.multiselect(
-                            "Select Operators:",
-                            options=all_operators
-                        )
-
-                        h = []
-                        for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=5):
-                            try:
-                                stationprod = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"),
-                                                                        prefix = "icon-ch/groundstations/ch-prod",
-                                                                        pattern = r'operators')
-                                h.append(stationprod)
-                            except:
-                                stationprod = pd.DataFrame()
-                        
-                        try:
-                            stationprod = pd.concat(h)
-                        except Exception as e:
-                            stationprod = pd.DataFrame()
-
-
-                        if selected_operators:
-                            filtered_df = merged_df[merged_df["operator"].isin(selected_operators)]
-
-                            try:
-                                stationprod = stationprod[selected_operators]
-                            except:
-                                pass
-
-                            try:
-                                nowcast = nowcast[nowcast["operator"].isin(selected_operators)]
-                            except:
-                                pass
-                            
-                            full_capa = full_capa[full_capa["operator"].isin(selected_operators)]
-                    else:
-                        st.warning("No 'operator' column found in the data. Please use Canton filtering instead.")
-
-            del merged_df
-            gc.collect()
-            
-            try:
-                filtered_df = filtered_df[['datetime', 'p0.5', 'p0.1', 'p0.9', 'Canton', 'operator',
-                                        'cum_canton', 'cum_operator','cum_ratio','year_month','TotalPower']]
-            except:
-                filtered_df = filtered_df[['datetime', 'SolarProduction', 'Canton', 'operator',
-                                        'cum_canton', 'cum_operator','cum_ratio','year_month','TotalPower']]
-
-            filtered_df.drop_duplicates(['datetime','Canton','operator'], inplace=True)
-
-            try:
-                nowcast.drop_duplicates(['datetime','Canton','operator'], inplace=True)
-                nowcast['SolarProduction'] = 1.1*nowcast['SolarProduction']/1000.0
+                nowcast = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"))
+                h.append(nowcast)
             except:
                 nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
+        nowcast = pd.concat(h)
 
-            capa_installed =filtered_df.loc[filtered_df.datetime == filtered_df.datetime.max()
-                                                   ].groupby('datetime')['cum_operator'].sum().values[0]
-            #st.success(f"Declared installed capacity: {round(capa_installed/1000):,.0f} MW  ( Today ~{1.15*round(capa_installed/1000):,.0f} MW) ")
-            
-            pronovo_long = pd.melt(
-                pronovo,
-                id_vars=['datetime'],
-                value_vars=pronovo.drop(columns='datetime').columns,
-                var_name='Canton',
-                value_name='Pronovo'
-            )
-            pronovo_long['datetime'] = pd.to_datetime(pronovo_long['datetime'])
-            pronovo_long = pronovo_long.sort_values('datetime').reset_index(drop=True)
-            
+        gc.collect()
+        
+        h = []
+        for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=5):
             try:
-                filtered_df['p0.5_canton'] = 1.1*filtered_df['p0.5'] * filtered_df['cum_canton'] / 1000
-                filtered_df['p0.1_canton'] = 1.1*filtered_df['p0.1'] * filtered_df['cum_canton'] / 1000
-                filtered_df['p0.9_canton'] = 1.1*filtered_df['p0.9'] * filtered_df['cum_canton'] / 1000
-                
-                filtered_df['p0.5_operator'] = 1.1*filtered_df['p0.5'] * filtered_df['cum_operator'] / 1000
-                filtered_df['p0.1_operator'] = 1.1*filtered_df['p0.1'] * filtered_df['cum_operator'] / 1000
-                filtered_df['p0.9_operator'] = 1.1*filtered_df['p0.9'] * filtered_df['cum_operator'] / 1000
+                stationprod = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"),
+                                                        prefix = "icon-ch/groundstations/ch-prod",
+                                                        pattern = 'cantons')
+                h.append(stationprod)
             except:
-                filtered_df['p0.5_canton'] = 1.05*filtered_df['SolarProduction'] / 1000
-                filtered_df['p0.1_canton'] = np.nan 
-                filtered_df['p0.9_canton'] = np.nan
+                stationprod = pd.DataFrame()
+        try:
+            stationprod = pd.concat(h)
+        except Exception as e:
+            stationprod = pd.DataFrame()
 
-                filtered_df['p0.5_operator'] = 1.05*filtered_df['SolarProduction'] / 1000
-                filtered_df['p0.1_operator'] = np.nan 
-                filtered_df['p0.9_operator'] = np.nan 
+        gc.collect()
 
-                #filtered_df.loc[:,'datetime'] = filtered_df.loc[:,'datetime'] - pd.Timedelta(minutes=45) 
-                filtered_df.loc[:,'datetime'] = filtered_df.loc[:,'datetime']
+        try:
+            nowcast.drop_duplicates(['datetime','Canton','operator'], inplace=True)
+            nowcast['SolarProduction'] = 1.1*nowcast['SolarProduction']/1000.0
+        except:
+            nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
+
+        st.info('nowcast')
+        st.dataframe(nowcast.head(5))
+
+        st.info('stationprod')
+        st.dataframe(stationprod.head(5))
+
+
+        chart_type = st.radio(
+            "Select visualization type:",
+            options=["Forecast Chart", 'Monthly installed capacity',"Powerplant Location Heatmap"],
+            horizontal=True
+        )
+        
+        if chart_type == "Forecast Chart":
+            #fig = create_forecast_chart(selected_model,filtered_df,pronovo_f,nowcast,stationprod, filter_type, selected_cantons, selected_operators)
+            #st.plotly_chart(fig, use_container_width=True)
+            print('oh')
+        
+        elif chart_type =='Monthly installed capacity':
+            full_capa = full_capa.groupby('year_month')['TotalPower'].sum()
+
+            st.subheader('Monthly added capacity [MW]')
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                x=full_capa.index,
+                y=full_capa.values/1000,
+                name='Added Capacity'
+            ))
+            st.plotly_chart(fig, use_container_width=True)
+
+        else:  # Powerplant Location Heatmap
+            if powerplants is None:
+                st.error("Powerplant data is not available for the heatmap visualization")
+                return
+                
+            latest_datetime = filtered_df['datetime'].max()
+            latest_forecast = filtered_df[filtered_df['datetime'] == latest_datetime].copy()
             
-            pronovo_long['datetime'] = pd.to_datetime(pronovo_long['datetime'])
-            filtered_df['datetime'] = pd.to_datetime(filtered_df['datetime'])
-            
-            pronovo_f = pd.merge(pronovo_long,filtered_df, on=['datetime',"Canton"], how="left")
-            pronovo_f['Pronovo_f'] = 2 * pronovo_f['cum_ratio'] * pronovo_f['Pronovo'] 
-            pronovo_f = pronovo_f.loc[pronovo_f.datetime>=filtered_df['datetime'].min(),:]
+            merge_conditions = ["Canton", "operator"]
+            merged_plants = pd.merge(powerplants, latest_forecast, on=merge_conditions, how="inner")
             
             if filter_type == "Canton" and selected_cantons:
-                pronovo_f = pronovo_f[pronovo_f["Canton"].isin(selected_cantons)]
+                merged_plants = merged_plants[merged_plants['Canton'].isin(selected_cantons)]
             elif filter_type == "Operator" and selected_operators:
-                pronovo_f = pronovo_f[pronovo_f["operator"].isin(selected_operators)]
-
-            chart_type = st.radio(
-                "Select visualization type:",
-                options=["Forecast Chart", 'Monthly installed capacity',"Powerplant Location Heatmap"],
-                horizontal=True
-            )
+                merged_plants = merged_plants[merged_plants['operator'].isin(selected_operators)]
             
-            if chart_type == "Forecast Chart":
-                fig = create_forecast_chart(selected_model,filtered_df,pronovo_f,nowcast,stationprod, filter_type, selected_cantons, selected_operators)
-                st.plotly_chart(fig, use_container_width=True)
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("Total Plants", f"{len(merged_plants):,}")
+            with col2:
+                st.metric("Total Capacity", f"{merged_plants['TotalPower_x'].sum()/1000:,.2f} MW")
             
-            elif chart_type =='Monthly installed capacity':
-                full_capa = full_capa.groupby('year_month')['TotalPower'].sum()
-
-                st.subheader('Monthly added capacity [MW]')
-                fig = go.Figure()
-                fig.add_trace(go.Bar(
-                    x=full_capa.index,
-                    y=full_capa.values/1000,
-                    name='Added Capacity'
-                ))
-                st.plotly_chart(fig, use_container_width=True)
-
-            else:  # Powerplant Location Heatmap
-                if powerplants is None:
-                    st.error("Powerplant data is not available for the heatmap visualization")
-                    return
-                    
-                latest_datetime = filtered_df['datetime'].max()
-                latest_forecast = filtered_df[filtered_df['datetime'] == latest_datetime].copy()
-                
-                merge_conditions = ["Canton", "operator"]
-                merged_plants = pd.merge(powerplants, latest_forecast, on=merge_conditions, how="inner")
-                
-                if filter_type == "Canton" and selected_cantons:
-                    merged_plants = merged_plants[merged_plants['Canton'].isin(selected_cantons)]
-                elif filter_type == "Operator" and selected_operators:
-                    merged_plants = merged_plants[merged_plants['operator'].isin(selected_operators)]
-                
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.metric("Total Plants", f"{len(merged_plants):,}")
-                with col2:
-                    st.metric("Total Capacity", f"{merged_plants['TotalPower_x'].sum()/1000:,.2f} MW")
-                
-                fig = create_heatmap(merged_plants)
-                st.plotly_chart(fig, use_container_width=True)
+            fig = create_heatmap(merged_plants)
+            st.plotly_chart(fig, use_container_width=True)
 
 def about_page():
     st.title("About Swiss Solar Dashboard")
