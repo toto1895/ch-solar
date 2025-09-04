@@ -1069,6 +1069,7 @@ def home_page():
         
         elif chart_type =='Monthly installed capacity':
             full_capa = load_data('oracle_predictions/swiss_solar/datasets/capa_timeseries/full_dataset.parquet', 'parquet', conn)
+            st.dataframe(full_capa.head(5))
             full_capa = full_capa.groupby('year_month')['TotalPower'].sum()
 
             st.subheader('Monthly added capacity [MW]')
