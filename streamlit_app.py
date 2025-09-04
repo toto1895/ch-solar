@@ -646,6 +646,11 @@ def get_connection():
     """Get the GCS connection instance"""
     return st.connection('gcs', type=FilesConnection)
 
+def read_parquet_gcs(path: str, columns=None, ttl=600):
+    conn = get_connection()
+    return conn.read(path, input_format="parquet", ttl=ttl, columns=columns)
+
+
 def fetch_files(conn, prefix, pattern=None):
     """Fetch files from a bucket prefix with optional pattern matching"""
     try:
@@ -1011,11 +1016,12 @@ def home_page():
 
         st.warning(f"Master data latest update {powerplants['BeginningOfOperation'].max()}")
 
-        dt = pd.to_datetime(fcst.index.min(),utc=True).tz_convert('CET') - pd.Timedelta(days=1)
+        dt = pd.to_datetime(fcst.index.min(),utc=True).tz_convert('CET')
         h = []
         for ddt in pd.date_range(start=dt.strftime("%Y-%m-%d"),freq='D', periods=5):
             try:
-                nowcast = pd.read_parquet(f'gcs://dwd-solar-sat/daily_agg_asset_level_prod/{ddt.strftime("%Y%m%d")}.parquet',engine='pyarrow')
+                nowcast = read_parquet_gcs(f'gcs://dwd-solar-sat/daily_agg_asset_level_prod/{ddt.strftime("%Y%m%d")}.parquet')
+                
                 h.append(nowcast)
             except:
                 nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
@@ -1026,7 +1032,7 @@ def home_page():
         h = []
         for ddt in pd.date_range(start=dt.strftime("%Y%m%d"), freq='D', periods=5):
             try:
-                stationprod = pd.read_parquet(f'gcs://icon-ch/groundstations/ch-prod/{ddt.strftime("%Y%m%d")}.parquet',engine='pyarrow')
+                stationprod = read_parquet_gcs(f'gcs://icon-ch/groundstations/ch-prod/{ddt.strftime("%Y%m%d")}.parquet',engine='pyarrow')
                 h.append(stationprod)
             except:
                 stationprod = pd.DataFrame()
@@ -1088,8 +1094,7 @@ def home_page():
                 else:
                     selected_operators = st.multiselect("Select Operators:", options=sorted(powerplants['operator'].dropna().unique().tolist()))
                     selected_cantons = None
-
-            
+   
             if filter_type == "Canton" and selected_cantons:
                 merged_plants = powerplants[powerplants['Canton'].isin(selected_cantons)]
             elif filter_type == "Operator" and selected_operators:
