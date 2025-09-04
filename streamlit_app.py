@@ -1011,7 +1011,7 @@ def home_page():
 
         st.warning(f"Master data latest update {powerplants['BeginningOfOperation'].max()}")
 
-        dt = pd.to_datetime(fcst.index.min(),utc=True).tz_convert('CET')
+        dt = pd.to_datetime(fcst.index.min(),utc=True).tz_convert('CET') - pd.Timedelta(days=1)
         print(dt) 
         h = []
         for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=5):
@@ -1025,7 +1025,7 @@ def home_page():
         gc.collect()
         
         h = []
-        for ddt in pd.date_range(start=dt.strftime("%Y%m%d"),freq='D', periods=5):
+        for ddt in pd.date_range(start=dt.strftime("%Y%m%d"), freq='D', periods=5):
             try:
                 stationprod = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"),
                                                         prefix = "icon-ch/groundstations/ch-prod",
@@ -1042,7 +1042,7 @@ def home_page():
 
         try:
             nowcast.drop_duplicates(['datetime','Canton','operator'], inplace=True)
-            nowcast['SolarProduction'] = 1.1*nowcast['SolarProduction']/1000.0
+            nowcast['SolarProduction'] = 1.15*nowcast['SolarProduction']/1000.0
         except:
             nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
 
