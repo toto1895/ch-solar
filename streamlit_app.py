@@ -993,7 +993,7 @@ def plot_timeseries_with_nowcast(df, time_col="timestamp", target_col="solar_now
     # other series as lines
     for col in d.columns.drop([time_col, target_col], errors="ignore"):
         fig.add_trace(go.Scatter(x=d[time_col], y=d[col], name=col,
-                                 mode="lines", line=dict(width=1,dash="dash")))
+                                 mode="lines", line=dict(width=1)))
 
     # solar_nowcast as white scatter
     fig.add_trace(go.Scatter(x=d[time_col], y=d[target_col], name=target_col,
