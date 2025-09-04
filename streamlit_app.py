@@ -1104,7 +1104,7 @@ def home_page():
             with col1:
                 st.metric("Total Plants", f"{len(merged_plants):,}")
             with col2:
-                st.metric("Total Capacity", f"{merged_plants['TotalPower_x'].sum()/1000:,.2f} MW")
+                st.metric("Total Capacity", f"{merged_plants['TotalPower'].sum()/1000:,.2f} MW")
             
             fig = create_heatmap(merged_plants)
             st.plotly_chart(fig, use_container_width=True)
