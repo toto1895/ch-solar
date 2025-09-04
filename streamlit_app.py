@@ -1089,10 +1089,10 @@ def home_page():
                 filter_type = st.selectbox("Filter by:", options=["Canton", "Operator"])
             with col2:
                 if filter_type == "Canton":
-                    selected_cantons = st.multiselect("Select Cantons:", options=sorted(powerplants['Canton'].dropna().unique().tolist()))
+                    selected_cantons = st.multiselect("Select Cantons:", options=sorted(powerplants['Canton'].dropna().unique().tolist()), default=['BE'])
                     selected_operators = None
                 else:
-                    selected_operators = st.multiselect("Select Operators:", options=sorted(powerplants['operator'].dropna().unique().tolist()))
+                    selected_operators = st.multiselect("Select Operators:", options=sorted(powerplants['operator'].dropna().unique().tolist()),default=['BKW Energie AG'])
                     selected_cantons = None
    
             if filter_type == "Canton" and selected_cantons:
