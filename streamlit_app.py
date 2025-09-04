@@ -1034,7 +1034,7 @@ def home_page():
     
     with st.spinner("Downloading and processing capacity data..."):
 
-        st.warning(f"Master data latest update {powerplants['BeginningOfOperation'].max()} -- Total Plants: {len(powerplants):,} -- Total Capacity: {powerplants['TotalPower'].sum()/1000:,.2f} MW" )
+        st.warning(f"Master data latest update {powerplants['BeginningOfOperation'].max()} -- Total Plants: {len(powerplants):,} -- Total Capacity: {1.15*powerplants['TotalPower'].sum()/1000:,.2f} MW" )
 
         dt = pd.to_datetime(fcst.index.min(),utc=True).tz_convert('CET')
         h = []
