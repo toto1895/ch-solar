@@ -1023,9 +1023,8 @@ def home_page():
 
     conn = get_connection()
 
-    fcst = fetch_files(conn, "icon-ch/all_models_ch_prod", r'(\d{6})\.parquet$')
-    fcst = load_data(fcst[-1], 'parquet', conn)
-    st.dataframe(fcst.head(5))
+    fcst_file = fetch_files(conn, "icon-ch/all_models_ch_prod", r'(\d{6})\.parquet$')
+    fcst = load_data(fcst_file[-1], 'parquet', conn)
   
     powerplants = load_data('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv', 'csv', conn)
     
@@ -1093,6 +1092,7 @@ def home_page():
                     selected_cantons = None
                 
         if chart_type == "Forecast Chart":
+            st.info(pd.to_datetime(fcst_file[-1].split('/')[-1].replace('.parquet','')))
             fig = plot_timeseries_with_nowcast(fcst, time_col="time", target_col="solar_nowcast")
             #fig = create_forecast_chart(selected_model,filtered_df,pronovo_f,nowcast,stationprod, filter_type, selected_cantons, selected_operators)
             st.plotly_chart(fig, use_container_width=True)
