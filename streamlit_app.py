@@ -1032,7 +1032,7 @@ def home_page():
         h = []
         for ddt in pd.date_range(start=dt.strftime("%Y%m%d"), freq='D', periods=5):
             try:
-                stationprod = read_parquet_gcs(f'gcs://icon-ch/groundstations/ch-prod/{ddt.strftime("%Y%m%d")}.parquet',engine='pyarrow')
+                stationprod = read_parquet_gcs(f'gcs://icon-ch/groundstations/ch-prod/cantons_{ddt.strftime("%Y%m%d")}.parquet',engine='pyarrow')
                 h.append(stationprod)
             except:
                 stationprod = pd.DataFrame()
