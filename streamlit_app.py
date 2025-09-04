@@ -1012,7 +1012,6 @@ def home_page():
         st.warning(f"Master data latest update {powerplants['BeginningOfOperation'].max()}")
 
         dt = pd.to_datetime(fcst.index.min(),utc=True).tz_convert('CET') - pd.Timedelta(days=1)
-        conn = get_connection()
         h = []
         for ddt in pd.date_range(start=dt.strftime("%Y-%m-%d"),freq='D', periods=5):
             try:
