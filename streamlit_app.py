@@ -1049,7 +1049,7 @@ def home_page():
         except:
             nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
 
-        nowcast = nowcast.groupby(['datetime','operator']).sum()
+        nowcast = nowcast.groupby(['datetime','operator']).sum().groupby(['datetime']).sum()
         nowcast.index = pd.to_datetime(nowcast.index.get_level_values(0),utc=True)
         st.dataframe(nowcast.head(5))
         fcst['solar_nowcast'] = nowcast['SolarProduction']
