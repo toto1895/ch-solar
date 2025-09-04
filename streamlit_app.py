@@ -984,6 +984,27 @@ def download_tmp_parquet(blob_name, credentials=None):
     blob = bucket.blob(blob_name)
     blob.download_to_filename('tmp.parquet')
 
+def plot_timeseries_with_nowcast(df, time_col="timestamp", target_col="solar_nowcast"):
+    d = df.copy()
+    d[time_col] = pd.to_datetime(d.index, utc=True, errors="coerce").tz_convert('CET')
+
+    fig = go.Figure()
+
+    # other series as lines
+    for col in d.columns.drop([time_col, target_col], errors="ignore"):
+        fig.add_trace(go.Scatter(x=d[time_col], y=d[col], name=col,
+                                 mode="lines", line=dict(width=1)))
+
+    # solar_nowcast as white scatter
+    fig.add_trace(go.Scatter(x=d[time_col], y=d[target_col], name=target_col,
+                             mode="markers",
+                             marker=dict(color="white", size=6,
+                                         line=dict(width=0.5, color="white"))))
+
+    fig.update_layout(template="plotly_dark", height=420,
+                      xaxis_title="Time (UTC)", yaxis_title="Value",
+                      margin=dict(l=40, r=20, t=30, b=30))
+    return fig
 
 # ——— Modified home_page with user info ———
 def home_page():
@@ -1051,9 +1072,7 @@ def home_page():
 
         nowcast = nowcast.groupby(['datetime','operator']).sum().groupby(['datetime']).sum()
         nowcast.index = pd.to_datetime(nowcast.index.get_level_values(0),utc=True)
-        st.dataframe(nowcast.head(5))
         fcst['solar_nowcast'] = nowcast['SolarProduction']
-        st.dataframe(fcst.head(150))
 
 
 
@@ -1074,8 +1093,9 @@ def home_page():
                 selected_cantons = None
                 
         if chart_type == "Forecast Chart":
+            fig = plot_timeseries_with_nowcast(df, time_col="time", target_col="solar_nowcast")
             #fig = create_forecast_chart(selected_model,filtered_df,pronovo_f,nowcast,stationprod, filter_type, selected_cantons, selected_operators)
-            #st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True)
             print('oh')
         
         elif chart_type =='Monthly installed capacity':
