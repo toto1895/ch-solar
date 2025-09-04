@@ -1002,7 +1002,10 @@ def plot_timeseries_with_nowcast(df, time_col="timestamp", target_col="solar_now
 
     fig.update_layout(template="plotly_dark", height=420,
                       xaxis_title="Time (CET)", yaxis_title="Value",
-                      margin=dict(l=40, r=20, t=30, b=30))
+                      margin=dict(l=40, r=20, t=30, b=70),
+    legend=dict(orientation="h", x=0.5, xanchor="center",
+                y=-0.15, yanchor="top", bgcolor="rgba(0,0,0,0)")
+                      )
     return fig
 
 # ——— Modified home_page with user info ———
