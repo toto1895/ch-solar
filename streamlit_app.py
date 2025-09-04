@@ -1061,7 +1061,17 @@ def home_page():
             options=["Forecast Chart", 'Monthly installed capacity',"Powerplant Location Heatmap"],
             horizontal=True
         )
-        
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            filter_type = st.selectbox("Filter by:", options=["Canton", "Operator"])
+        with col2:
+            if filter_type == "Canton":
+                selected_cantons = st.multiselect("Select Cantons:", options=sorted(full_capa['Canton'].dropna().unique().tolist()), default=['BE'])
+                selected_operators = None
+            else:
+                selected_operators = st.multiselect("Select Operators:", options=sorted(full_capa['operator'].dropna().unique().tolist()),default=['BKW Energie AG'])
+                selected_cantons = None
+                
         if chart_type == "Forecast Chart":
             #fig = create_forecast_chart(selected_model,filtered_df,pronovo_f,nowcast,stationprod, filter_type, selected_cantons, selected_operators)
             #st.plotly_chart(fig, use_container_width=True)
@@ -1069,17 +1079,7 @@ def home_page():
         
         elif chart_type =='Monthly installed capacity':
             full_capa = load_data('oracle_predictions/swiss_solar/datasets/capa_timeseries/full_dataset.parquet', 'parquet', conn)
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                filter_type = st.selectbox("Filter by:", options=["Canton", "Operator"])
-            with col2:
-                if filter_type == "Canton":
-                    selected_cantons = st.multiselect("Select Cantons:", options=sorted(full_capa['Canton'].dropna().unique().tolist()), default=['BE'])
-                    selected_operators = None
-                else:
-                    selected_operators = st.multiselect("Select Operators:", options=sorted(full_capa['operator'].dropna().unique().tolist()),default=['BKW Energie AG'])
-                    selected_cantons = None
-   
+            
             if filter_type == "Canton" and selected_cantons:
                 full_capa_ = full_capa[full_capa['Canton'].isin(selected_cantons)]
             elif filter_type == "Operator" and selected_operators:
@@ -1090,6 +1090,7 @@ def home_page():
             full_capa_ = full_capa_.groupby('year_month')['TotalPower'].sum()
 
             st.subheader('Monthly added capacity [MW]')
+
             fig = go.Figure()
             fig.add_trace(go.Bar(
                 x=full_capa_.index,
