@@ -997,12 +997,11 @@ def plot_timeseries_with_nowcast(df, time_col="timestamp", target_col="solar_now
 
     # solar_nowcast as white scatter
     fig.add_trace(go.Scatter(x=d[time_col], y=d[target_col], name=target_col,
-                             mode="markers",
-                             marker=dict(color="white", size=6,
-                                         line=dict(width=0.5, color="white"))))
+                             mode="lines", line=dict(width=2,color="white")
+                             ))
 
     fig.update_layout(template="plotly_dark", height=420,
-                      xaxis_title="Time (UTC)", yaxis_title="Value",
+                      xaxis_title="Time (CET)", yaxis_title="Value",
                       margin=dict(l=40, r=20, t=30, b=30))
     return fig
 
