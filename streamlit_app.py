@@ -1080,16 +1080,17 @@ def home_page():
             options=["Forecast Chart", 'Monthly installed capacity',"Powerplant Location Heatmap"],
             horizontal=True
         )
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            filter_type = st.selectbox("Filter by:", options=["Canton", "Operator"])
-        with col2:
-            if filter_type == "Canton":
-                selected_cantons = st.multiselect("Select Cantons:", options=sorted(powerplants['Canton'].dropna().unique().tolist()), default=['BE'])
-                selected_operators = None
-            else:
-                selected_operators = st.multiselect("Select Operators:", options=sorted(powerplants['operator'].dropna().unique().tolist()),default=['BKW Energie AG'])
-                selected_cantons = None
+        if chart_type in ['Monthly installed capacity',"Powerplant Location Heatmap"]:
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                filter_type = st.selectbox("Filter by:", options=["Canton", "Operator"])
+            with col2:
+                if filter_type == "Canton":
+                    selected_cantons = st.multiselect("Select Cantons:", options=sorted(powerplants['Canton'].dropna().unique().tolist()), default=['BE'])
+                    selected_operators = None
+                else:
+                    selected_operators = st.multiselect("Select Operators:", options=sorted(powerplants['operator'].dropna().unique().tolist()),default=['BKW Energie AG'])
+                    selected_cantons = None
                 
         if chart_type == "Forecast Chart":
             fig = plot_timeseries_with_nowcast(fcst, time_col="time", target_col="solar_nowcast")
