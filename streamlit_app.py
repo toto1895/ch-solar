@@ -1026,9 +1026,7 @@ def home_page():
         h = []
         for ddt in pd.date_range(start=dt.strftime("%Y%m%d"), freq='D', periods=5):
             try:
-                stationprod = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"),
-                                                        prefix = "icon-ch/groundstations/ch-prod",
-                                                        pattern = 'cantons')
+                stationprod = pd.read_parquet(f'gcs://icon-ch/groundstations/ch-prod/{ddt.strftime("%Y%m%d")}.parquet',engine='pyarrow')
                 h.append(stationprod)
             except:
                 stationprod = pd.DataFrame()
