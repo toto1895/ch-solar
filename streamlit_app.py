@@ -1016,7 +1016,7 @@ def home_page():
         h = []
         for ddt in pd.date_range(start=dt.strftime("%Y-%m-%d"),freq='D', periods=5):
             try:
-                nowcast = load_and_concat_parquet_files(conn, ddt.strftime("%Y%m%d"))
+                nowcast = pd.read_parquet(f'gcs://dwd-solar-sat/daily_agg_asset_level_prod/{ddt.strftime("%Y%m%d")}.parquet',engine='pyarrow')
                 h.append(nowcast)
             except:
                 nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
