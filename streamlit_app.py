@@ -1071,8 +1071,8 @@ def home_page():
 
         nowcast = nowcast.groupby(['datetime','operator']).sum().groupby(['datetime']).sum()
         nowcast.index = pd.to_datetime(nowcast.index.get_level_values(0),utc=True)
-        fcst['solar_nowcast'] = nowcast['SolarProduction']
-        fcst['solar_nowcast'] = fcst['solar_nowcast'].shift(1)
+        fcst['solar_nowcast'] = nowcast['SolarProduction'].shift(1)
+        #fcst.loc[:,'solar_nowcast'] = fcst['solar_nowcast'].shift(1)
 
 
         chart_type = st.radio(
