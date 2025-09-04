@@ -1069,14 +1069,31 @@ def home_page():
         
         elif chart_type =='Monthly installed capacity':
             full_capa = load_data('oracle_predictions/swiss_solar/datasets/capa_timeseries/full_dataset.parquet', 'parquet', conn)
-            st.dataframe(full_capa.head(5))
-            full_capa = full_capa.groupby('year_month')['TotalPower'].sum()
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                filter_type = st.selectbox("Filter by:", options=["Canton", "Operator"])
+            with col2:
+                if filter_type == "Canton":
+                    selected_cantons = st.multiselect("Select Cantons:", options=sorted(full_capa['Canton'].dropna().unique().tolist()), default=['BE'])
+                    selected_operators = None
+                else:
+                    selected_operators = st.multiselect("Select Operators:", options=sorted(full_capa['operator'].dropna().unique().tolist()),default=['BKW Energie AG'])
+                    selected_cantons = None
+   
+            if filter_type == "Canton" and selected_cantons:
+                full_capa_ = full_capa[full_capa['Canton'].isin(selected_cantons)]
+            elif filter_type == "Operator" and selected_operators:
+                full_capa_ = full_capa[full_capa['operator'].isin(selected_operators)]
+            else:
+                full_capa_ = full_capa.copy()
+            
+            full_capa_ = full_capa_.groupby('year_month')['TotalPower'].sum()
 
             st.subheader('Monthly added capacity [MW]')
             fig = go.Figure()
             fig.add_trace(go.Bar(
-                x=full_capa.index,
-                y=full_capa.values/1000,
+                x=full_capa_.index,
+                y=full_capa_.values/1000,
                 name='Added Capacity'
             ))
             st.plotly_chart(fig, use_container_width=True)
