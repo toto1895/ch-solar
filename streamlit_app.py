@@ -946,18 +946,18 @@ def add_forecast_traces(selected_model,fig, df, name, line_width=2, color=None):
 
 def create_heatmap(merged_plants):
     """Create a heatmap visualization for plant locations"""
-    merged_plants['TotalPower_x'] = round(merged_plants['TotalPower_x']/1000,1)
+    merged_plants['TotalPower'] = round(merged_plants['TotalPower']/1000,1)
 
     fig = px.density_map(
         merged_plants,
         lat="latitude",
         lon="longitude",
-        z="TotalPower_x",
+        z="TotalPower",
         hover_name="operator",
         hover_data={
             "Canton": True,
             "operator": True,
-            "TotalPower_x": True,
+            "TotalPower": True,
         },
         color_continuous_scale="Jet",
         radius=15,
@@ -1105,7 +1105,6 @@ def home_page():
                 st.metric("Total Plants", f"{len(merged_plants):,}")
             with col2:
                 st.metric("Total Capacity", f"{merged_plants['TotalPower'].sum()/1000:,.2f} MW")
-            
             fig = create_heatmap(merged_plants)
             st.plotly_chart(fig, use_container_width=True)
 
