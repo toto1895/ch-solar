@@ -1050,7 +1050,7 @@ def home_page():
             nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
 
         nowcast = nowcast.groupby(['datetime','operator']).sum()
-        nowcast.index = pd.to_datetime(nowcast.index.get_level_values(0),utc=True).tz_convert('CET')
+        nowcast.index = pd.to_datetime(nowcast.index.get_level_values(0),utc=True)
         st.dataframe(nowcast.head(5))
         fcst['solar_nowcast'] = nowcast['SolarProduction']
         st.dataframe(fcst.head(150))
