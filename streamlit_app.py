@@ -1049,8 +1049,8 @@ def home_page():
         except:
             nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
 
-        st.info('nowcast')
         nowcast = nowcast.groupby(['datetime','operator']).sum()
+        st.dataframe(nowcast.head(5))
         fcst['solar_nowcast'] = nowcast['SolarProduction']
         st.dataframe(fcst.head(150))
 
