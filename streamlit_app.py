@@ -1708,9 +1708,9 @@ def main():
                 st.rerun()
 
                 
-        if st.sidebar.button("DATA API Access"):
-            st.session_state.page = "dataApi"
-            st.rerun()
+        #if st.sidebar.button("DATA API Access"):
+        #    st.session_state.page = "dataApi"
+        #    st.rerun()
         
         # Handle admin pages first (before navigation menu)
         if st.session_state.get('page') == 'admin':
