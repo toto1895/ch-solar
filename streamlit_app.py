@@ -1027,6 +1027,7 @@ def home_page():
     conn = get_connection()
 
     fcst_file = fetch_files(conn, "icon-ch/all_models_ch_prod", r'(\d{8}\d{2})\.parquet')
+    print(fcst_file)
     fcst = load_data(fcst_file[-1], 'parquet', conn)
   
     powerplants = load_data('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv', 'csv', conn)
