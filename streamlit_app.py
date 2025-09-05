@@ -1095,7 +1095,7 @@ def home_page():
                     selected_cantons = None
                 
         if chart_type == "Forecast Chart":
-            st.info(f"Fetch : {pd.to_datetime(fcst_file[0].split('/')[-1].replace('.parquet',''),format='%Y%m%d%H',utc=True).tz_convert('CET')}")
+            st.info(f"Fetch : {pd.to_datetime(fcst_file[0].split('/')[-1].replace('.parquet',''),format='%Y%m%d%H').tz_localize('CET')}")
             fig = plot_timeseries_with_nowcast(fcst, time_col="time", target_col="solar_nowcast")
             #fig = create_forecast_chart(selected_model,filtered_df,pronovo_f,nowcast,stationprod, filter_type, selected_cantons, selected_operators)
             st.plotly_chart(fig, use_container_width=True)
