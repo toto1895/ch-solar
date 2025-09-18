@@ -655,7 +655,7 @@ def fetch_files(conn, prefix, pattern=None):
     """Fetch files from a bucket prefix with optional pattern matching"""
     try:
         conn._instance.invalidate_cache(prefix)
-        files = conn._instance.ls(prefix, max_results=100)
+        files = conn._instance.ls(prefix)
         
         if pattern:
             regex = re.compile(pattern)
