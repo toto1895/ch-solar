@@ -998,14 +998,14 @@ def plot_timeseries_with_nowcast(df, time_col="timestamp", target_col="solar_now
     # solar_nowcast as white scatter
     try:
         fig.add_trace(go.Scatter(x=d[time_col], y=d[target_col], name=target_col,
-                                mode="lines", line=dict(width=3,color="white")
+                                mode="lines", line=dict(width=2,color="white")
                                 ))
     except Exception as e:
         print(e)
 
     try:
         fig.add_trace(go.Scatter(x=d[time_col], y=d['solar_groundstations'], name='ground-stations',
-                                mode="lines", line=dict(width=3,color="white")
+                                mode="lines", line=dict(width=2,color="white")
                                 ))
     except Exception as e:
         print(e)
@@ -1126,7 +1126,6 @@ def home_page():
         if chart_type == "Forecast Chart":
             st.info(f"Fetch : {pd.to_datetime(fcst_file[0].split('/')[-1].replace('.parquet',''),format='%Y%m%d%H').tz_localize('CET')}")
             
-            st.dataframe(fcst, use_container_width=True)
             fig = plot_timeseries_with_nowcast(fcst, time_col="time", target_col="solar_nowcast")
             #fig = create_forecast_chart(selected_model,filtered_df,pronovo_f,nowcast,stationprod, filter_type, selected_cantons, selected_operators)
             st.plotly_chart(fig, use_container_width=True)
