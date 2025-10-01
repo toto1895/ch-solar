@@ -1067,10 +1067,11 @@ def home_page():
         gc.collect()
         
         h = []
-        for ddt in pd.date_range(start=dt.strftime("%Y%m%d"), freq='D', periods=2):
+        for ddt in pd.date_range(start=dt.strftime("%Y%m%d"), freq='D', periods=1):
             try:
                 #icon-ch/groundstations/ch-prod/operators_20250930.parquet
-                stationprod = read_parquet_gcs(f'gcs://icon-ch/groundstations/ch-prod/operators_{ddt.strftime("%Y%m%d")}.parquet',engine='pyarrow')
+                print(ddt)
+                stationprod = read_parquet_gcs(f'gcs://icon-ch/groundstations/ch-prod/operators_20251001.parquet')
                 print(stationprod)
                 h.append(stationprod)
             except Exception as e:
