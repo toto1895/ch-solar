@@ -1076,7 +1076,7 @@ def home_page():
             except Exception as e:
                 print(e)
                 stationprod = pd.DataFrame()
-        st.dataframe(nowcast, use_container_width=True)
+        st.dataframe(stationprod, use_container_width=True)
         
         try:
             stationprod = pd.concat(h)
