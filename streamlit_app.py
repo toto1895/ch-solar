@@ -1071,11 +1071,12 @@ def home_page():
                 stationprod = read_parquet_gcs(f'gcs://icon-ch/groundstations/ch-prod/operators_{ddt.strftime("%Y%m%d")}.parquet',engine='pyarrow')
                 print(stationprod)
                 h.append(stationprod)
-            except:
+            except Exception as e:
+                print(e)
                 stationprod = pd.DataFrame()
 
         st.dataframe(stationprod, use_container_width=True)
-        
+
         try:
             stationprod = pd.concat(h)
         except Exception as e:
