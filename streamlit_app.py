@@ -1072,7 +1072,7 @@ def home_page():
                 #icon-ch/groundstations/ch-prod/operators_20250930.parquet
                 stationprod = read_parquet_gcs(f'gcs://icon-ch/groundstations/ch-prod/operators_{ddt.strftime("%Y%m%d")}.parquet')
                 stationprod.index = pd.to_datetime(stationprod.index)
-                stationprod = stationprod.tz_localize('CET').tz_convert('UTC')
+                stationprod = stationprod.tz_localize(None).tz_localize('UTC')
                 h.append(stationprod.resample('15min').mean())
             except Exception as e:
                 print(e)
