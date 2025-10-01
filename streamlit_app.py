@@ -1051,7 +1051,7 @@ def home_page():
 
         dt = pd.to_datetime(fcst.index.min(),utc=True).tz_convert('CET')
         h = []
-        for ddt in pd.date_range(start=dt.strftime("%Y-%m-%d"),freq='D', periods=1):
+        for ddt in pd.date_range(start=dt.strftime("%Y-%m-%d"),freq='D', periods=2):
             try:
                 nowcast = read_parquet_gcs(f'gcs://dwd-solar-sat/daily_agg_asset_level_prod/{ddt.strftime("%Y%m%d")}.parquet')
                 
@@ -1062,20 +1062,21 @@ def home_page():
             nowcast = pd.concat(h)
         except Exception as e:
             nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
-        st.dataframe(nowcast, use_container_width=True)
+        
 
         gc.collect()
         
         h = []
-        for ddt in pd.date_range(start=dt.strftime("%Y%m%d"), freq='D', periods=1):
+        for ddt in pd.date_range(start=dt.strftime("%Y%m%d"), freq='D', periods=2):
             try:
+                #icon-ch/groundstations/ch-prod/operators_20250930.parquet
                 stationprod = read_parquet_gcs(f'gcs://icon-ch/groundstations/ch-prod/operators_{ddt.strftime("%Y%m%d")}.parquet',engine='pyarrow')
                 print(stationprod)
                 h.append(stationprod)
             except Exception as e:
                 print(e)
                 stationprod = pd.DataFrame()
-
+        st.dataframe(nowcast, use_container_width=True)
         
         try:
             stationprod = pd.concat(h)
