@@ -1067,17 +1067,17 @@ def home_page():
         gc.collect()
         
         h = []
-        for ddt in pd.date_range(start=dt.strftime("%Y%m%d"), freq='D', periods=1):
+        for ddt in pd.date_range(start=dt.strftime("%Y%m%d"), freq='D', periods=5):
             try:
                 #icon-ch/groundstations/ch-prod/operators_20250930.parquet
                 print(ddt)
-                stationprod = read_parquet_gcs(f'gcs://icon-ch/groundstations/ch-prod/operators_20251001.parquet')
+                stationprod = read_parquet_gcs(f'gcs://icon-ch/groundstations/ch-prod/operators_{ddt.strftime("%Y%m%d")}.parquet')
                 print(stationprod)
                 h.append(stationprod)
             except Exception as e:
                 print(e)
                 stationprod = pd.DataFrame()
-        st.dataframe(stationprod, use_container_width=True)
+        st.info(f"Ground stations data from {ddt.strftime('%Y-%m-%d')}")
         
         try:
             stationprod = pd.concat(h)
