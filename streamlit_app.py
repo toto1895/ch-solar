@@ -1078,7 +1078,6 @@ def home_page():
             stationprod = pd.DataFrame()
 
         gc.collect()
-
         st.dataframe(stationprod, use_container_width=True)
 
         try:
