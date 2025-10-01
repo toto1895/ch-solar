@@ -1073,13 +1073,16 @@ def home_page():
                 h.append(stationprod)
             except:
                 stationprod = pd.DataFrame()
+
+        st.dataframe(stationprod, use_container_width=True)
+        
         try:
             stationprod = pd.concat(h)
         except Exception as e:
             stationprod = pd.DataFrame()
 
         gc.collect()
-        st.dataframe(stationprod, use_container_width=True)
+        
 
         try:
             nowcast.drop_duplicates(['datetime','Canton','operator'], inplace=True)
