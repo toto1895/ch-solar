@@ -1005,7 +1005,7 @@ def plot_timeseries_with_nowcast(df, time_col="timestamp", target_col="solar_now
 
     try:
         fig.add_trace(go.Scatter(x=d[time_col], y=d['solar_groundstations'], name='ground-stations',
-                                mode="markers", line=dict(width=3,color="white")
+                                mode="lines", line=dict(width=3,color="white")
                                 ))
     except Exception as e:
         print(e)
