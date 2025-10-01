@@ -996,13 +996,19 @@ def plot_timeseries_with_nowcast(df, time_col="timestamp", target_col="solar_now
                                  mode="lines", line=dict(width=1)))
 
     # solar_nowcast as white scatter
-    fig.add_trace(go.Scatter(x=d[time_col], y=d[target_col], name=target_col,
-                             mode="lines", line=dict(width=3,color="white")
-                             ))
+    try:
+        fig.add_trace(go.Scatter(x=d[time_col], y=d[target_col], name=target_col,
+                                mode="lines", line=dict(width=3,color="white")
+                                ))
+    except Exception as e:
+        print(e)
 
-    fig.add_trace(go.Scatter(x=d[time_col], y=d['solar_groundstations'], name='ground-stations',
-                             mode="dotted", line=dict(width=3,color="white")
-                             ))
+    try:
+        fig.add_trace(go.Scatter(x=d[time_col], y=d['solar_groundstations'], name='ground-stations',
+                                mode="dotted", line=dict(width=3,color="white")
+                                ))
+    except Exception as e:
+        print(e)
     
 
     fig.update_layout(template="plotly_dark", height=420,
