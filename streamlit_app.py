@@ -1062,6 +1062,7 @@ def home_page():
             nowcast = pd.concat(h)
         except Exception as e:
             nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
+        st.dataframe(nowcast, use_container_width=True)
 
         gc.collect()
         
@@ -1075,8 +1076,7 @@ def home_page():
                 print(e)
                 stationprod = pd.DataFrame()
 
-        st.dataframe(stationprod, use_container_width=True)
-
+        
         try:
             stationprod = pd.concat(h)
         except Exception as e:
