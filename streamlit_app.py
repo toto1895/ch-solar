@@ -1000,6 +1000,11 @@ def plot_timeseries_with_nowcast(df, time_col="timestamp", target_col="solar_now
                              mode="lines", line=dict(width=3,color="white")
                              ))
 
+    fig.add_trace(go.Scatter(x=d[time_col], y=d['groundstations'], name='groundstations',
+                             mode="dotted", line=dict(width=3,color="white")
+                             ))
+    
+
     fig.update_layout(template="plotly_dark", height=420,
                       xaxis_title="Time (CET)", yaxis_title="Value",
                       margin=dict(l=40, r=20, t=30, b=70),
@@ -1047,14 +1052,17 @@ def home_page():
                 h.append(nowcast)
             except:
                 nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
-        nowcast = pd.concat(h)
+        try:
+            nowcast = pd.concat(h)
+        except Exception as e:
+            nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
 
         gc.collect()
         
         h = []
         for ddt in pd.date_range(start=dt.strftime("%Y%m%d"), freq='D', periods=5):
             try:
-                stationprod = read_parquet_gcs(f'gcs://icon-ch/groundstations/ch-prod/cantons_{ddt.strftime("%Y%m%d")}.parquet',engine='pyarrow')
+                stationprod = read_parquet_gcs(f'gcs://icon-ch/groundstations/ch-prod/operators_{ddt.strftime("%Y%m%d")}.parquet',engine='pyarrow')
                 h.append(stationprod)
             except:
                 stationprod = pd.DataFrame()
@@ -1068,12 +1076,21 @@ def home_page():
         try:
             nowcast.drop_duplicates(['datetime','Canton','operator'], inplace=True)
             nowcast['SolarProduction'] = 1.15*nowcast['SolarProduction']/1000.0
+
+            stationprod.drop_duplicates(['datetime','Canton','operator'], inplace=True)
+            stationprod['SolarProduction'] = 1.15*stationprod['SolarProduction']/1000.0
         except:
             nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
 
         nowcast = nowcast.groupby(['datetime','operator']).sum().groupby(['datetime']).sum()
         nowcast.index = pd.to_datetime(nowcast.index.get_level_values(0),utc=True)
+
+        stationprod = stationprod.groupby(['datetime','operator']).sum().groupby(['datetime']).sum()
+        stationprod.index = pd.to_datetime(stationprod.index.get_level_values(0),utc=True)
+        
+        
         fcst['solar_nowcast'] = nowcast['SolarProduction'].shift(1)
+        fcst['solar_groundstations'] = nowcast['solar_groundstations'].shift(1)
         #fcst.loc[:,'solar_nowcast'] = fcst['solar_nowcast'].shift(1)
 
 
