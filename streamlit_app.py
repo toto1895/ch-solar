@@ -1079,6 +1079,8 @@ def home_page():
 
         gc.collect()
 
+        st.dataframe(stationprod, use_container_width=True)
+
         try:
             nowcast.drop_duplicates(['datetime','Canton','operator'], inplace=True)
             nowcast['SolarProduction'] = 1.15*nowcast['SolarProduction']/1000.0
@@ -1095,7 +1097,7 @@ def home_page():
         
         fcst['solar_nowcast'] = nowcast['SolarProduction'].shift(1)
         fcst['solar_groundstations'] = stationprod['SolarProduction']
-        st.dataframe(stationprod, use_container_width=True)
+        
         #fcst.loc[:,'solar_nowcast'] = fcst['solar_nowcast'].shift(1)
 
 
