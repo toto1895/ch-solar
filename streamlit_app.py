@@ -1070,14 +1070,12 @@ def home_page():
         for ddt in pd.date_range(start=dt.strftime("%Y%m%d"), freq='D', periods=5):
             try:
                 #icon-ch/groundstations/ch-prod/operators_20250930.parquet
-                print(ddt)
                 stationprod = read_parquet_gcs(f'gcs://icon-ch/groundstations/ch-prod/operators_{ddt.strftime("%Y%m%d")}.parquet')
-                print(stationprod)
+                stationprod = stationprod.tz_localize('UTC').tz_convert('CET')
                 h.append(stationprod.resample('15min').mean())
             except Exception as e:
                 print(e)
                 stationprod = pd.DataFrame()
-        st.info(f"Ground stations data from {ddt.strftime('%Y-%m-%d')}")
         
         try:
             stationprod = pd.concat(h)
