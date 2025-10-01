@@ -1077,20 +1077,18 @@ def home_page():
             nowcast.drop_duplicates(['datetime','Canton','operator'], inplace=True)
             nowcast['SolarProduction'] = 1.15*nowcast['SolarProduction']/1000.0
 
-            stationprod.drop_duplicates(['datetime','Canton','operator'], inplace=True)
-            stationprod['SolarProduction'] = 1.15*stationprod['SolarProduction']/1000.0
+            #stationprod.drop_duplicates(['datetime','Canton','operator'], inplace=True)
+            stationprod['SolarProduction'] = 1.15*stationprod.sum(axis=1)
         except:
             nowcast = pd.DataFrame(columns=['datetime','Canton','operator','SolarProduction'])
 
         nowcast = nowcast.groupby(['datetime','operator']).sum().groupby(['datetime']).sum()
         nowcast.index = pd.to_datetime(nowcast.index.get_level_values(0),utc=True)
 
-        stationprod = stationprod.groupby(['datetime','operator']).sum().groupby(['datetime']).sum()
-        stationprod.index = pd.to_datetime(stationprod.index.get_level_values(0),utc=True)
         
         
         fcst['solar_nowcast'] = nowcast['SolarProduction'].shift(1)
-        fcst['solar_groundstations'] = nowcast['solar_groundstations'].shift(1)
+        fcst['solar_groundstations'] = stationprod['SolarProduction']
         #fcst.loc[:,'solar_nowcast'] = fcst['solar_nowcast'].shift(1)
 
 
