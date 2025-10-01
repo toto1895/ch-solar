@@ -1073,7 +1073,7 @@ def home_page():
                 print(ddt)
                 stationprod = read_parquet_gcs(f'gcs://icon-ch/groundstations/ch-prod/operators_{ddt.strftime("%Y%m%d")}.parquet')
                 print(stationprod)
-                h.append(stationprod)
+                h.append(stationprod.resample('15min').mean())
             except Exception as e:
                 print(e)
                 stationprod = pd.DataFrame()
