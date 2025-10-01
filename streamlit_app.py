@@ -1095,6 +1095,7 @@ def home_page():
         
         fcst['solar_nowcast'] = nowcast['SolarProduction'].shift(1)
         fcst['solar_groundstations'] = stationprod['SolarProduction']
+        st.dataframe(fcst, use_container_width=True)
         #fcst.loc[:,'solar_nowcast'] = fcst['solar_nowcast'].shift(1)
 
 
