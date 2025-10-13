@@ -1183,7 +1183,7 @@ def home_page():
                 name='Actual'))
             
             fig.update_layout(
-                title='CH net solar production (RMSE and MAE score for actual versus mid_view and swissgrid)',
+                title='NET Solar generation forecast [entsoe]',
                 template='plotly_dark',
                 yaxis_title='Production',
                 xaxis_title='Time'
