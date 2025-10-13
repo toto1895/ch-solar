@@ -1144,7 +1144,13 @@ def home_page():
                     read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{today.strftime("%Y%m%d")}.parquet'),
                     ],axis=0)
             fc.rename(columns={'solar_da':'swissgrid'},inplace=True)
-            
+
+            ch1 = pd.read_parquet(f'gs://oracle_predictions/entsoe-v2/switzerland/{(today-pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet')
+            ch2 = pd.read_parquet(f'gs://oracle_predictions/entsoe-v2/switzerland/{(today).strftime("%Y%m%d")}.parquet')
+            ch = pd.concat([ch1,ch2],axis=0)    
+
+            fc['solar']  = ch['solar']
+
             fig = go.Figure()
             # Interval (low-high)
             fig.add_trace(go.Scatter(
