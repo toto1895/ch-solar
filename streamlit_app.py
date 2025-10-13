@@ -1011,7 +1011,7 @@ def plot_timeseries_with_nowcast(df, time_col="timestamp", target_col="solar_now
         print(e)
     
 
-    fig.update_layout(template="plotly_dark", height=420,titel='BRUT Solar generation [multi-weather models]',
+    fig.update_layout(template="plotly_dark", height=420,title='BRUT Solar generation [multi-weather models]',
                       xaxis_title="Time (CET)", yaxis_title="Value",
                       margin=dict(l=40, r=20, t=30, b=70),
     legend=dict(orientation="h", x=0.5, xanchor="center",
