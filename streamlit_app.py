@@ -1134,12 +1134,15 @@ def home_page():
         
             try:
                 fc = pd.concat([
+                    read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{(today-pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet'),
                     read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{today.strftime("%Y%m%d")}.parquet'),
                     read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{(today+pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet')
                     ],axis=0)
             except:
-                fc = read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{today.strftime("%Y%m%d")}.parquet'),
-
+                fc = pd.concat([
+                    read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{(today-pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet'),
+                    read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{today.strftime("%Y%m%d")}.parquet'),
+                    ],axis=0)
             fc.rename(columns={'solar_da':'swissgrid'},inplace=True)
             
             fig = go.Figure()
