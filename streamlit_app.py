@@ -1129,6 +1129,53 @@ def home_page():
             fig = plot_timeseries_with_nowcast(fcst, time_col="time", target_col="solar_nowcast")
             #fig = create_forecast_chart(selected_model,filtered_df,pronovo_f,nowcast,stationprod, filter_type, selected_cantons, selected_operators)
             st.plotly_chart(fig, use_container_width=True)
+
+            today = pd.Timestamp.now('CET').normalize()
+        
+            try:
+                fc = pd.concat([
+                    pd.read_parquet(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{today.strftime("%Y%m%d")}.parquet'),
+                    pd.read_parquet(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{(today+pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet')
+                    ],axis=0)
+            except:
+                fc = pd.read_parquet(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{today.strftime("%Y%m%d")}.parquet'),
+
+            fc.rename(columns={'solar_da':'swissgrid'},inplace=True)
+            
+            
+            fig = go.Figure()
+            
+            # Interval (low-high)
+            fig.add_trace(go.Scatter(
+                x=fc.index, y=fc['high_view'],
+                line=dict(width=0),
+                name='High view', showlegend=False))
+            fig.add_trace(go.Scatter(
+                x=fc.index, y=fc['low_view'],
+                fill='tonexty',  # fill between low and high
+                fillcolor='rgba(0, 255, 255, 0.2)',
+                line=dict(width=0),
+                name='Low view', showlegend=False))
+            
+            # Swissgrid (red)
+            fig.add_trace(go.Scatter(
+                x=fc.index, y=fc['swissgrid'],
+                line=dict(color='red', width=2),
+                name='Swissgrid'))
+            
+            # Actual (white)
+            fig.add_trace(go.Scatter(
+                x=fc.index, y=fc['actual'],
+                line=dict(color='white', width=2),
+                name='Actual'))
+            
+            fig.update_layout(
+                title='CH net solar production (RMSE and MAE score for actual versus mid_view and swissgrid)',
+                template='plotly_dark',
+                yaxis_title='Production',
+                xaxis_title='Time'
+            )
+            st.plotly_chart(fig, use_container_width=True)
         
         elif chart_type =='Monthly installed capacity':
             full_capa = load_data('oracle_predictions/swiss_solar/datasets/capa_timeseries/full_dataset.parquet', 'parquet', conn)
