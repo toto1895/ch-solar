@@ -1160,6 +1160,11 @@ def home_page():
                 x=fc.index, y=fc['swissgrid'],
                 line=dict(color='red', width=2),
                 name='Swissgrid'))
+
+            fig.add_trace(go.Scatter(
+                x=fc.index, y=fc['mid_view'],
+                line=dict(color='green', width=2),
+                name='FastCloudML'))
             
             # Actual (white)
             fig.add_trace(go.Scatter(
