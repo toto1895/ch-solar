@@ -1188,13 +1188,11 @@ def home_page():
             )
             st.plotly_chart(fig, use_container_width=True)
 
-            from sklearn.metrics import mean_squared_error, mean_absolute_error
-            rmse_sg = np.sqrt(mean_squared_error(fc['actual'], fc['swissgrid']))
-            mae_sg  = mean_absolute_error(fc['actual'], fc['swissgrid'])
+            rmse_sg = np.sqrt(np.mean((fc['actual'] - fc['swissgrid'])**2))
+            mae_sg  = np.mean(np.abs(fc['actual'] - fc['swissgrid']))
 
-            rmse_mv = np.sqrt(mean_squared_error(fc['actual'], fc['mid_view']))
-            mae_mv  = mean_absolute_error(fc['actual'], fc['mid_view'])
-
+            rmse_mv = np.sqrt(np.mean((fc['actual'] - fc['mid_view'])**2))
+            mae_mv  = np.mean(np.abs(fc['actual'] - fc['mid_view']))
             st.info(f"Swissgrid → RMSE: {rmse_sg:.3f}, MAE: {mae_sg:.3f}")
             st.info(f"FastCloudML  → RMSE: {rmse_mv:.3f}, MAE: {mae_mv:.3f}")
         
