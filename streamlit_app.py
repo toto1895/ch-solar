@@ -1147,9 +1147,8 @@ def home_page():
 
             ch1 = pd.read_parquet(f'gs://oracle_predictions/entsoe-v2/switzerland/{(today-pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet')
             ch2 = pd.read_parquet(f'gs://oracle_predictions/entsoe-v2/switzerland/{(today).strftime("%Y%m%d")}.parquet')
-            ch = pd.concat([ch1,ch2],axis=0)    
-
-            fc['solar']  = ch['solar']
+            ch = pd.concat([ch1.dropna(subset='solar'),ch2.dropna(subset='solar')],axis=0)    
+            fc.loc[:,'solar']  = ch.loc[fc.index,'solar']
 
             fig = go.Figure()
             # Interval (low-high)
