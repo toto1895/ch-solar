@@ -1187,6 +1187,16 @@ def home_page():
                 xaxis_title='Time'
             )
             st.plotly_chart(fig, use_container_width=True)
+
+            from sklearn.metrics import mean_squared_error, mean_absolute_error
+            rmse_sg = np.sqrt(mean_squared_error(fc['actual'], fc['swissgrid']))
+            mae_sg  = mean_absolute_error(fc['actual'], fc['swissgrid'])
+
+            rmse_mv = np.sqrt(mean_squared_error(fc['actual'], fc['mid_view']))
+            mae_mv  = mean_absolute_error(fc['actual'], fc['mid_view'])
+
+            st.info(f"Swissgrid → RMSE: {rmse_sg:.3f}, MAE: {mae_sg:.3f}")
+            st.info(f"FastCloudML  → RMSE: {rmse_mv:.3f}, MAE: {mae_mv:.3f}")
         
         elif chart_type =='Monthly installed capacity':
             full_capa = load_data('oracle_predictions/swiss_solar/datasets/capa_timeseries/full_dataset.parquet', 'parquet', conn)
