@@ -1142,9 +1142,7 @@ def home_page():
 
             fc.rename(columns={'solar_da':'swissgrid'},inplace=True)
             
-            
             fig = go.Figure()
-            
             # Interval (low-high)
             fig.add_trace(go.Scatter(
                 x=fc.index, y=fc['high_view'],
