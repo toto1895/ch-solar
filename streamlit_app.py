@@ -1191,7 +1191,7 @@ def home_page():
             )
             st.plotly_chart(fig, use_container_width=True)
 
-            fc.dropna(subset='solar',inplace=True)
+            fc.dropna(subset='actual',inplace=True)
             rmse_sg = np.sqrt(np.mean((fc['actual'] - fc['swissgrid'])**2))
             mae_sg  = np.mean(np.abs(fc['actual'] - fc['swissgrid']))
 
