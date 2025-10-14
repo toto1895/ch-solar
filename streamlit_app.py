@@ -1153,6 +1153,9 @@ def home_page():
             ch = pd.concat([ch1.dropna(subset='solar'),ch2.dropna(subset='solar')],axis=0)    
             fc['actual'].update(ch['solar'])
 
+            if pd.Timestamp.now('CET').hour > 9:
+                fc=fc[fc.index>= today]
+
             fig = go.Figure()
             # Interval (low-high)
             fig.add_trace(go.Scatter(
