@@ -1184,7 +1184,7 @@ def home_page():
                 name='Actual'))
             
             fig.update_layout(
-                title='NET Solar generation forecast [entsoe]',
+                title='NET Solar generation dayhead forecast [entsoe]',
                 template='plotly_dark',
                 yaxis_title='Production',
                 xaxis_title='Time'
