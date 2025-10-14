@@ -1197,8 +1197,8 @@ def home_page():
 
             rmse_mv = np.sqrt(np.mean((fc['actual'] - fc['mid_view'])**2))
             mae_mv  = np.mean(np.abs(fc['actual'] - fc['mid_view']))
-            st.info(f"Swissgrid → RMSE: {rmse_sg:.3f}, MAE: {mae_sg:.3f}")
-            st.info(f"FastCloudML  → RMSE: {rmse_mv:.3f}, MAE: {mae_mv:.3f}")
+            st.info(f"Swissgrid → RMSE: {rmse_sg:.1f}, MAE: {mae_sg:.1f}")
+            st.info(f"FastCloudML  → RMSE: {rmse_mv:.1f}, MAE: {mae_mv:.1f}")
         
         elif chart_type =='Monthly installed capacity':
             full_capa = load_data('oracle_predictions/swiss_solar/datasets/capa_timeseries/full_dataset.parquet', 'parquet', conn)
