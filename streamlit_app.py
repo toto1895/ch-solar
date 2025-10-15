@@ -1158,6 +1158,7 @@ def home_page():
             fc['actual'].update(ch['solar'])
 
             st.dataframe(fc.style.format("{:.1f}"), use_container_width=True)
+            st.dataframe(read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{(today+pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet'))
 
             if pd.Timestamp.now('CET').hour > 9:
                 fc=fc[fc.index>= today]
