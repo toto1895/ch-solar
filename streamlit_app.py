@@ -1155,7 +1155,7 @@ def home_page():
             except:
                 ch = ch1.copy()
             ch = ch[~ch.index.duplicated(keep='last')]
-            ch.rename(columns={'solar_da':'swissgrid_da','solar_id':'swissgrid_id'},inplace=True)
+            ch.rename(columns={'solar_da':'swissgrid_da','solar_id':'swissgrid_id','solar':'actual'},inplace=True)
 
             fc['actual'].update(ch['solar'])
 
