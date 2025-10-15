@@ -1154,7 +1154,7 @@ def home_page():
                 ch = pd.concat([ch1,ch2],axis=0)    
             except:
                 ch = ch1.copy()
-            ch.drop_duplicates(subset=['time'],keep='last',inplace=True)
+            ch = ch[~ch.index.duplicated(keep='last')]
 
             fc['actual'].update(ch['solar'])
 
