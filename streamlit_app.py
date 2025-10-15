@@ -1154,7 +1154,7 @@ def home_page():
                 ch = pd.concat([ch1,ch2],axis=0)    
             except:
                 ch = ch1.copy()
-            ch = ch[~ch.index.duplicated(keep='last')]
+            #ch = ch[~ch.index.duplicated(keep='last')]
             ch.rename(columns={'solar_da':'swissgrid_da','solar_id':'swissgrid_id','solar':'actual'},inplace=True)
 
             fc['actual'].update(ch['actual'])
