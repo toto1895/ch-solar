@@ -1157,6 +1157,8 @@ def home_page():
 
             fc['actual'].update(ch['solar'])
 
+            st.dataframe(fc.style.format("{:.1f}"), use_container_width=True)
+
             if pd.Timestamp.now('CET').hour > 9:
                 fc=fc[fc.index>= today]
 
