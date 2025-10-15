@@ -1149,8 +1149,12 @@ def home_page():
             fc.rename(columns={'solar_da':'swissgrid'},inplace=True)
 
             ch1 = read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/switzerland/{(today-pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet')
-            ch2 = read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/switzerland/{(today).strftime("%Y%m%d")}.parquet')
-            ch = pd.concat([ch1.dropna(subset='solar'),ch2.dropna(subset='solar')],axis=0)    
+            try:
+                ch2 = read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/switzerland/{(today).strftime("%Y%m%d")}.parquet')
+                ch = pd.concat([ch1.dropna(subset='solar'),ch2.dropna(subset='solar')],axis=0)    
+            except:
+                ch = ch1.dropna(subset='solar').copy()
+
             fc['actual'].update(ch['solar'])
 
             if pd.Timestamp.now('CET').hour > 9:
