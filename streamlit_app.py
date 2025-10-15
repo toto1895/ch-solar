@@ -1158,6 +1158,7 @@ def home_page():
             ch.rename(columns={'solar_da':'swissgrid_da','solar_id':'swissgrid_id','solar':'actual'},inplace=True)
 
             fc['actual'].update(ch['actual'])
+            fc['swissgrid'].update(ch['swissgrid_da'])
 
 
             if pd.Timestamp.now('CET').hour > 9:
