@@ -1158,8 +1158,6 @@ def home_page():
 
             fc['actual'].update(ch['solar'])
 
-            st.dataframe(fc.style.format("{:.1f}"), use_container_width=True)
-            st.dataframe(ch)
 
             if pd.Timestamp.now('CET').hour > 9:
                 fc=fc[fc.index>= today]
@@ -1179,7 +1177,7 @@ def home_page():
             
             # Swissgrid (red)
             fig.add_trace(go.Scatter(
-                x=fc.index, y=fc['swissgrid'],
+                x=ch.index, y=ch['swissgrid'],
                 line=dict(color='red', width=2),
                 name='Swissgrid'))
 
@@ -1190,7 +1188,7 @@ def home_page():
             
             # Actual (white)
             fig.add_trace(go.Scatter(
-                x=fc.index, y=fc['actual'],
+                x=ch.index, y=ch['actual'],
                 line=dict(color='white', width=2),
                 name='Actual'))
             
