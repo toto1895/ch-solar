@@ -1151,14 +1151,14 @@ def home_page():
             ch1 = read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/switzerland/{(today-pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet')
             try:
                 ch2 = read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/switzerland/{(today).strftime("%Y%m%d")}.parquet')
-                ch = pd.concat([ch1.dropna(subset='solar'),ch2.dropna(subset='solar')],axis=0)    
+                ch = pd.concat([ch1,ch2],axis=0)    
             except:
-                ch = ch1.dropna(subset='solar').copy()
+                ch = ch1.copy()
 
             fc['actual'].update(ch['solar'])
 
             st.dataframe(fc.style.format("{:.1f}"), use_container_width=True)
-            st.dataframe(read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{(today+pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet'))
+            st.dataframe(ch)
 
             if pd.Timestamp.now('CET').hour > 9:
                 fc=fc[fc.index>= today]
