@@ -1155,6 +1155,7 @@ def home_page():
             except:
                 ch = ch1.copy()
             ch = ch[~ch.index.duplicated(keep='last')]
+            ch.rename(columns={'solar_da':'swissgrid_da','solar_id':'swissgrid_id'},inplace=True)
 
             fc['actual'].update(ch['solar'])
 
@@ -1177,9 +1178,13 @@ def home_page():
             
             # Swissgrid (red)
             fig.add_trace(go.Scatter(
-                x=ch.index, y=ch['swissgrid'],
+                x=ch.index, y=ch['swissgrid_da'],
                 line=dict(color='red', width=2),
-                name='Swissgrid'))
+                name='Swissgrid DA'))
+            fig.add_trace(go.Scatter(
+                x=ch.index, y=ch['swissgrid_id'],
+                line=dict(color='darkorange', width=2),
+                name='Swissgrid ID'))
 
             fig.add_trace(go.Scatter(
                 x=fc.index, y=fc['mid_view'],
