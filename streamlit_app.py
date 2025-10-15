@@ -1163,6 +1163,7 @@ def home_page():
 
             if pd.Timestamp.now('CET').hour > 9:
                 fc=fc[fc.index>= today]
+                ch=ch[ch.index>= today]
 
             fig = go.Figure()
             # Interval (low-high)
