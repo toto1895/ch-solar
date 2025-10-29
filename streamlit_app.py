@@ -1132,28 +1132,31 @@ def home_page():
             st.plotly_chart(fig, use_container_width=True)
 
             today = pd.Timestamp.now('CET').normalize()
-        
+
             try:
-                fc = pd.concat([
-                    #read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{(today-pd.Timedelta(days=2)).strftime("%Y%m%d")}.parquet'),
-                    read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{(today-pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet'),
-                    read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{today.strftime("%Y%m%d")}.parquet'),
-                    read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{(today+pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet')
-                    ],axis=0)
-            except:
                 try:
                     fc = pd.concat([
                         #read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{(today-pd.Timedelta(days=2)).strftime("%Y%m%d")}.parquet'),
                         read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{(today-pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet'),
                         read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{today.strftime("%Y%m%d")}.parquet'),
+                        read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{(today+pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet')
                         ],axis=0)
                 except:
-                    fc = pd.concat([
-                        #read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{(today-pd.Timedelta(days=2)).strftime("%Y%m%d")}.parquet'),
-                        read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{(today-pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet'),
-                        #read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{today.strftime("%Y%m%d")}.parquet'),
-                        ],axis=0)
-            fc.rename(columns={'solar_da':'swissgrid'},inplace=True)
+                    try:
+                        fc = pd.concat([
+                            #read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{(today-pd.Timedelta(days=2)).strftime("%Y%m%d")}.parquet'),
+                            read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{(today-pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet'),
+                            read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{today.strftime("%Y%m%d")}.parquet'),
+                            ],axis=0)
+                    except:
+                        fc = pd.concat([
+                            #read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{(today-pd.Timedelta(days=2)).strftime("%Y%m%d")}.parquet'),
+                            read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{(today-pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet'),
+                            #read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/forecast_solar/{today.strftime("%Y%m%d")}.parquet'),
+                            ],axis=0)
+                fc.rename(columns={'solar_da':'swissgrid'},inplace=True)
+            except:
+                print('Problem loading forecast FcloudML data')
 
             ch1 = read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/switzerland/{(today-pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet')
             try:
@@ -1164,8 +1167,11 @@ def home_page():
             ch = ch[~ch.index.duplicated(keep='last')]
             ch.rename(columns={'solar_da':'swissgrid_da','solar_id':'swissgrid_id','solar':'actual'},inplace=True)
 
-            fc['actual'].update(ch['actual'])
-            fc['swissgrid'].update(ch['swissgrid_da'])
+            try:
+                fc['actual'].update(ch['actual'])
+                fc['swissgrid'].update(ch['swissgrid_da'])
+            except:
+                print('Problem updating actuals')
 
 
             if pd.Timestamp.now('CET').hour > 9:
@@ -1174,16 +1180,24 @@ def home_page():
 
             fig = go.Figure()
             # Interval (low-high)
-            fig.add_trace(go.Scatter(
-                x=fc.index, y=fc['high_view'],
-                line=dict(width=0),
-                name='High view', showlegend=False))
-            fig.add_trace(go.Scatter(
-                x=fc.index, y=fc['low_view'],
-                fill='tonexty',  # fill between low and high
-                fillcolor='rgba(0, 255, 255, 0.2)',
-                line=dict(width=0),
-                name='Low view', showlegend=False))
+            try:
+                fig.add_trace(go.Scatter(
+                    x=fc.index, y=fc['high_view'],
+                    line=dict(width=0),
+                    name='High view', showlegend=False))
+                fig.add_trace(go.Scatter(
+                    x=fc.index, y=fc['low_view'],
+                    fill='tonexty',  # fill between low and high
+                    fillcolor='rgba(0, 255, 255, 0.2)',
+                    line=dict(width=0),
+                    name='Low view', showlegend=False))
+                fig.add_trace(go.Scatter(
+                    x=fc.index, y=fc['mid_view'],
+                    line=dict(color='green', width=2),
+                    name='FastCloudML'))
+            except:
+                print('Problem plotting FastCloudML interval')
+            
             
             # Swissgrid (red)
             fig.add_trace(go.Scatter(
@@ -1195,11 +1209,6 @@ def home_page():
                 line=dict(color='darkorange', width=2),
                 name='Swissgrid ID'))
 
-            fig.add_trace(go.Scatter(
-                x=fc.index, y=fc['mid_view'],
-                line=dict(color='green', width=2),
-                name='FastCloudML'))
-            
             # Actual (white)
             fig.add_trace(go.Scatter(
                 x=ch.index, y=ch['actual'],
