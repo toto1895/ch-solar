@@ -1205,6 +1205,7 @@ def home_page():
             except:
                 print('Problem plotting FastCloudML interval')
             
+            st.dataframe(fc.tail(10))
             try:
                 # Swissgrid (red)
                 fig.add_trace(go.Scatter(
