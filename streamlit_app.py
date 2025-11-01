@@ -1158,14 +1158,17 @@ def home_page():
             except:
                 print('Problem loading forecast FcloudML data')
 
-            ch1 = read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/switzerland/{(today-pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet')
             try:
-                ch2 = read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/switzerland/{(today).strftime("%Y%m%d")}.parquet')
-                ch = pd.concat([ch1,ch2],axis=0)    
+                ch1 = read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/switzerland/{(today-pd.Timedelta(days=1)).strftime("%Y%m%d")}.parquet')
+                try:
+                    ch2 = read_parquet_gcs(f'gs://oracle_predictions/entsoe-v2/switzerland/{(today).strftime("%Y%m%d")}.parquet')
+                    ch = pd.concat([ch1,ch2],axis=0)    
+                except:
+                    ch = ch1.copy()
+                ch = ch[~ch.index.duplicated(keep='last')]
+                ch.rename(columns={'solar_da':'swissgrid_da','solar_id':'swissgrid_id','solar':'actual'},inplace=True)
             except:
-                ch = ch1.copy()
-            ch = ch[~ch.index.duplicated(keep='last')]
-            ch.rename(columns={'solar_da':'swissgrid_da','solar_id':'swissgrid_id','solar':'actual'},inplace=True)
+                print('Problem loading swissgrid data')
 
             try:
                 fc['actual'].update(ch['actual'])
