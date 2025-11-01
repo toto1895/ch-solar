@@ -1205,22 +1205,38 @@ def home_page():
             except:
                 print('Problem plotting FastCloudML interval')
             
-            
-            # Swissgrid (red)
-            fig.add_trace(go.Scatter(
-                x=ch.index, y=ch['swissgrid_da'],
-                line=dict(color='red', width=2),
-                name='Swissgrid DA'))
-            fig.add_trace(go.Scatter(
-                x=ch.index, y=ch['swissgrid_id'],
-                line=dict(color='darkorange', width=2),
-                name='Swissgrid ID'))
+            try:
+                # Swissgrid (red)
+                fig.add_trace(go.Scatter(
+                    x=ch.index, y=ch['swissgrid_da'],
+                    line=dict(color='red', width=2),
+                    name='Swissgrid DA'))
+                fig.add_trace(go.Scatter(
+                    x=ch.index, y=ch['swissgrid_id'],
+                    line=dict(color='darkorange', width=2),
+                    name='Swissgrid ID'))
 
-            # Actual (white)
-            fig.add_trace(go.Scatter(
-                x=ch.index, y=ch['actual'],
-                line=dict(color='white', width=2),
-                name='Actual'))
+                # Actual (white)
+                fig.add_trace(go.Scatter(
+                    x=ch.index, y=ch['actual'],
+                    line=dict(color='white', width=2),
+                    name='Actual'))
+            except:
+                # Swissgrid (red)
+                fig.add_trace(go.Scatter(
+                    x=fc.index, y=fc['swissgrid_da'],
+                    line=dict(color='red', width=2),
+                    name='Swissgrid DA'))
+                fig.add_trace(go.Scatter(
+                    x=fc.index, y=fc['swissgrid_id'],
+                    line=dict(color='darkorange', width=2),
+                    name='Swissgrid ID'))
+
+                # Actual (white)
+                fig.add_trace(go.Scatter(
+                    x=fc.index, y=fc['actual'],
+                    line=dict(color='white', width=2),
+                    name='Actual'))
             
             fig.update_layout(
                 title='NET Solar generation dayhead forecast [entsoe]',
