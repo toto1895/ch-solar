@@ -1052,7 +1052,7 @@ def home_page():
 
         dt = pd.to_datetime(fcst.index.min(),utc=True).tz_convert('CET')
         h = []
-        for ddt in pd.date_range(start=dt.strftime("%Y-%m-%d"),freq='D', periods=2):
+        for ddt in pd.date_range(start=dt.strftime("%Y-%m-%d"),freq='D', periods=5):
             try:
                 nowcast = read_parquet_gcs(f'gcs://dwd-solar-sat/daily_agg_asset_level_prod/{ddt.strftime("%Y%m%d")}.parquet')
                 
