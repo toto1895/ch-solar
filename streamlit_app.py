@@ -1246,14 +1246,28 @@ def home_page():
             )
             st.plotly_chart(fig, use_container_width=True)
 
-            fc.dropna(subset='actual',inplace=True)
-            rmse_sg = np.sqrt(np.mean((fc['actual'] - fc['swissgrid'])**2))
-            mae_sg  = np.mean(np.abs(fc['actual'] - fc['swissgrid']))
+            try:
+                fc.dropna(subset='actual',inplace=True)
+                
+                rmse_sg = np.sqrt(np.mean((fc['actual'] - fc['swissgrid'])**2))
+                mae_sg  = np.mean(np.abs(fc['actual'] - fc['swissgrid']))
 
-            rmse_mv = np.sqrt(np.mean((fc['actual'] - fc['mid_view'])**2))
-            mae_mv  = np.mean(np.abs(fc['actual'] - fc['mid_view']))
-            st.info(f"Swissgrid → RMSE: {rmse_sg:.1f}, MAE: {mae_sg:.1f}")
-            st.info(f"FastCloudML  → RMSE: {rmse_mv:.1f}, MAE: {mae_mv:.1f}")
+                rmse_mv = np.sqrt(np.mean((fc['actual'] - fc['mid_view'])**2))
+                mae_mv  = np.mean(np.abs(fc['actual'] - fc['mid_view']))
+                st.info(f"Swissgrid → RMSE: {rmse_sg:.1f}, MAE: {mae_sg:.1f}")
+                st.info(f"FastCloudML  → RMSE: {rmse_mv:.1f}, MAE: {mae_mv:.1f}")
+            except:
+                rmse_sg = np.sqrt(np.mean((ch['actual'] - ch['swissgrid_da'])**2))
+                mae_sg  = np.mean(np.abs(ch['actual'] - ch['swissgrid_da']))
+
+                st.info(f"Swissgrid DA :  → RMSE: {rmse_sg:.1f}, MAE: {mae_sg:.1f}")
+
+                rmse_sg = np.sqrt(np.mean((ch['actual'] - ch['swissgrid_id'])**2))
+                mae_sg  = np.mean(np.abs(ch['actual'] - ch['swissgrid_id']))
+
+                st.info(f"Swissgrid ID :  → RMSE: {rmse_sg:.1f}, MAE: {mae_sg:.1f}")
+
+
         
         elif chart_type =='Monthly installed capacity':
             full_capa = load_data('oracle_predictions/swiss_solar/datasets/capa_timeseries/full_dataset.parquet', 'parquet', conn)
