@@ -1178,7 +1178,11 @@ def home_page():
 
 
             if pd.Timestamp.now('CET').hour > 9:
-                fc=fc[fc.index>= today]
+
+                try:
+                    fc=fc[fc.index>= today]
+                except:
+                    pass
 
                 try:
                     ch=ch[ch.index>= today]
