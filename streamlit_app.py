@@ -991,9 +991,16 @@ def plot_timeseries_with_nowcast(df, time_col="timestamp", target_col="solar_now
     fig = go.Figure()
 
     # other series as lines
-    for col in d.columns.drop([time_col, target_col,'solar_groundstations','FastCloud'], errors="ignore"):
-        fig.add_trace(go.Scatter(x=d[time_col], y=d[col], name=col,
-                                 mode="lines", line=dict(width=1)))
+    ignore_cols = [time_col, target_col, 'solar_groundstations', 'FastCloud']
+
+    for col in d.columns.drop(ignore_cols, errors="ignore"):
+        fig.add_trace(go.Scatter(
+            x=d[time_col],
+            y=d[col],
+            name=col,
+            mode="lines",
+            line=dict(width=1)
+        ))
 
     # solar_nowcast as white scatter
     try:
