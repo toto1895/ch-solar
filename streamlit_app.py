@@ -1051,7 +1051,7 @@ def home_page():
 
     fcst = fcst.drop(columns=['FastCloud'], errors='ignore')
 
-    fcst = fcst.dropna(subset='gfs_global')
+    fcst = fcst.loc[fcst.index>=fcst.dropna(subset='gfs_global').index.min(),:]
   
     powerplants = load_data('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv', 'csv', conn)
     
