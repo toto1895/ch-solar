@@ -1047,6 +1047,8 @@ def home_page():
 
     fcst_file = fetch_files(conn, "icon-ch/all_models_ch_prod", r'(\d{8}\d{2})\.parquet')
     fcst = read_parquet_gcs(fcst_file[0])
+
+    fcst = fcst.drop(columns=['FastCloud'], errors='ignore')
   
     powerplants = load_data('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv', 'csv', conn)
     
