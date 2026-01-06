@@ -991,7 +991,7 @@ def plot_timeseries_with_nowcast(df, time_col="timestamp", target_col="solar_now
     fig = go.Figure()
 
     # other series as lines
-    for col in d.columns.drop([time_col, target_col,'solar_groundstations'], errors="ignore"):
+    for col in d.columns.drop([time_col, target_col,'solar_groundstations','FastCloud'], errors="ignore"):
         fig.add_trace(go.Scatter(x=d[time_col], y=d[col], name=col,
                                  mode="lines", line=dict(width=1)))
 
@@ -1267,8 +1267,6 @@ def home_page():
 
                 st.info(f"Swissgrid ID :  → RMSE: {rmse_sg:.1f}, MAE: {mae_sg:.1f}")
 
-
-        
         elif chart_type =='Monthly installed capacity':
             full_capa = load_data('oracle_predictions/swiss_solar/datasets/capa_timeseries/full_dataset.parquet', 'parquet', conn)
             
