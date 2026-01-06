@@ -1050,6 +1050,8 @@ def home_page():
     fcst = read_parquet_gcs(fcst_file[0])
 
     fcst = fcst.drop(columns=['FastCloud'], errors='ignore')
+
+    fcst = fcst.dropna(subset='gfs_global')
   
     powerplants = load_data('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv', 'csv', conn)
     
