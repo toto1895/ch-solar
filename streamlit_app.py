@@ -1045,6 +1045,7 @@ def home_page():
 
     conn = get_connection()
 
+
     fcst_file = fetch_files(conn, "icon-ch/all_models_ch_prod", r'(\d{8}\d{2})\.parquet')
     fcst = read_parquet_gcs(fcst_file[0])
 
