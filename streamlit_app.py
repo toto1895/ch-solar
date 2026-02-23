@@ -1053,7 +1053,8 @@ def home_page():
 
     fcst = fcst.loc[fcst.index>=fcst.dropna(subset='gfs_global').index.min(),:]
   
-    powerplants = load_data('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv', 'csv', conn)
+    #powerplants = load_data('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv', 'csv', conn)
+    powerplants = read_parquet_gcs('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv')
     
     if powerplants is not None:
         powerplants = powerplants[['BeginningOfOperation','Canton','operator', 'longitude', 'latitude', 'TotalPower']]
