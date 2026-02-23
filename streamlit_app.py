@@ -646,9 +646,9 @@ def get_connection():
     """Get the GCS connection instance"""
     return st.connection('gcs', type=FilesConnection)
 
-def read_parquet_gcs(path: str, columns=None, ttl=600):
+def read_parquet_gcs(path: str, columns=None, ttl=600, type = 'parquet'):
     conn = get_connection()
-    return conn.read(path, input_format="parquet", ttl=ttl, columns=columns)
+    return conn.read(path, input_format=type, ttl=ttl, columns=columns)
 
 
 def fetch_files(conn, prefix, pattern=None):
@@ -1054,7 +1054,7 @@ def home_page():
     fcst = fcst.loc[fcst.index>=fcst.dropna(subset='gfs_global').index.min(),:]
   
     #powerplants = load_data('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv', 'csv', conn)
-    powerplants = read_parquet_gcs('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv')
+    powerplants = read_parquet_gcs('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv', type='csv')
     
     if powerplants is not None:
         powerplants = powerplants[['BeginningOfOperation','Canton','operator', 'longitude', 'latitude', 'TotalPower']]
