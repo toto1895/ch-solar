@@ -646,9 +646,15 @@ def get_connection():
     """Get the GCS connection instance"""
     return st.connection('gcs', type=FilesConnection)
 
-def read_parquet_gcs(path: str, columns=None, ttl=600, type = 'parquet'):
-    conn = get_connection()
-    return conn.read(path, input_format=type, ttl=ttl, columns=columns)
+def read_parquet_gcs(path, type='parquet', ttl=600, columns=None):
+    conn = st.connection('gcs', type=FilesConnection)
+    if type == 'csv':
+        if columns:
+            return conn.read(path, input_format='csv', ttl=ttl, usecols=columns)
+        else:
+            return conn.read(path, input_format='csv', ttl=ttl)
+    else:
+        return conn.read(path, input_format='parquet', ttl=ttl, columns=columns)
 
 
 def fetch_files(conn, prefix, pattern=None):
