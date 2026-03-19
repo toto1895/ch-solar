@@ -1012,14 +1012,16 @@ def plot_timeseries_with_nowcast(df, time_col="timestamp", target_col="solar_now
     # solar_nowcast as white scatter
     try:
         fig.add_trace(go.Scatter(x=d[time_col], y=d[target_col], name=target_col,
-                                mode="lines", line=dict(width=2,color="white")
+                                mode="lines", line=dict(width=2,color="white"),
+                                visible="legendonly"
                                 ))
     except Exception as e:
         print(e)
 
     try:
         fig.add_trace(go.Scatter(x=d[time_col], y=d['solar_groundstations'], name='ground-stations',
-                                mode="lines", line=dict(width=2,color="white")
+                                mode="lines", line=dict(width=2,color="white"),
+                                visible="legendonly"
                                 ))
         d['solar_hybrid'] = 0.5*d[target_col].fillna(0) + 0.5*d['solar_groundstations'].fillna(0)   
         fig.add_trace(go.Scatter(x=d[time_col], y=d[target_col], name='solar_hybrid',
