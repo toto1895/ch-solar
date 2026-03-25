@@ -1023,7 +1023,7 @@ def plot_timeseries_with_nowcast(df, time_col="timestamp", target_col="solar_now
                                 mode="lines", line=dict(width=2,color="white"),
                                 visible="legendonly"
                                 ))
-        d['solar_hybrid'] = (d[target_col] + d['solar_groundstations']) / 2
+        d['solar_hybrid'] = d[[target_col, 'solar_groundstations']].mean(axis=1)
         fig.add_trace(go.Scatter(x=d[time_col], y=d['solar_hybrid'], name='solar_hybrid',
                                 mode="lines", line=dict(width=2,color="white")
                                 ))
