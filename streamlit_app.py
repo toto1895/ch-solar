@@ -1023,8 +1023,8 @@ def plot_timeseries_with_nowcast(df, time_col="timestamp", target_col="solar_now
                                 mode="lines", line=dict(width=2,color="white"),
                                 visible="legendonly"
                                 ))
-        d['solar_hybrid'] = 0.5*d[target_col].fillna(0) + 0.5*d['solar_groundstations'].fillna(0)   
-        fig.add_trace(go.Scatter(x=d[time_col], y=d[target_col], name='solar_hybrid',
+        d['solar_hybrid'] = (d[target_col] + d['solar_groundstations']) / 2
+        fig.add_trace(go.Scatter(x=d[time_col], y=d['solar_hybrid'], name='solar_hybrid',
                                 mode="lines", line=dict(width=2,color="white")
                                 ))
         
