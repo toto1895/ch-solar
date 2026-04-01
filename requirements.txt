@@ -16,3 +16,4 @@ matplotlib
 cartopy
 Authlib
 requests
+tzdata
