@@ -1184,22 +1184,23 @@ def home_page():
                     if not delta.empty:
                         hour_labels = delta.index.strftime('%Y-%m-%d %H:%M')
                         d1_label = fcst_d1_file[0].split('/')[-1].replace('.parquet','')
+                        text_vals = delta[common_cols].round(0).fillna('').map(lambda x: '' if x == '' else str(int(x)))
                         fig_delta = go.Figure(data=go.Heatmap(
-                            z=delta[common_cols].values,
-                            x=common_cols.tolist(),
-                            y=hour_labels,
+                            z=delta[common_cols].T.values,
+                            x=hour_labels,
+                            y=common_cols.tolist(),
                             colorscale='RdBu_r',
                             zmid=0,
-                            text=delta[common_cols].round(0).fillna('').map(lambda x: '' if x == '' else str(int(x))).values,
+                            text=text_vals.T.values,
                             texttemplate="%{text}",
                             colorbar=dict(title="MW")
                         ))
                         fig_delta.update_layout(
                             title=f"Forecast Delta: Latest vs D-1 @{d1_label[-2:]}:00",
                             template="plotly_dark",
-                            height=max(400, len(delta) * 20),
-                            xaxis_title="Model",
-                            yaxis_title="Time (CET)"
+                            height=max(400, len(common_cols) * 40),
+                            xaxis_title="Time (CET)",
+                            yaxis_title="Model"
                         )
                         st.plotly_chart(fig_delta, use_container_width=True)
                 except Exception as e:
