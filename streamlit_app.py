@@ -1181,6 +1181,7 @@ def home_page():
                     today_cet = pd.Timestamp.now('Europe/Zurich').normalize()
                     end_of_tomorrow = today_cet + pd.Timedelta(days=2)
                     delta = delta[(delta.index >= today_cet) & (delta.index < end_of_tomorrow)]
+                    delta = delta.fillna(0).clip(-1000, 1000)
                     if not delta.empty:
                         hour_labels = delta.index.strftime('%Y-%m-%d %H:%M')
                         d1_label = fcst_d1_file[0].split('/')[-1].replace('.parquet','')
