@@ -1187,7 +1187,7 @@ def home_page():
                             y=hour_labels,
                             colorscale='RdBu_r',
                             zmid=0,
-                            text=delta[common_cols].round(0).astype(int).astype(str).values,
+                            text=delta[common_cols].round(0).fillna('').astype(str).str.replace('.0','',regex=False).values,
                             texttemplate="%{text}",
                             colorbar=dict(title="MW")
                         ))
