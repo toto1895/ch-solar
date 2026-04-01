@@ -1066,6 +1066,19 @@ def home_page():
     fcst = fcst.drop(columns=['FastCloud'], errors='ignore')
 
     fcst = fcst.loc[fcst.index>=fcst.dropna(subset='gfs_global').index.min(),:]
+
+    # Load D-1 forecast (yesterday at 10:00, fallback to 09:00)
+    yesterday = (pd.Timestamp.now('Europe/Zurich').normalize() - pd.Timedelta(days=1)).strftime("%Y%m%d")
+    fcst_d1_file = [f for f in fcst_file if yesterday + "10" in f]
+    if not fcst_d1_file:
+        fcst_d1_file = [f for f in fcst_file if yesterday + "09" in f]
+    fcst_d1 = None
+    if fcst_d1_file:
+        try:
+            fcst_d1 = read_parquet_gcs(fcst_d1_file[0])
+            fcst_d1 = fcst_d1.drop(columns=['FastCloud'], errors='ignore')
+        except:
+            fcst_d1 = None
   
     #powerplants = load_data('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv', 'csv', conn)
     powerplants = read_parquet_gcs('oracle_predictions/swiss_solar/datasets/solar_mstr_data.csv', type='csv')
@@ -1157,6 +1170,39 @@ def home_page():
             fig = plot_timeseries_with_nowcast(fcst, time_col="time", target_col="solar_nowcast")
             #fig = create_forecast_chart(selected_model,filtered_df,pronovo_f,nowcast,stationprod, filter_type, selected_cantons, selected_operators)
             st.plotly_chart(fig, use_container_width=True)
+
+            # D-1 Delta Heatmap
+            if fcst_d1 is not None:
+                try:
+                    common_cols = fcst.select_dtypes('number').columns.intersection(fcst_d1.select_dtypes('number').columns)
+                    delta = fcst[common_cols] - fcst_d1[common_cols]
+                    delta = delta.dropna(how='all')
+                    if not delta.empty:
+                        delta.index = pd.to_datetime(delta.index, utc=True).tz_convert('Europe/Zurich')
+                        hour_labels = delta.index.strftime('%Y-%m-%d %H:%M')
+                        d1_label = fcst_d1_file[0].split('/')[-1].replace('.parquet','')
+                        fig_delta = go.Figure(data=go.Heatmap(
+                            z=delta[common_cols].values,
+                            x=common_cols.tolist(),
+                            y=hour_labels,
+                            colorscale='RdBu_r',
+                            zmid=0,
+                            text=delta[common_cols].round(0).astype(int).astype(str).values,
+                            texttemplate="%{text}",
+                            colorbar=dict(title="MW")
+                        ))
+                        fig_delta.update_layout(
+                            title=f"Forecast Delta: Latest vs D-1 @{d1_label[-2:]}:00",
+                            template="plotly_dark",
+                            height=max(400, len(delta) * 20),
+                            xaxis_title="Model",
+                            yaxis_title="Time (CET)"
+                        )
+                        st.plotly_chart(fig_delta, use_container_width=True)
+                except Exception as e:
+                    st.warning(f"Could not generate D-1 delta heatmap: {e}")
+            else:
+                st.warning("D-1 @10:00 forecast not available")
 
             today = pd.Timestamp.now('CET').normalize()
 
