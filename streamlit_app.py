@@ -1177,8 +1177,11 @@ def home_page():
                     common_cols = fcst.select_dtypes('number').columns.intersection(fcst_d1.select_dtypes('number').columns)
                     delta = fcst[common_cols] - fcst_d1[common_cols]
                     delta = delta.dropna(how='all')
+                    delta.index = pd.to_datetime(delta.index, utc=True).tz_convert('Europe/Zurich')
+                    today_cet = pd.Timestamp.now('Europe/Zurich').normalize()
+                    end_of_tomorrow = today_cet + pd.Timedelta(days=2)
+                    delta = delta[(delta.index >= today_cet) & (delta.index < end_of_tomorrow)]
                     if not delta.empty:
-                        delta.index = pd.to_datetime(delta.index, utc=True).tz_convert('Europe/Zurich')
                         hour_labels = delta.index.strftime('%Y-%m-%d %H:%M')
                         d1_label = fcst_d1_file[0].split('/')[-1].replace('.parquet','')
                         fig_delta = go.Figure(data=go.Heatmap(
