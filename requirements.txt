@@ -14,6 +14,6 @@ h5netcdf
 xarray
 matplotlib
 cartopy
-Authlib>=1.6.0
+Authlib>=1.3.2,<1.6
 requests
 tzdata
