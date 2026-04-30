@@ -16,4 +16,5 @@ matplotlib
 cartopy
 Authlib>=1.3.2,<1.6
 requests
+httpx
 tzdata
